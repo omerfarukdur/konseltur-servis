@@ -1,6 +1,6 @@
 // Konseltur PWA Service Worker
 // Versiyon değiştirince eski cache temizlenir
-const CACHE_NAME = 'konseltur-v1';
+const CACHE_NAME = 'konseltur-v3';
 
 // Önbelleğe alınacak dosyalar
 const ASSETS = [
