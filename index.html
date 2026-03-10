@@ -591,6 +591,22 @@ nav{
     </div>
   </div>
 
+  <!-- VERİ YEDEKLEMESİ -->
+  <div style="margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;margin-bottom:4px;">💾 Veri Yedekleme</div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:14px;">Tüm öğrenci, şoför, rota ve ücret verilerini yedekleyin. Bilgisayar değişirse veya tarayıcı temizlenirse bu yedekten geri yükleyebilirsiniz.</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button onclick="exportData()" class="btn btn-brand" style="display:flex;align-items:center;gap:7px;flex:1;justify-content:center;">
+        ⬇️ Veriyi Dışa Aktar
+      </button>
+      <button onclick="document.getElementById('import-file-input').click()" class="btn btn-ghost" style="display:flex;align-items:center;gap:7px;flex:1;justify-content:center;">
+        ⬆️ Veriyi İçe Aktar
+      </button>
+      <input type="file" id="import-file-input" accept=".json" style="display:none;" onchange="importData(event)">
+    </div>
+    <div id="backup-info" style="margin-top:10px;font-size:10px;color:var(--muted2);"></div>
+  </div>
+
 </div>
 </div>
 
@@ -2876,8 +2892,78 @@ function downloadTemplate(){
 }
 
 // ═══════════════════════════════════════════════════════════════
-// HARİTA MOTORU — Leaflet.js
+// VERİ DIŞA / İÇE AKTARMA
 // ═══════════════════════════════════════════════════════════════
+function exportData(){
+  // Tüm 3 okul verisini tek dosyaya yaz
+  const allData = {};
+  ['enderun','genclik','merkez'].forEach(key => {
+    const mainRaw = localStorage.getItem('konseltur_main_v2_' + key);
+    const payRaw  = localStorage.getItem('konseltur_pay_v2_'  + key);
+    allData[key] = {
+      main: mainRaw ? JSON.parse(mainRaw) : null,
+      pay:  payRaw  ? JSON.parse(payRaw)  : null
+    };
+  });
+
+  const payload = {
+    version: 'konseltur_backup_v1',
+    exportedAt: new Date().toISOString(),
+    exportedBy: _activeSchoolKey,
+    data: allData
+  };
+
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const date = new Date().toLocaleDateString('tr-TR').replace(/\./g,'-');
+  a.href     = url;
+  a.download = `konseltur-yedek-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Bilgi güncelle
+  const info = document.getElementById('backup-info');
+  if(info) info.textContent = '✅ Yedek alındı: ' + new Date().toLocaleString('tr-TR');
+  toast('✅ Veri yedeklendi','success');
+}
+
+function importData(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  if(!confirm('⚠️ Mevcut tüm veriler silinip bu yedek yüklenecek. Emin misiniz?')) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if(payload.version !== 'konseltur_backup_v1'){
+        toast('❌ Geçersiz yedek dosyası','error'); return;
+      }
+      // Her okul verisini localStorage'a yaz
+      ['enderun','genclik','merkez'].forEach(key => {
+        const d = payload.data[key];
+        if(!d) return;
+        if(d.main) localStorage.setItem('konseltur_main_v2_' + key, JSON.stringify(d.main));
+        if(d.pay)  localStorage.setItem('konseltur_pay_v2_'  + key, JSON.stringify(d.pay));
+      });
+      // Aktif okulu yeniden yükle
+      students=[]; drivers=[]; routes=[]; nSid=1; nDid=1; payments={};
+      loadData(); loadPayments(); updateAll();
+      const info = document.getElementById('backup-info');
+      const exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR');
+      if(info) info.textContent = '✅ Yedek yüklendi · Alınma tarihi: ' + exportDate;
+      toast('✅ Veri başarıyla yüklendi','success');
+    } catch(err) {
+      toast('❌ Dosya okunamadı: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+  // Input'u sıfırla (aynı dosyayı tekrar seçebilmek için)
+  event.target.value = '';
+}
+
+
 let _map = null;
 let _mapLayers = { students: null, drivers: null, schools: null, routes: null };
 let _mapVisible = { students: true, drivers: true, schools: true, routes: true };
