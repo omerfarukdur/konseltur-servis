@@ -764,7 +764,10 @@ nav{
   <div class="main">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div><h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;">Optimize Edilmiş Rotalar</h2><div style="font-size:12px;color:var(--muted2);margin-top:2px;" id="r-lbl">–</div></div>
-      <div id="r-stats" style="display:none;font-size:11px;color:var(--muted2);"></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div id="r-stats" style="display:none;font-size:11px;color:var(--muted2);"></div>
+        <button class="btn btn-ghost btn-sm" onclick="exportRotalarPDF()" style="display:flex;align-items:center;gap:5px;">🖨️ PDF'e Aktar</button>
+      </div>
     </div>
     <div id="r-filter" class="filter-bar" style="display:none;">
       <div class="filter-chip active" onclick="filterR('all',this)">Tümü</div>
@@ -2900,8 +2903,126 @@ function downloadTemplate(){
 }
 
 // ═══════════════════════════════════════════════════════════════
-// EXCEL'E AKTARMA
+// ROTA PDF AKTARMA
 // ═══════════════════════════════════════════════════════════════
+function exportRotalarPDF(){
+  if(!routes.length){ toast('Önce rota oluşturun','error'); return; }
+
+  const today = new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
+  const schoolName = SCHOOL_NAMES[_activeSchoolKey] || '';
+  const schoolColor = SCHOOL_COLORS[_activeSchoolKey] || '#C8371A';
+
+  let rotaHTML = '';
+  routes.forEach((r, ri) => {
+    const sch = SCHOOLS[r.school];
+    const drv = r.driverId ? drivers.find(d=>d.id===r.driverId) : null;
+    const stopRows = r.students.map((s, i) => {
+      const leg = r.legs ? r.legs.filter(l=>l.type==='stop')[i] : null;
+      const time = leg ? (leg.pickupTime||'–') : '–';
+      return `<tr>
+        <td style="padding:6px 10px;font-weight:600;">${i+1}. ${s.name}</td>
+        <td style="padding:6px 10px;font-size:11px;color:#555;">${s.ilce||''} / ${s.mah||''}${s.sok?' · '+s.sok:''}</td>
+        <td style="padding:6px 10px;font-size:11px;">${s.ph||'–'}</td>
+        <td style="padding:6px 10px;font-weight:700;color:#059669;text-align:center;">${time}</td>
+      </tr>`;
+    }).join('');
+
+    rotaHTML += `
+    <div style="margin-bottom:32px;${ri>0?'page-break-before:always;':''}">
+      <!-- Rota başlık -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:${r.color}18;border-left:4px solid ${r.color};border-radius:4px;margin-bottom:12px;">
+        <div>
+          <span style="font-size:16px;font-weight:800;color:${r.color};">${r.label}</span>
+          <span style="font-size:12px;color:#666;margin-left:10px;">${sch.short}</span>
+        </div>
+        <div style="display:flex;gap:16px;font-size:12px;color:#444;">
+          <span>👥 <strong>${r.students.length}</strong> öğrenci</span>
+          <span>⏱ <strong>${Math.round(r.min)} dk</strong></span>
+          <span>📍 <strong>${r.km.toFixed(1)} km</strong></span>
+          ${drv?`<span>🧑‍✈️ <strong>${drv.name}</strong></span>`:'<span style="color:#ef4444;">Şoför atanmadı</span>'}
+        </div>
+      </div>
+      <!-- Öğrenci tablosu -->
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead>
+          <tr style="background:${r.color};color:white;">
+            <th style="padding:7px 10px;text-align:left;font-size:11px;">Ad Soyad</th>
+            <th style="padding:7px 10px;text-align:left;font-size:11px;">Adres</th>
+            <th style="padding:7px 10px;text-align:left;font-size:11px;">Telefon</th>
+            <th style="padding:7px 10px;text-align:center;font-size:11px;">Alım Saati</th>
+          </tr>
+        </thead>
+        <tbody>${stopRows}</tbody>
+      </table>
+      ${drv?`<div style="margin-top:8px;font-size:11px;color:#888;">🚌 ${drv.veh||'Araç belirtilmedi'} &nbsp;·&nbsp; 📞 ${drv.ph||'–'} &nbsp;·&nbsp; ⏰ Okul varış: ${sch.girisH}:${String(sch.girisM).padStart(2,'0')}</div>`:''}
+    </div>`;
+  });
+
+  const win = window.open('', '_blank', 'width=900,height=700');
+  win.document.write(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Rota Listesi — ${schoolName} — ${today}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI',Arial,sans-serif;font-size:13px;color:#111;background:#fff;padding:28px 32px;max-width:900px;margin:0 auto;}
+  .header{display:flex;align-items:center;justify-content:space-between;padding-bottom:14px;border-bottom:3px solid ${schoolColor};margin-bottom:20px;}
+  .header-right{text-align:right;font-size:10px;color:#666;line-height:1.8;}
+  .summary-box{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:24px;}
+  .s-cell{padding:10px;text-align:center;border-right:1px solid #e5e7eb;}
+  .s-cell:last-child{border-right:none;}
+  .s-val{font-size:20px;font-weight:800;color:${schoolColor};}
+  .s-lbl{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+  tbody tr:nth-child(even){background:#f9fafb;}
+  .footer{margin-top:28px;padding-top:12px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:10px;color:#aaa;}
+  @media print{
+    body{padding:16px 20px;}
+    @page{size:A4;margin:1.2cm;}
+  }
+</style>
+</head>
+<body>
+  <!-- ANTET -->
+  <div class="header">
+    <div>
+      <img src="https://www.konseltur.com.tr/konseltur_logo.png"
+           onerror="this.style.display='none'"
+           style="height:44px;object-fit:contain;margin-bottom:4px;display:block;">
+      <div style="font-size:10px;color:#888;">Nişantaş, Demiryolu Cad. No:48/c · Selçuklu/Konya · +90 332 235 55 30</div>
+    </div>
+    <div class="header-right">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${schoolColor};">Rota Görev Listesi</div>
+      <div><strong>Okul:</strong> ${schoolName}</div>
+      <div><strong>Tarih:</strong> ${today}</div>
+      <div><strong>Toplam Rota:</strong> ${routes.length}</div>
+    </div>
+  </div>
+
+  <!-- ÖZET -->
+  <div class="summary-box">
+    <div class="s-cell"><div class="s-val">${routes.length}</div><div class="s-lbl">Rota</div></div>
+    <div class="s-cell"><div class="s-val">${routes.reduce((a,r)=>a+r.students.length,0)}</div><div class="s-lbl">Öğrenci</div></div>
+    <div class="s-cell"><div class="s-val">${routes.filter(r=>r.driverId).length}</div><div class="s-lbl">Şoför Atandı</div></div>
+    <div class="s-cell"><div class="s-val">${Math.round(routes.reduce((a,r)=>a+r.km,0))} km</div><div class="s-lbl">Toplam Mesafe</div></div>
+  </div>
+
+  <!-- ROTALAR -->
+  ${rotaHTML}
+
+  <!-- ALT BİLGİ -->
+  <div class="footer">
+    <span>Konseltur Taşımacılık · www.konseltur.com.tr · 1999'dan bu yana</span>
+    <span>Belge No: KNS-${Date.now().toString(36).toUpperCase().slice(-6)}</span>
+  </div>
+</body>
+</html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(()=>win.print(), 500);
+}
+
+
 function exportOgrenciExcel(){
   if(!students.length){ toast('Öğrenci bulunamadı','error'); return; }
 
