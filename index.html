@@ -1341,6 +1341,17 @@ const MAHALLES={
 // ═══════════════════════════════════════════════════
 // Aktif okul: 'enderun' | 'genclik' | 'merkez'
 let _activeSchoolKey = 'enderun';
+// --- XSS Koruma: Kullanıcı girdilerini guvenli HTML'e cevir ---
+function escHtml(str){
+  if(str===null||str===undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
 function LS_MAIN(){ return 'konseltur_main_v2_' + _activeSchoolKey; }
 function LS_PAY(){  return 'konseltur_pay_v2_'  + _activeSchoolKey; }
 
@@ -1357,19 +1368,96 @@ function _parse(raw){
   catch(e){ console.error('Parse hatası:',e); return null; }
 }
 
+// ═══════════════════════════════════════════════════
+// OFFLİNE SYNC SİSTEMİ
+// Offline'da yapılan değişiklikler localStorage'da
+// "pending" olarak işaretlenir. Online olunca
+// otomatik Firebase'e gönderilir.
+// ═══════════════════════════════════════════════════
+const LS_PENDING_MAIN = () => 'konseltur_pending_main_' + _activeSchoolKey;
+const LS_PENDING_PAY  = () => 'konseltur_pending_pay_'  + _activeSchoolKey;
+
+let _isOnline = navigator.onLine;
+let _lastClearedAt = 0; // Temizleme zamanı damgası — Firebase race condition koruması
+
+function _markPendingMain(){
+  try{ localStorage.setItem(LS_PENDING_MAIN(), '1'); }catch(e){}
+}
+function _markPendingPay(){
+  try{ localStorage.setItem(LS_PENDING_PAY(), '1'); }catch(e){}
+}
+function _clearPendingMain(){
+  try{ localStorage.removeItem(LS_PENDING_MAIN()); }catch(e){}
+}
+function _clearPendingPay(){
+  try{ localStorage.removeItem(LS_PENDING_PAY()); }catch(e){}
+}
+
+function _syncPendingToFirebase(){
+  if(!window._fbReady) return;
+
+  // Main data sync
+  if(localStorage.getItem(LS_PENDING_MAIN())){
+    const raw = localStorage.getItem(LS_MAIN());
+    if(raw){
+      const d = _parse(raw);
+      if(d){
+        const path = 'konseltur/' + _activeSchoolKey + '/main';
+        window._fbSet(window._fbRef(window._fbDb, path), d)
+          .then(()=>{
+            _clearPendingMain();
+            toast('☁️ Offline değişiklikler senkronize edildi','success');
+            flashSaveDot();
+          })
+          .catch(e=>{ console.warn('Sync hatası (main):', e); });
+      }
+    }
+  }
+
+  // Payments sync
+  if(localStorage.getItem(LS_PENDING_PAY())){
+    const raw = localStorage.getItem(LS_PAY());
+    if(raw){
+      const d = _parse(raw);
+      if(d){
+        const path = 'konseltur/' + _activeSchoolKey + '/payments';
+        window._fbSet(window._fbRef(window._fbDb, path), d)
+          .then(()=>{
+            _clearPendingPay();
+            flashSaveDot();
+          })
+          .catch(e=>{ console.warn('Sync hatası (payments):', e); });
+      }
+    }
+  }
+}
+
+// Online/offline eventlerini dinle
+window.addEventListener('online', ()=>{
+  _isOnline = true;
+  toast('🌐 İnternet bağlantısı sağlandı, senkronize ediliyor...','success');
+  _syncPendingToFirebase();
+});
+window.addEventListener('offline', ()=>{
+  _isOnline = false;
+  toast('📴 Çevrimdışı mod — değişiklikler kaydediliyor','error');
+});
+
 function saveData(){
   const payload = {students, drivers, routes, nSid, nDid, savedAt: Date.now()};
   const str = _serialize(payload);
   if(!str){ toast('⚠️ Kayıt hatası!','error'); return false; }
-  // LocalStorage yedek
+  // LocalStorage her zaman kaydet
   try{ localStorage.setItem(LS_MAIN(), str); }catch(e){}
   // Firebase'e kaydet
-  if(window._fbReady){
+  if(window._fbReady && _isOnline){
     const path = 'konseltur/' + _activeSchoolKey + '/main';
     window._fbSet(window._fbRef(window._fbDb, path), payload)
-      .then(()=>{ flashSaveDot(); })
-      .catch(e=>{ console.warn('Firebase kayıt hatası:', e); flashSaveDot(); });
+      .then(()=>{ _clearPendingMain(); flashSaveDot(); })
+      .catch(e=>{ console.warn('Firebase kayıt hatası:', e); _markPendingMain(); flashSaveDot(); });
   } else {
+    // Offline: pending olarak işaretle
+    _markPendingMain();
     flashSaveDot();
   }
   return true;
@@ -1461,7 +1549,10 @@ function loadData(){
 
 function _loadFromFirebase(){
   const path = 'konseltur/' + _activeSchoolKey + '/main';
+  const reqTime = Date.now(); // Bu isteğin zamanı
   window._fbGet(window._fbRef(window._fbDb, path)).then(snapshot=>{
+    // RACE CONDITION KORUMASI: Temizleme bu istekten sonra yapıldıysa yükleme iptal
+    if(_lastClearedAt > reqTime){ console.log('Firebase yüklemesi temizleme nedeniyle iptal edildi'); return; }
     if(!snapshot.exists()) return;
     const d = snapshot.val();
     if(!d) return;
@@ -1489,7 +1580,9 @@ function loadPayments(){
 
 function _loadPaymentsFromFirebase(){
   const path = 'konseltur/' + _activeSchoolKey + '/payments';
+  const reqTime = Date.now();
   window._fbGet(window._fbRef(window._fbDb, path)).then(snapshot=>{
+    if(_lastClearedAt > reqTime){ return; } // Race condition koruması
     if(!snapshot.exists()) return;
     const d = snapshot.val();
     if(d && typeof d==='object'){
@@ -1504,9 +1597,14 @@ let _saveDotTimer=null;
 function flashSaveDot(){
   const dot = document.getElementById('save-dot');
   if(!dot) return;
-  dot.style.background = '#22c55e';
+  // FIX #5: Gercek flash efekti
+  dot.style.background = '#ffffff';
+  dot.style.transform = 'scale(1.4)';
   clearTimeout(_saveDotTimer);
-  _saveDotTimer = setTimeout(()=>{ dot.style.background='#22c55e'; }, 1500);
+  _saveDotTimer = setTimeout(()=>{
+    dot.style.background = '#22c55e';
+    dot.style.transform = 'scale(1)';
+  }, 400);
 }
 
 // ═══════════════════════════════════════════════════
@@ -1664,23 +1762,56 @@ function addBulk(n){
 }
 
 function removeStudent(id){
-  students=students.filter(s=>s.id!==id);
-  // ödeme verisini de temizle
+  const s = students.find(x=>x.id===id);
+  if(!s) return;
+  if(!confirm('«'+s.name+'» adlı öğrenci silinsin mi?')) return;
+  students = students.filter(x=>x.id!==id);
+  // Rotalardaki referancı kaldır
+  routes.forEach(r=>{ r.students=r.students.filter(x=>x.id!==id); });
+  routes = routes.filter(r=>r.students.length>0);
+  // Ödeme verisini temizle
   delete payments[id];
   _savePaymentsOnly();
   updateAll(); saveData();
+  toast('🗑 '+s.name+' silindi');
 }
 
 function clearStudents(){
-  if(!students.length)return;
-  if(!confirm('Tüm öğrenciler ve ödeme kayıtları silinsin mi?'))return;
-  students=[]; routes=[]; payments={};
-  localStorage.removeItem(LS_PAY);
-  updateAll(); saveData(); toast('🗑 Silindi');
+  if(!students.length){ toast('Silinecek ogenci yok','info'); return; }
+  showConfirm(
+    'Tüm öğrencileri sil',
+    'Tüm öğrenciler, rotalar ve ödeme kayıtları kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+    'Evet, Hepsini Sil',
+    function(){
+      _lastClearedAt = Date.now();
+      students=[]; routes=[]; payments={};
+      nSid=1; nDid=1;
+      localStorage.removeItem(LS_PAY());
+      localStorage.removeItem(LS_MAIN());
+      if(window._fbReady && _isOnline){
+        const base = 'konseltur/' + _activeSchoolKey;
+        window._fbSet(window._fbRef(window._fbDb, base+'/main'), {students:[],drivers:[],routes:[],nSid:1,nDid:1,savedAt:Date.now()})
+          .catch(e=>console.warn('clearStudents Firebase hatasi:', e));
+        window._fbSet(window._fbRef(window._fbDb, base+'/payments'), {})
+          .catch(e=>console.warn('clearStudents payments Firebase hatasi:', e));
+      }
+      updateAll(); saveData(); toast('Tum ogrenciler silindi');
+    }
+  );
 }
 
 function _savePaymentsOnly(){
-  try{ localStorage.setItem(LS_PAY, _serialize(payments)||'{}'); }catch(e){}
+  const str = _serialize(payments);
+  try{ localStorage.setItem(LS_PAY(), str||'{}'); }catch(e){}
+  // Offline'da pending işaretle
+  if(!window._fbReady || !_isOnline){
+    _markPendingPay();
+  } else if(window._fbReady){
+    const path = 'konseltur/' + _activeSchoolKey + '/payments';
+    window._fbSet(window._fbRef(window._fbDb, path), payments)
+      .then(()=>{ _clearPendingPay(); flashSaveDot(); })
+      .catch(e=>{ _markPendingPay(); console.warn('_savePaymentsOnly Firebase hatası:', e); });
+  }
 }
 
 function filterS(f,el){sF=f;document.querySelectorAll('#page-students .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderSTable();}
@@ -1691,19 +1822,19 @@ function renderSTable(){
   const _sKeyIdx={enderun:0,genclik:1,merkez:2};
   const _activeIdx=_sKeyIdx[_activeSchoolKey]??0;
   let L=students.filter(s=>s.school===_activeIdx);
-  if(sSr)L=L.filter(s=>s.name.toLowerCase().includes(sSr)||s.mah.toLowerCase().includes(sSr)||s.ilce.toLowerCase().includes(sSr));
+  if(sSr)L=L.filter(s=>s.name.toLowerCase().includes(sSr)||(s.mah||'').toLowerCase().includes(sSr)||(s.ilce||'').toLowerCase().includes(sSr));
   document.getElementById('s-lbl').textContent=L.length+' öğrenci'+(sSr?' (arama sonucu)':'');
   if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon">🔍</div>Sonuç yok.</div>';return;}
   w.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Ad Soyad</th><th>İlçe</th><th>Mahalle</th><th>Cadde/Sokak</th><th>Sınıf</th><th>Telefon</th><th></th><th></th></tr></thead><tbody>`+
   L.map((s,i)=>`<tr>
     <td style="color:var(--muted2);font-size:11px">${i+1}</td>
-    <td><div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:${SC[s.school]};flex-shrink:0"></div><span style="font-weight:600">${s.name}</span></div></td>
+    <td><div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:${SC[s.school]};flex-shrink:0"></div><span style="font-weight:600">${escHtml(s.name)}</span></div></td>
     
-    <td>${s.ilce}</td>
-    <td style="font-size:12px">${s.mah}</td>
-    <td style="color:var(--muted2);font-size:12px">${s.sok||'–'}</td>
-    <td style="color:var(--muted2);font-size:12px">${s.cls||'–'}</td>
-    <td style="color:var(--muted2);font-size:12px">${s.ph||'–'}</td>
+    <td>${escHtml(s.ilce||'–')}</td>
+    <td style="font-size:12px">${escHtml(s.mah||'–')}</td>
+    <td style="color:var(--muted2);font-size:12px">${escHtml(s.sok||'–')}</td>
+    <td style="color:var(--muted2);font-size:12px">${escHtml(s.cls||'–')}</td>
+    <td style="color:var(--muted2);font-size:12px">${escHtml(s.ph||'–')}</td>
     <td><button class="btn btn-red btn-sm" onclick="removeStudent(${s.id})">✕</button></td>
     <td><button class="btn btn-ghost btn-sm" onclick="openStudentEdit(${s.id})" style="padding:4px 8px;">✏️</button></td>
   </tr>`).join('')+`</tbody></table>`;
@@ -1754,13 +1885,31 @@ function addBulkDrivers(n){
 }
 
 function removeDriver(id){drivers=drivers.filter(d=>d.id!==id);renderDrivers();updateDash();saveData();}
-function clearDrivers(){if(!drivers.length)return;if(!confirm('Tüm şoförler silinsin mi?'))return;drivers=[];routes=[];renderDrivers();renderRoutes();updateDash();saveData();toast('🗑 Şoförler silindi');}
+function clearDrivers(){
+  if(!drivers.length){ toast('Silinecek sofor yok','info'); return; }
+  showConfirm(
+    'Tüm şoförleri sil',
+    'Tüm şoförler ve rotalar kalıcı olarak silinecek.',
+    'Evet, Hepsini Sil',
+    function(){
+      _lastClearedAt = Date.now();
+      drivers=[]; routes=[]; nDid=1;
+      if(window._fbReady && _isOnline){
+        const base = 'konseltur/' + _activeSchoolKey;
+        window._fbSet(window._fbRef(window._fbDb, base+'/main'), {students,drivers:[],routes:[],nSid,nDid:1,savedAt:Date.now()})
+          .catch(e=>console.warn('clearDrivers Firebase hatasi:', e));
+      }
+      renderDrivers(); renderRoutes(); updateDash(); saveData();
+      toast('Soforler silindi');
+    }
+  );
+}
 function searchD(q){dSr=q.toLowerCase();renderDrivers();}
 
 function renderDrivers(){
   const w=document.getElementById('d-wrap');
   let L=drivers;
-  if(dSr)L=L.filter(d=>d.name.toLowerCase().includes(dSr)||d.ilce.toLowerCase().includes(dSr));
+  if(dSr)L=L.filter(d=>d.name.toLowerCase().includes(dSr)||(d.ilce||'').toLowerCase().includes(dSr));
   document.getElementById('d-lbl').textContent=drivers.length+' şoför kayıtlı';
   if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon">🧑‍✈️</div>Henüz şoför eklenmedi.</div>';return;}
   w.innerHTML=L.map(d=>`<div class="driver-row ${d.assignedRoute!==null?'assigned':''}">
@@ -1823,6 +1972,23 @@ function updateDash(){
     _hsub.textContent=_dSch2.ilce+' · '+_dSch2.adres.split(',')[0];
   }
 }
+
+function showConfirm(title, msg, btnLabel, onOk){
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.textContent = btnLabel || 'Evet, Sil';
+  document.getElementById('confirm-modal').style.display = 'flex';
+  // Eski listener'ı temizle
+  const newBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn, btn);
+  document.getElementById('confirm-ok-btn').textContent = btnLabel || 'Evet, Sil';
+  document.getElementById('confirm-ok-btn').onclick = function(){
+    document.getElementById('confirm-modal').style.display = 'none';
+    onOk();
+  };
+}
+
 function closeModal(){document.getElementById('modal').classList.remove('open');}
 
 // ╔══════════════════════════════════════════════════════════════════╗
@@ -2152,7 +2318,7 @@ function startOptimize(){
 
 function doOpt(){
   const maxP        = parseInt(document.getElementById('r-max').value)||18;
-  const maxMin      = parseInt(document.getElementById('r-maxmin').value)||45;
+  const maxMin      = parseInt(document.getElementById('r-maxmin').value)||60; // FIX #6: default 60
   const safetyPad   = parseInt(document.getElementById('r-safety').value)||10;
   const direction   = document.getElementById('r-direction').value||'pickup';
   const fuel        = parseFloat(document.getElementById('r-fuel').value)||9;
@@ -2657,7 +2823,21 @@ function renderRoutes(){
   setTimeout(injectDriverSheetButtons, 60);
 }
 
-function clearRoutes(){routes=[];window._incompatible=[];drivers.forEach(d=>d.assignedRoute=null);renderRoutes();renderDrivers();updateDash();saveData();toast('🗑 Rotalar temizlendi');}
+function clearRoutes(){
+  showConfirm(
+    'Tüm rotaları sil',
+    'Tüm rotalar temizlenecek. Şoförler ve öğrenciler korunur.',
+    'Evet, Temizle',
+    function(){
+      _lastClearedAt = Date.now();
+      routes=[];
+      window._incompatible=[];
+      drivers.forEach(d=>d.assignedRoute=null);
+      renderRoutes(); renderDrivers(); updateDash(); saveData();
+      toast('Rotalar temizlendi');
+    }
+  );
+}
 function closeModal(){document.getElementById('modal').classList.remove('open');}
 function updateRPanel(){
   document.getElementById('rp-s').textContent=students.length;
@@ -2886,7 +3066,7 @@ function savePayments(){
       amount:amt?Number(amt.value||0):0
     };
   });
-  // LocalStorage yedek
+  // LocalStorage her zaman kaydet
   const str=_serialize(payments);
   try{ localStorage.setItem(LS_PAY(), str); }catch(e){}
   // Firebase'e kaydet
@@ -2897,12 +3077,13 @@ function savePayments(){
     toast('💾 Ödeme kaydedildi');
     flashSaveDot();
   };
-  if(window._fbReady){
+  if(window._fbReady && _isOnline){
     const path = 'konseltur/' + _activeSchoolKey + '/payments';
     window._fbSet(window._fbRef(window._fbDb, path), payments)
-      .then(_doAfterSave)
-      .catch(e=>{ console.warn('Firebase ödeme kayıt hatası:', e); _doAfterSave(); });
+      .then(()=>{ _clearPendingPay(); _doAfterSave(); })
+      .catch(e=>{ console.warn('Firebase ödeme kayıt hatası:', e); _markPendingPay(); _doAfterSave(); });
   } else {
+    _markPendingPay();
     _doAfterSave();
   }
 }
@@ -2987,7 +3168,7 @@ function showExcelPreview(skip){
   const shown=_excelRows.slice(0,6);
   document.getElementById('excel-preview-content').innerHTML=
     `<table class="tbl" style="font-size:11px;"><thead><tr><th>Ad Soyad</th><th>İlçe</th><th>Mahalle</th><th>Sokak</th></tr></thead><tbody>`+
-    shown.map(r=>`<tr><td style="font-weight:600">${r.name}</td><td><span class="s-badge sc-${r.school}">${SCHOOLS[r.school].short}</span></td><td>${r.ilce}</td><td>${r.mah}</td><td style="color:var(--muted2)">${r.sok||'–'}</td></tr>`).join('')+
+    shown.map(r=>`<tr><td style="font-weight:600">${escHtml(r.name)}</td><td>${escHtml(r.ilce)}</td><td>${escHtml(r.mah)}</td><td style="color:var(--muted2)">${escHtml(r.sok||'--')}</td></tr>`).join('')+
     `</tbody></table>`+(_excelRows.length>6?`<div style="text-align:center;padding:8px;font-size:11px;color:var(--muted2)">... ve ${_excelRows.length-6} öğrenci daha</div>`:'');
   document.getElementById('excel-stats').innerHTML=
     `<span style="color:var(--green);font-weight:700">✅ ${_excelRows.length} öğrenci hazır</span>`+
@@ -3044,8 +3225,16 @@ function saveStudentEdit(){
   s.name  = name;
   s.cls   = document.getElementById('se-cls').value.trim();
   s.ph    = document.getElementById('se-ph').value.trim();
-  s.ilce  = document.getElementById('se-ilce').value.trim() || s.ilce;
-  s.mah   = document.getElementById('se-mah').value.trim()  || s.mah;
+  const newIlce = document.getElementById('se-ilce').value.trim();
+  const newMah  = document.getElementById('se-mah').value.trim();
+  // Adres degistiyse koordinatlari yeniden hesapla (FIX #4)
+  if((newIlce && newIlce !== s.ilce) || (newMah && newMah !== s.mah)){
+    const newCoord = getCoord(newIlce || s.ilce, newMah || s.mah);
+    s.lat = newCoord.lat;
+    s.lng = newCoord.lng;
+  }
+  s.ilce  = newIlce || s.ilce;
+  s.mah   = newMah  || s.mah;
   s.sok   = document.getElementById('se-sok').value.trim();
   s.no    = document.getElementById('se-no').value.trim();
   // Rotalardaki öğrenci referansını da güncelle
@@ -3166,35 +3355,6 @@ function exportRotalarPDF(){
     @page{size:A4;margin:1.2cm;}
   }
 </style>
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDYZhw_ETJhgu31A16QwMLHFfeB0IPF8vY",
-    authDomain: "konseltur-servis-5a6b8.firebaseapp.com",
-    databaseURL: "https://konseltur-servis-5a6b8-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "konseltur-servis-5a6b8",
-    storageBucket: "konseltur-servis-5a6b8.firebasestorage.app",
-    messagingSenderId: "860137032539",
-    appId: "1:860137032539:web:79b53bb6a4c7de44a1687e"
-  };
-
-  const _fbApp = initializeApp(firebaseConfig);
-  const _fbDb  = getDatabase(_fbApp);
-
-  // Global erişim için window'a aktar
-  window._fbRef = ref;
-  window._fbSet = set;
-  window._fbGet = get;
-  window._fbOnValue = onValue;
-  window._fbDb  = _fbDb;
-  window._fbReady = true;
-
-  // Sayfa yüklenince Firebase hazır sinyali ver
-  window.dispatchEvent(new Event('firebase-ready'));
-<\/script>
 </head>
 <body>
   <!-- ANTET -->
@@ -3229,6 +3389,18 @@ function exportRotalarPDF(){
     <span>Konseltur Taşımacılık · www.konseltur.com.tr · 1999'dan bu yana</span>
     <span>Belge No: KNS-${Date.now().toString(36).toUpperCase().slice(-6)}</span>
   </div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border-radius:16px;padding:28px 24px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <h3 id="confirm-title" style="font-size:15px;font-weight:700;margin:0 0 10px;"></h3>
+    <p id="confirm-msg" style="font-size:13px;color:var(--muted2);margin:0 0 22px;"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="document.getElementById('confirm-modal').style.display='none';">İptal</button>
+      <button class="btn btn-red" id="confirm-ok-btn">Evet, Sil</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>`);
   win.document.close();
@@ -3401,6 +3573,17 @@ function importData(event){
       // Aktif okulu yeniden yükle
       students=[]; drivers=[]; routes=[]; nSid=1; nDid=1; payments={};
       loadData(); loadPayments(); updateAll();
+      // FIX #9: Geri yuklenen veriyi Firebase'e de gonder
+      if(window._fbReady && navigator.onLine){
+        ['enderun','genclik','merkez'].forEach(key => {
+          const d = payload.data[key];
+          if(!d) return;
+          const pathMain = 'konseltur/' + key + '/main';
+          const pathPay  = 'konseltur/' + key + '/payments';
+          if(d.main) window._fbSet(window._fbRef(window._fbDb, pathMain), d.main).catch(e=>console.warn('Restore Firebase main hatasi:', e));
+          if(d.pay)  window._fbSet(window._fbRef(window._fbDb, pathPay),  d.pay ).catch(e=>console.warn('Restore Firebase pay hatasi:', e));
+        });
+      }
       const info = document.getElementById('backup-info');
       const exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR');
       if(info) info.textContent = '✅ Yedek yüklendi · Alınma tarihi: ' + exportDate;
@@ -3781,35 +3964,6 @@ function printDriverSheet(){
     @page{size:A4;margin:1.2cm;}
   }
 </style>
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDYZhw_ETJhgu31A16QwMLHFfeB0IPF8vY",
-    authDomain: "konseltur-servis-5a6b8.firebaseapp.com",
-    databaseURL: "https://konseltur-servis-5a6b8-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "konseltur-servis-5a6b8",
-    storageBucket: "konseltur-servis-5a6b8.firebasestorage.app",
-    messagingSenderId: "860137032539",
-    appId: "1:860137032539:web:79b53bb6a4c7de44a1687e"
-  };
-
-  const _fbApp = initializeApp(firebaseConfig);
-  const _fbDb  = getDatabase(_fbApp);
-
-  // Global erişim için window'a aktar
-  window._fbRef = ref;
-  window._fbSet = set;
-  window._fbGet = get;
-  window._fbOnValue = onValue;
-  window._fbDb  = _fbDb;
-  window._fbReady = true;
-
-  // Sayfa yüklenince Firebase hazır sinyali ver
-  window.dispatchEvent(new Event('firebase-ready'));
-<\/script>
 </head>
 <body>
   <!-- ANTET -->
@@ -3868,7 +4022,19 @@ function printDriverSheet(){
     <span>Konseltur Taşımacılık · 1999'dan bu yana güvenli ulaşım · www.konseltur.com.tr</span>
     <span>Belge No: KNS-${Date.now().toString(36).toUpperCase().slice(-6)}</span>
   </div>
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"><\/script></body>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"><\/script>
+<!-- CONFIRM MODAL -->
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border-radius:16px;padding:28px 24px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <h3 id="confirm-title" style="font-size:15px;font-weight:700;margin:0 0 10px;"></h3>
+    <p id="confirm-msg" style="font-size:13px;color:var(--muted2);margin:0 0 22px;"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="document.getElementById('confirm-modal').style.display='none';">İptal</button>
+      <button class="btn btn-red" id="confirm-ok-btn">Evet, Sil</button>
+    </div>
+  </div>
+</div>
+</body>
 </html>`);
   win.document.close();
   win.focus();
@@ -4051,7 +4217,18 @@ function filterUcretAddList(q){
 function ucretManualAdd(sid){
   if(payments[sid]) return;
   payments[sid] = {};   // boş ödeme kaydı
-  savePayments();
+  // localStorage kaydet
+  const str = _serialize(payments);
+  try{ localStorage.setItem(LS_PAY(), str); }catch(e){}
+  // Firebase'e kaydet
+  if(window._fbReady && _isOnline){
+    const path = 'konseltur/' + _activeSchoolKey + '/payments';
+    window._fbSet(window._fbRef(window._fbDb, path), payments)
+      .then(()=>{ _clearPendingPay(); flashSaveDot(); })
+      .catch(e=>{ _markPendingPay(); console.warn('ucretManualAdd Firebase hatası:', e); });
+  } else {
+    _markPendingPay();
+  }
   filterUcretAddList('');
   renderUcretGenel(); renderUcretOgrenci();
   toast('✅ Öğrenci ücret listesine eklendi');
@@ -4063,7 +4240,18 @@ function ucretManualRemove(sid){
   
   if(!confirm(`"${s.name}" adlı öğrenciyi ücret listesinden kaldırmak istediğinizden emin misiniz?\nTüm ödeme kayıtları silinecektir.`)) return;
   delete payments[sid];
-  savePayments();
+  // localStorage kaydet
+  const str = _serialize(payments);
+  try{ localStorage.setItem(LS_PAY(), str); }catch(e){}
+  // Firebase'e kaydet
+  if(window._fbReady && _isOnline){
+    const path = 'konseltur/' + _activeSchoolKey + '/payments';
+    window._fbSet(window._fbRef(window._fbDb, path), payments)
+      .then(()=>{ _clearPendingPay(); flashSaveDot(); })
+      .catch(e=>{ _markPendingPay(); console.warn('ucretManualRemove Firebase hatası:', e); });
+  } else {
+    _markPendingPay();
+  }
   renderUcretGenel(); renderUcretOgrenci();
   toast('🗑️ Öğrenci ücret listesinden kaldırıldı');
 }
@@ -4073,5 +4261,17 @@ function closeUcretAddModal(){
 }
 
 </script>
+
+<!-- CONFIRM MODAL -->
+<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border-radius:16px;padding:28px 24px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+    <h3 id="confirm-title" style="font-size:15px;font-weight:700;margin:0 0 10px;"></h3>
+    <p id="confirm-msg" style="font-size:13px;color:var(--muted2);margin:0 0 22px;"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="document.getElementById('confirm-modal').style.display='none';">İptal</button>
+      <button class="btn btn-red" id="confirm-ok-btn">Evet, Sil</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
