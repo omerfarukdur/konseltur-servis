@@ -3428,6 +3428,7 @@ function doOpt(){
   document.getElementById('opt-btn').innerHTML = '&#x1F9E0; Rotalar&#x131; Optimize Et';
   document.getElementById('opt-btn').disabled = false;
   renderRoutes(); renderDrivers(); updateDash(); saveData();
+  if(typeof renderMapLayers==='function') renderMapLayers();
   document.getElementById('modal').classList.add('open');
 }
 
@@ -5179,6 +5180,7 @@ function executeMoveStudent(toRouteId){
   _moveFromRoute = null;
   
   renderRoutes(); updateDash(); saveData();
+  if(typeof renderMapLayers==='function') renderMapLayers();
   toast('✅ Öğrenci taşındı — rotalar güncellendi');
 }
 
@@ -5292,6 +5294,7 @@ function saveRouteEdit(){
 
   closeRouteEditModal();
   renderRoutes(); renderDrivers(); updateDash(); saveData();
+  if(typeof renderMapLayers==='function') renderMapLayers();
   toast(`✅ ${r.label} güncellendi`);
 }
 
