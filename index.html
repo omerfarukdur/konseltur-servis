@@ -359,7 +359,7 @@ nav{
 .ay-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),var(--green2));display:flex;align-items:center;padding-left:8px;transition:width .5s;}
 
 /* ─── WARN BADGE ─── */
-#nav-warn-badge{display:none;margin-left:5px;width:7px;height:7px;border-radius:50%;background:#ef4444;display:inline-block;vertical-align:middle;animation:pulse2 1.5s infinite;}
+#nav-warn-badge{display:none;margin-left:5px;width:7px;height:7px;border-radius:50%;background:#ef4444;vertical-align:middle;animation:pulse2 1.5s infinite;}
 
 /* ─── TIP BOX ─── */
 .tip-box{font-size:11px;color:var(--muted2);background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.12);border-radius:8px;padding:9px 11px;margin-bottom:9px;line-height:1.6;}
@@ -449,6 +449,7 @@ nav{
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+  // ÖNEMLİ: Firebase Console → Realtime Database → Rules ayarlayın!
   const firebaseConfig = {
     apiKey: "AIzaSyDYZhw_ETJhgu31A16QwMLHFfeB0IPF8vY",
     authDomain: "konseltur-servis-5a6b8.firebaseapp.com",
@@ -501,6 +502,66 @@ document.addEventListener('keydown', function(e){
 </script>
 </head>
 <body>
+<!-- ═══════════ ŞİFRE EKRANI ═══════════ -->
+<div id="password-screen" style="display:flex;position:fixed;inset:0;z-index:9999;background:rgba(7,10,20,.97);align-items:center;justify-content:center;backdrop-filter:blur(20px);">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:32px 28px;width:380px;max-width:90vw;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.6);">
+    <div style="font-size:48px;margin-bottom:12px;">&#x1F512;</div>
+    <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;margin-bottom:4px;">Konseltur Yönetim</div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:8px;">Devam etmek için şifre girin</div>
+    <input type="password" id="pw-input" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" maxlength="20" autofocus
+           style="width:100%;padding:12px 16px;margin:16px 0 8px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;font-family:Outfit,sans-serif;outline:none;text-align:center;letter-spacing:3px;"
+           onkeydown="if(event.key==='Enter')checkPassword()">
+    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px;">
+      <input type="checkbox" id="pw-remember" style="accent-color:var(--brand);cursor:pointer;">
+      <label for="pw-remember" style="font-size:11px;color:var(--muted2);cursor:pointer;">Bu cihazda hatırla (30 gün)</label>
+    </div>
+    <div id="pw-error" style="color:var(--red);font-size:12px;min-height:18px;margin-bottom:8px;"></div>
+    <button class="btn btn-brand btn-full" onclick="checkPassword()" style="font-size:14px;padding:12px;">Giriş Yap</button>
+    <div style="font-size:10px;color:var(--muted);margin-top:12px;">Yetkisiz erişim engellenir</div>
+  </div>
+</div>
+<script>
+const _VALID_PASSWORDS=['konseltur2024','Konseltur2024'];
+let _pwVerified=false;
+function checkPassword(){
+  var input=document.getElementById('pw-input').value.trim();
+  var errEl=document.getElementById('pw-error');
+  if(!input){errEl.textContent='Şifre boş olamaz';return;}
+  if(_VALID_PASSWORDS.includes(input)){
+    _pwVerified=true;
+    document.getElementById('password-screen').style.display='none';
+    if(document.getElementById('pw-remember').checked){
+      try{localStorage.setItem('_konseltur_auth',JSON.stringify({v:1,exp:Date.now()+30*24*60*60*1000}));}catch(e){}
+    }
+    errEl.textContent='';
+  }else{
+    errEl.textContent='Yanlış şifre';
+    document.getElementById('pw-input').value='';
+    document.getElementById('pw-input').focus();
+    var btn=document.querySelector('#password-screen button');
+    if(btn){btn.disabled=true;setTimeout(function(){btn.disabled=false;},2000);}
+  }
+}
+function doLogout(){
+  try{localStorage.removeItem('_konseltur_auth');}catch(e){}
+  _pwVerified=false;
+  document.getElementById('password-screen').style.display='flex';
+  document.getElementById('pw-input').value='';
+  var ls=document.getElementById('login-screen');
+  var ms=document.getElementById('module-select-screen');
+  var aw=document.getElementById('app-wrapper');
+  if(ls)ls.style.display='none';
+  if(ms)ms.style.display='none';
+  if(aw)aw.style.display='none';
+}
+(function(){
+  try{
+    var auth=JSON.parse(localStorage.getItem('_konseltur_auth')||'{}');
+    if(auth.v===1&&auth.exp>Date.now()){_pwVerified=true;var ps=document.getElementById('password-screen');if(ps)ps.style.display='none';}
+  }catch(e){}
+})();
+</script>
+
 
 <!-- ═══════════════════ NAV ═══════════════════ -->
 
@@ -653,6 +714,11 @@ document.addEventListener('keydown', function(e){
             style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid rgba(200,55,26,.3);background:rgba(200,55,26,.08);color:#C8371A;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .15s;"
             onmouseover="this.style.background='rgba(200,55,26,.2)'" onmouseout="this.style.background='rgba(200,55,26,.08)'">
       🏠 Ana Sayfa
+    </button>
+    <button onclick="doLogout()" title="Çıkış Yap"
+            style="display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.06);color:#f87171;font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .15s;"
+            onmouseover="this.style.background='rgba(239,68,68,.15)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">
+      🔒 Çıkış
     </button>
     <button onclick="goToModuleSelect()" title="Modül Seçimi"
             style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.45);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .15s;"
@@ -1212,7 +1278,7 @@ document.addEventListener('keydown', function(e){
 </div>
 
 <!-- Leaflet JS -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 // ─── NULL-SAFE DOM HELPERS ────────────────────────────────────────
 function _setText(id, val){
@@ -1309,7 +1375,8 @@ const LS_PENDING_MAIN = () => 'konseltur_pending_main_' + _activeSchoolKey;
 const LS_PENDING_PAY  = () => 'konseltur_pending_pay_'  + _activeSchoolKey;
 
 let _isOnline = navigator.onLine;
-let _lastClearedAt = 0; // Temizleme zamanı damgası — Firebase race condition koruması
+let _lastClearedAt = 0;
+let _lastLocalSaveAt = 0;
 
 function _markPendingMain(){
   try{ localStorage.setItem(LS_PENDING_MAIN(), '1'); }catch(e){}
@@ -1375,6 +1442,7 @@ window.addEventListener('offline', ()=>{
 });
 
 function saveData(){
+  _lastLocalSaveAt = Date.now();
   const payload = {students, drivers, routes, nSid, nDid, savedAt: Date.now()};
   const str = _serialize(payload);
   if(!str){ toast('⚠️ Kayıt hatası!','error'); return false; }
@@ -1402,6 +1470,7 @@ const SCHOOL_COLORS = {enderun:'#C8371A', genclik:'#22c55e', merkez:'#8b5cf6'};
 const SCHOOL_ICONS  = {enderun:'🎓', genclik:'📚', merkez:'🕌'};
 
 function enterSchool(key){
+  if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
   _activeSchoolKey = key;
   students=[]; drivers=[]; routes=[]; nSid=1; nDid=1; payments={};
   window._incompatible=[];
@@ -1493,7 +1562,7 @@ function _loadFromFirebase(){
   const reqTime = Date.now(); // Bu isteğin zamanı
   window._fbGet(window._fbRef(window._fbDb, path)).then(snapshot=>{
     // RACE CONDITION KORUMASI: Temizleme bu istekten sonra yapıldıysa yükleme iptal
-    if(_lastClearedAt > reqTime){ console.log('Firebase yüklemesi temizleme nedeniyle iptal edildi'); return; }
+    if(_lastClearedAt > reqTime || _lastLocalSaveAt > reqTime){ return; }
     if(!snapshot.exists()) return;
     const d = snapshot.val();
     if(!d) return;
@@ -1523,7 +1592,7 @@ function _loadPaymentsFromFirebase(){
   const path = 'konseltur/' + _activeSchoolKey + '/payments';
   const reqTime = Date.now();
   window._fbGet(window._fbRef(window._fbDb, path)).then(snapshot=>{
-    if(_lastClearedAt > reqTime){ return; } // Race condition koruması
+    if(_lastClearedAt > reqTime || _lastLocalSaveAt > reqTime){ return; }
     if(!snapshot.exists()) return;
     const d = snapshot.val();
     if(d && typeof d==='object'){
@@ -1704,7 +1773,9 @@ function getCoord(ilce,mah){
   const _M=_ensureMAHALLES();
   const d=_M[ilce]&&_M[ilce][mah];
   if(d)return{lat:d.lat,lng:d.lng};
-  return{lat:37.8713+Math.random()*.04-.02,lng:32.4846+Math.random()*.04-.02};
+  var _hS=(ilce||'')+'|'+(mah||''),_hV=0;
+  for(var _i=0;_i<_hS.length;_i++){_hV=((_hV<<5)-_hV+_hS.charCodeAt(_i))|0;}
+  return{lat:37.8713+((_hV&0xFFFF)/0xFFFF)*0.04-0.02, lng:32.4846+(((_hV>>16)&0xFFFF)/0xFFFF)*0.04-0.02};
 }
 
 // ═══════════════════════════════════════════════════
@@ -1913,8 +1984,8 @@ function renderDrivers(){
   w.innerHTML=L.map(d=>`<div class="driver-row ${d.assignedRoute!==null?'assigned':''}">
     <div style="font-size:24px">🧑‍✈️</div>
     <div style="flex:1">
-      <div style="font-size:13px;font-weight:700">${d.name}</div>
-      <div style="font-size:11px;color:var(--muted2)">📍 ${d.ilce} / ${d.mah}${d.sok?' – '+d.sok:''}</div>
+      <div style="font-size:13px;font-weight:700">${escHtml(d.name)}</div>
+      <div style="font-size:11px;color:var(--muted2)">📍 ${escHtml(d.ilce)} / ${escHtml(d.mah)}${d.sok?' – '+escHtml(d.sok):''}</div>
       <div style="font-size:11px;color:var(--muted2);margin-top:1px">${d.lic} · ${d.veh}${d.ph?' · ☎ '+d.ph:''}</div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
@@ -2350,7 +2421,7 @@ function smartCluster(studs, targetSize, maxSize, sch, maxMin){
   // Süre+kapasite uygunsa birleştir; yoksa en yakın rotaya ekle (süre aşsa da).
   const MERGE_MIN = 14;
   let changed=true, guard=0;
-  while(changed && guard++<500){
+  while(changed && guard++<100){
     changed=false;
     work.sort((a,b)=>a.length-b.length);
     for(let i=0; i<work.length; i++){
@@ -2715,7 +2786,7 @@ function doOpt(){
 
   // ── Cross-route swap optimizasyonu ──────────────────────────
   // Büyük veri setlerinde (>150 öğrenci) cross-route atlanır — O(R²×S²×TSP) crash yapar
-  const _crossMaxStudents = 150;
+  const _crossMaxStudents = 120;
   if(routes.length >= 2 && students.length <= _crossMaxStudents){
     const _crossIter = students.length <= 80 ? 25 : students.length <= 120 ? 10 : 4;
     const crossOpt = crossRouteOptimize(routes, null, _crossIter);
@@ -2755,7 +2826,7 @@ function doOpt(){
   const _rsS = document.getElementById('rs-section'); if(_rsS) _rsS.style.display = '';
   const _rsSB = document.getElementById('rs-section-body'); if(_rsSB) _rsSB.style.display = 'flex';
   const _mSub = document.getElementById('m-sub');
-  if(_mSub) _mSub.textContent =
+  if(_mSub) _mSub.innerHTML =
     routes.length+' rota &middot; ort. '+avgStudents+' &ouml;&ouml;&#x11F;renci/servis &middot; ort. '+
     Math.round(avgMin)+' dk'+(nInc?' &middot; '+nInc+' uyumsuz':'');
 
@@ -3742,7 +3813,7 @@ function printUcretGenel(){
     </tr>`;
   }).join('');
 
-  const ayHeaders = AYLAR.map(ay=>`<th style="font-size:9px;padding:2px 4px;">${ay.slice(0,3)}</th>`).join('');
+  const ayHeaders = AYLAR.map(ay=>`<th style="font-size:9px;padding:2px 4px;">${ay.label.slice(0,3)}</th>`).join('');
 
   const printWin = window.open('','_blank','width=900,height=700');
   printWin.document.write(`<!DOCTYPE html><html><head>
@@ -4298,7 +4369,7 @@ function printDriverSheet(){
            onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
       <div style="display:none;font-size:22px;font-weight:900;color:#C8371A;letter-spacing:2px;">KONSELTUR</div>
       <div style="font-size:10px;color:#888;margin-top:4px;">Nişantaş, Demiryolu Cad. No:48/c · Selçuklu/Konya</div>
-      <div style="font-size:10px;color:#888;">Tel: +90 332 235 55 30 · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="caa3a4aca58aa1a5a4b9afa6bebfb8e4a9a5a7">[email&#160;protected]</a></div>
+      <div style="font-size:10px;color:#888;">Tel: +90 332 235 55 30 · info@konseltur.com.tr</div>
     </div>
     <div class="header-right">
       <div class="header-title">Servis Görev Çizelgesi</div>
@@ -4347,21 +4418,8 @@ function printDriverSheet(){
     <span>Konseltur Taşımacılık · 1999'dan bu yana güvenli ulaşım · www.konseltur.com.tr</span>
     <span>Belge No: KNS-${Date.now().toString(36).toUpperCase().slice(-6)}</span>
   </div>
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"><\/script>
-<!-- CONFIRM MODAL -->
-<div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:28px 24px;max-width:380px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,.6);animation:modalIn .2s ease;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <div style="width:36px;height:36px;border-radius:10px;background:rgba(239,68,68,.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🗑</div>
-      <h3 id="confirm-title" style="font-size:15px;font-weight:700;margin:0;"></h3>
-    </div>
-    <p id="confirm-msg" style="font-size:13px;color:var(--muted2);margin:0 0 22px;line-height:1.6;"></p>
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button class="btn btn-ghost" onclick="document.getElementById('confirm-modal').style.display='none';">İptal</button>
-      <button class="btn btn-red" id="confirm-ok-btn">Evet, Sil</button>
-    </div>
-  </div>
-</div>
+
+
 </body>
 </html>`);
   win.document.close();
