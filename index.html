@@ -767,12 +767,29 @@ function _checkRemembered(){
       </div>
     </div>
 
-    <!-- ALT BİLGİ -->
-    <div style="margin-top:32px;text-align:center;animation:loginFadeUp .65s .3s ease both;opacity:0;">
-      <div style="font-size:11px;color:rgba(255,255,255,.22);letter-spacing:.4px;">
-        Demiryolu Cad. No:48/c · Nişantaş, Selçuklu / Konya · +90 332 235 55 30
+    <!-- YEDEKLEME BUTONLARI -->
+    <div style="margin-top:28px;animation:loginFadeUp .65s .3s ease both;opacity:0;">
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;">
+        <button onclick="exportDataFromLogin()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.08);color:#34d399;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;backdrop-filter:blur(8px);"
+          onmouseover="this.style.background='rgba(52,211,153,.18)';this.style.transform='translateY(-2px)'"
+          onmouseout="this.style.background='rgba(52,211,153,.08)';this.style.transform='none'">
+          💾 Tüm Sistemi Yedekle
+        </button>
+        <button onclick="document.getElementById('login-import-input').click()" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:12px;border:1px solid rgba(59,130,246,.3);background:rgba(59,130,246,.08);color:#60a5fa;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;backdrop-filter:blur(8px);"
+          onmouseover="this.style.background='rgba(59,130,246,.18)';this.style.transform='translateY(-2px)'"
+          onmouseout="this.style.background='rgba(59,130,246,.08)';this.style.transform='none'">
+          📂 Yedekten Geri Yükle
+        </button>
+        <input type="file" id="login-import-input" accept=".json" style="display:none;" onchange="importDataFromLogin(event)">
       </div>
-      <div style="margin-top:5px;font-size:10px;color:rgba(255,255,255,.12);">© 2024 Konseltur Taşımacılık</div>
+      <div id="login-backup-info" style="font-size:10px;color:rgba(255,255,255,.3);min-height:16px;text-align:center;margin-bottom:12px;"></div>
+      <!-- ALT BİLGİ -->
+      <div style="text-align:center;">
+        <div style="font-size:11px;color:rgba(255,255,255,.22);letter-spacing:.4px;">
+          Demiryolu Cad. No:48/c · Nişantaş, Selçuklu / Konya · +90 332 235 55 30
+        </div>
+        <div style="margin-top:5px;font-size:10px;color:rgba(255,255,255,.12);">© 2024 Konseltur Taşımacılık</div>
+      </div>
     </div>
 
   </div>
@@ -1433,6 +1450,92 @@ function _checkRemembered(){
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 
+
+
+// ═══ LOGIN EKRANI YEDEKLEME ═══
+function exportDataFromLogin(){
+  // Tüm 3 okul verisini tek dosyaya yaz (okul seçimine gerek yok)
+  var allData = {};
+  ['enderun','genclik','merkez'].forEach(function(key){
+    var mainRaw = localStorage.getItem('konseltur_main_v2_' + key);
+    var payRaw  = localStorage.getItem('konseltur_pay_v2_'  + key);
+    allData[key] = {
+      main: mainRaw ? JSON.parse(mainRaw) : null,
+      pay:  payRaw  ? JSON.parse(payRaw)  : null
+    };
+  });
+
+  // Veri var mı kontrol
+  var hasData = Object.values(allData).some(function(d){ return d.main || d.pay; });
+  if(!hasData){
+    var info = document.getElementById('login-backup-info');
+    if(info) info.innerHTML = '<span style="color:#f87171;">⚠️ Yedeklenecek veri bulunamadı</span>';
+    return;
+  }
+
+  var payload = {
+    version: 'konseltur_backup_v1',
+    exportedAt: new Date().toISOString(),
+    exportedBy: 'login-screen',
+    data: allData
+  };
+
+  var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  var date = new Date().toLocaleDateString('tr-TR').replace(/\./g,'-');
+  a.href     = url;
+  a.download = 'konseltur-yedek-' + date + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+
+  var info = document.getElementById('login-backup-info');
+  if(info) info.innerHTML = '<span style="color:#34d399;">✅ Yedek alındı — ' + new Date().toLocaleString('tr-TR') + '</span>';
+  playSuccessSound();
+}
+
+function importDataFromLogin(event){
+  var file = event.target.files[0];
+  if(!file) return;
+  if(!confirm('⚠️ Mevcut tüm veriler silinip bu yedek yüklenecek. Emin misiniz?')) return;
+
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var payload = JSON.parse(e.target.result);
+      if(payload.version !== 'konseltur_backup_v1'){
+        var info = document.getElementById('login-backup-info');
+        if(info) info.innerHTML = '<span style="color:#f87171;">❌ Geçersiz yedek dosyası</span>';
+        return;
+      }
+      // Her okul verisini localStorage'a yaz
+      ['enderun','genclik','merkez'].forEach(function(key){
+        var d = payload.data[key];
+        if(!d) return;
+        if(d.main) localStorage.setItem('konseltur_main_v2_' + key, JSON.stringify(d.main));
+        if(d.pay)  localStorage.setItem('konseltur_pay_v2_'  + key, JSON.stringify(d.pay));
+      });
+      // Firebase'e de gönder
+      if(window._fbReady && navigator.onLine){
+        ['enderun','genclik','merkez'].forEach(function(key){
+          var d = payload.data[key];
+          if(!d) return;
+          if(d.main) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/main'), d.main).catch(function(){});
+          if(d.pay)  window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/payments'), d.pay).catch(function(){});
+        });
+      }
+      var exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR');
+      var info = document.getElementById('login-backup-info');
+      if(info) info.innerHTML = '<span style="color:#34d399;">✅ Yedek yüklendi — Tarih: ' + exportDate + '</span>';
+      playSuccessSound();
+    }catch(err){
+      var info = document.getElementById('login-backup-info');
+      if(info) info.innerHTML = '<span style="color:#f87171;">❌ Dosya okunamadı: ' + err.message + '</span>';
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
 
 // ═══ BİLDİRİM SESİ ═══
 var _soundEnabled = true;
