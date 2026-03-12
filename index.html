@@ -436,11 +436,76 @@ nav{
   50%{opacity:.4;box-shadow:0 0 3px rgba(200,55,26,.3);}
 }
 /* Dar telefon: kartlar daha kompakt */
+
+/* ═══ MOBİL İYİLEŞTİRMELER — Büyük butonlar ve yazılar ═══ */
+@media (max-width: 768px) {
+  .btn{padding:12px 18px;font-size:14px;border-radius:10px;}
+  .btn-sm{padding:8px 14px;font-size:12px;border-radius:8px;}
+  .field input,.field select{padding:11px 14px;font-size:14px;border-radius:10px;}
+  .field label{font-size:11px;margin-bottom:5px;}
+  .search-wrap input{padding:11px 14px 11px 38px;font-size:14px;}
+  .tbl td{padding:10px 8px;font-size:12px;}
+  .tbl th{padding:9px 8px;font-size:10px;}
+  .route-header{padding:14px 16px;gap:12px;}
+  .route-name{font-size:14px;}
+  .route-meta{font-size:12px;}
+  .driver-row{padding:12px 14px;gap:12px;}
+  .pay-row{padding:13px 14px;gap:12px;}
+  .pay-avatar{width:42px;height:42px;font-size:15px;}
+  .dash-card-val{font-size:26px;}
+  .dash-card-label{font-size:10px;}
+  .nav-tab{padding:8px 12px;font-size:12px;gap:5px;}
+  .nav-pill-count{padding:5px 14px;font-size:12px;}
+  .filter-chip{padding:7px 14px;font-size:12px;}
+  .sidebar-title{font-size:16px;}
+  .sec-label{font-size:10px;}
+  .stop-name{font-size:13px;}
+  .stop-addr{font-size:11px;}
+  .modal h2{font-size:18px;}
+  .health-pill{font-size:11px;padding:4px 10px;}
+  #sf-ilce,#sf-sinif,#sf-rota{padding:8px 12px;font-size:12px;}
+}
+@media (max-width: 480px) {
+  .btn{padding:13px 16px;font-size:14px;}
+  .hero{padding:20px 18px;}
+  .hero h2,.hero [style*="font-size:22px"],.hero [style*="font-size:24px"]{font-size:18px!important;}
+  .page-inner{padding:16px 14px 30px;}
+  .modal{padding:18px 14px;border-radius:14px;}
+}
+
 @media(max-width:380px){
   #login-screen > div[style*="max-width:560px"] > div[style*="grid-template-columns"]{
     gap:8px!important;
   }
 }
+
+/* ═══ LIGHT TEMA ═══ */
+body.light{--bg:#f0f2f5;--surface:#ffffff;--card:#ffffff;--card2:#f5f6f8;--border:#e2e5ea;--border2:#d0d4db;--text:#111827;--muted:#94a3b8;--muted2:#64748b;}
+body.light::before{opacity:0;}
+body.light nav{background:rgba(255,255,255,.95);border-bottom-color:#e2e5ea;}
+body.light .sidebar{background:#fff;border-right-color:#e2e5ea;}
+body.light .modal{background:#fff;border-color:#d0d4db;}
+body.light .dash-card,body.light .card,body.light .route-card,body.light .driver-row,body.light .pay-row{background:#fff;border-color:#e2e5ea;}
+body.light .tbl th{background:#f5f6f8;}
+body.light .hero{background:linear-gradient(135deg,#fff,rgba(200,55,26,.04));}
+body.light .hero.ucret{background:linear-gradient(135deg,#fff,rgba(34,197,94,.04));}
+body.light .field input,body.light .field select{background:#f5f6f8;border-color:#e2e5ea;color:#111827;}
+body.light .btn-ghost{background:#f5f6f8;border-color:#e2e5ea;color:#111827;}
+body.light .search-wrap input{background:#f5f6f8;border-color:#e2e5ea;color:#111827;}
+body.light .filter-chip{background:#f5f6f8;border-color:#e2e5ea;color:#64748b;}
+body.light .month-cell{background:#f5f6f8;border-color:#e2e5ea;}
+body.light .month-cell.paid{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.3);}
+body.light .nav-tab{color:#64748b;}
+body.light .nav-tab.active{background:#f5f6f8;color:#111827;border-color:#d0d4db;}
+body.light .nav-pill-count{background:rgba(200,55,26,.08);border-color:rgba(200,55,26,.15);}
+body.light .leaflet-tile-pane{filter:none;}
+body.light #leaflet-map{background:#e8eaed;}
+body.light .ay-bar-wrap,body.light .stat-box{background:#fff;}
+body.light .outlier-panel{background:rgba(239,68,68,.03);}
+body.light .tip-box{background:rgba(59,130,246,.04);}
+body.light .pay-avatar{border-color:#e2e5ea;}
+body.light #password-screen{background:rgba(240,242,245,.97);}
+body.light #login-screen{background:#f0f2f5;}
 </style>
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
@@ -530,6 +595,15 @@ function checkPassword(){
   if(_VALID_PASSWORDS.includes(input)){
     _pwVerified=true;
     document.getElementById('password-screen').style.display='none';
+    // Login ekranının görünür olduğundan emin ol
+    var _ls=document.getElementById('login-screen');
+    if(_ls && _ls.style.display==='none') _ls.style.display='flex';
+    // Hiçbir ekran görünmüyorsa login'i göster
+    var _ms=document.getElementById('module-select-screen');
+    var _aw=document.getElementById('app-wrapper');
+    if((!_ls||_ls.style.display==='none')&&(!_ms||_ms.style.display==='none')&&(!_aw||_aw.style.display==='none')){
+      if(_ls) _ls.style.display='flex';
+    }
     if(document.getElementById('pw-remember').checked){
       try{localStorage.setItem('_konseltur_auth',JSON.stringify({v:1,exp:Date.now()+30*24*60*60*1000}));}catch(e){}
     }
@@ -545,21 +619,36 @@ function checkPassword(){
 function doLogout(){
   try{localStorage.removeItem('_konseltur_auth');}catch(e){}
   _pwVerified=false;
-  document.getElementById('password-screen').style.display='flex';
-  document.getElementById('pw-input').value='';
+  // Tüm ekranları gizle, sadece şifre ekranını göster
   var ls=document.getElementById('login-screen');
   var ms=document.getElementById('module-select-screen');
   var aw=document.getElementById('app-wrapper');
   if(ls)ls.style.display='none';
   if(ms)ms.style.display='none';
   if(aw)aw.style.display='none';
+  document.getElementById('password-screen').style.display='flex';
+  document.getElementById('pw-input').value='';
+  document.getElementById('pw-input').focus();
 }
-(function(){
+// Hatırla kontrolü: DOM hazır olunca çalıştır
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',_checkRemembered);
+}else{
+  _checkRemembered();
+}
+function _checkRemembered(){
   try{
     var auth=JSON.parse(localStorage.getItem('_konseltur_auth')||'{}');
-    if(auth.v===1&&auth.exp>Date.now()){_pwVerified=true;var ps=document.getElementById('password-screen');if(ps)ps.style.display='none';}
+    if(auth.v===1&&auth.exp>Date.now()){
+      _pwVerified=true;
+      var ps=document.getElementById('password-screen');
+      if(ps)ps.style.display='none';
+      // Login ekranının görünür olduğundan emin ol
+      var ls=document.getElementById('login-screen');
+      if(ls)ls.style.display='flex';
+    }
   }catch(e){}
-})();
+}
 </script>
 
 
@@ -754,8 +843,14 @@ function doLogout(){
     </div>
   </div>
 
-  <!-- SAĞ: Kayıt + Sayaç -->
+  <!-- SAĞ: Tema + Kayıt + Sayaç -->
   <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+    <button onclick="toggleSound()" id="sound-btn" title="Bildirim Sesi"
+      style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;"
+      onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">🔔</button>
+    <button onclick="toggleTheme()" id="theme-btn" title="Tema Değiştir"
+      style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;"
+      onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">🌙</button>
     <div class="save-dot" id="save-dot" title="Firebase'e bağlanıyor..."></div>
     <span class="nav-pill-count" id="pill-count">0 öğrenci</span>
   </div>
@@ -860,7 +955,20 @@ function doLogout(){
       </div>
     </div>
 
-    <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" placeholder="🔍 Öğrenci adı veya mahalle ara..." oninput="searchS(this.value)"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+      <select id="sf-ilce" onchange="filterStudentsAdvanced()" style="padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:11px;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;">
+        <option value="">Tüm İlçeler</option><option>Selçuklu</option><option>Meram</option><option>Karatay</option>
+      </select>
+      <select id="sf-sinif" onchange="filterStudentsAdvanced()" style="padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:11px;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;">
+        <option value="">Tüm Sınıflar</option>
+        <option>5. Sınıf</option><option>6. Sınıf</option><option>7. Sınıf</option><option>8. Sınıf</option>
+        <option>9. Sınıf</option><option>10. Sınıf</option><option>11. Sınıf</option><option>12. Sınıf</option>
+      </select>
+      <select id="sf-rota" onchange="filterStudentsAdvanced()" style="padding:6px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:11px;font-family:'Outfit',sans-serif;outline:none;cursor:pointer;">
+        <option value="">Tüm Rotalar</option><option value="none">Rotasız</option>
+      </select>
+    </div>
+    <div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="sf-search" placeholder="🔍 Öğrenci adı, mahalle veya sokak ara..." oninput="searchS(this.value)"></div>
     <div id="s-wrap"><div class="empty"><div class="empty-icon">🎒</div><div>Henüz öğrenci eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden öğrenci ekleyin veya Excel'den toplu yükleyin</div></div></div>
   </div>
 </div>
@@ -1237,6 +1345,22 @@ function doLogout(){
   </div>
 </div>
 
+
+<!-- Öğrenci Taşıma Modal -->
+<div class="modal-bg" id="move-student-modal">
+  <div class="modal" style="width:480px;">
+    <h2>↔️ Öğrenciyi Taşı</h2>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:6px;">
+      <strong id="ms-student-name">—</strong> öğrencisini <strong id="ms-from-route">—</strong> rotasından taşıyorsunuz
+    </div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:14px;">Hedef rotayı seçin:</div>
+    <div id="ms-route-list" style="max-height:360px;overflow-y:auto;"></div>
+    <div style="margin-top:14px;">
+      <button class="btn btn-ghost btn-full" onclick="closeMoveModal()">İptal</button>
+    </div>
+  </div>
+</div>
+
 <!-- Öğrenci Düzenleme Modal -->
 <div class="modal-bg" id="student-edit-modal">
   <div class="modal" style="width:520px;">
@@ -1280,6 +1404,70 @@ function doLogout(){
 <!-- Leaflet JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
+
+
+// ═══ BİLDİRİM SESİ ═══
+var _soundEnabled = true;
+function playNotifSound(){
+  if(!_soundEnabled) return;
+  try{
+    var ctx = new (window.AudioContext||window.webkitAudioContext)();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  }catch(e){}
+}
+function playSuccessSound(){
+  if(!_soundEnabled) return;
+  try{
+    var ctx = new (window.AudioContext||window.webkitAudioContext)();
+    // İki nota: C5 + E5 (başarı sesi)
+    [523, 659].forEach(function(freq, i){
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq; osc.type = 'sine';
+      gain.gain.setValueAtTime(0.12, ctx.currentTime + i*0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.12 + 0.25);
+      osc.start(ctx.currentTime + i*0.12);
+      osc.stop(ctx.currentTime + i*0.12 + 0.25);
+    });
+  }catch(e){}
+}
+function toggleSound(){
+  _soundEnabled = !_soundEnabled;
+  var btn = document.getElementById('sound-btn');
+  if(btn) btn.textContent = _soundEnabled ? '🔔' : '🔕';
+  try{ localStorage.setItem('_konseltur_sound', _soundEnabled?'1':'0'); }catch(e){}
+}
+(function(){
+  try{ if(localStorage.getItem('_konseltur_sound')==='0'){ _soundEnabled=false; setTimeout(function(){ var b=document.getElementById('sound-btn'); if(b) b.textContent='🔕'; },100); } }catch(e){}
+})();
+
+// ═══ TEMA SİSTEMİ ═══
+function toggleTheme(){
+  var isLight = document.body.classList.toggle('light');
+  var btn = document.getElementById('theme-btn');
+  if(btn) btn.textContent = isLight ? '☀️' : '🌙';
+  try{ localStorage.setItem('_konseltur_theme', isLight ? 'light' : 'dark'); }catch(e){}
+}
+// Kayıtlı temayı yükle
+(function(){
+  try{
+    if(localStorage.getItem('_konseltur_theme')==='light'){
+      document.body.classList.add('light');
+      setTimeout(function(){ var b=document.getElementById('theme-btn'); if(b) b.textContent='☀️'; },100);
+    }
+  }catch(e){}
+})();
+
 // ─── NULL-SAFE DOM HELPERS ────────────────────────────────────────
 function _setText(id, val){
   const el = document.getElementById(id);
@@ -1881,6 +2069,29 @@ function _savePaymentsOnly(){
   }
 }
 
+
+// ═══ GELİŞMİŞ ÖĞRENCİ FİLTRE ═══
+var _sfIlce='', _sfSinif='', _sfRota='';
+function filterStudentsAdvanced(){
+  var il=document.getElementById('sf-ilce');
+  var si=document.getElementById('sf-sinif');
+  var ro=document.getElementById('sf-rota');
+  _sfIlce=il?il.value:'';
+  _sfSinif=si?si.value:'';
+  _sfRota=ro?ro.value:'';
+  renderSTable();
+}
+// Rota filtre dropdown'ını güncelle
+function _updateRotaFilterDropdown(){
+  var sel=document.getElementById('sf-rota');
+  if(!sel) return;
+  var cur=sel.value;
+  var html='<option value="">Tüm Rotalar</option><option value="none">Rotasız</option>';
+  routes.forEach(function(r){ html+='<option value="'+r.id+'">'+escHtml(r.label)+'</option>'; });
+  sel.innerHTML=html;
+  sel.value=cur;
+}
+
 function filterS(f,el){sF=f;document.querySelectorAll('#page-students .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderSTable();}
 function searchS(q){sSr=q.toLowerCase();renderSTable();}
 
@@ -1890,7 +2101,12 @@ function renderSTable(){
   const _sKeyIdx={enderun:0,genclik:1,merkez:2};
   const _activeIdx=_sKeyIdx[_activeSchoolKey]??0;
   let L=students.filter(s=>s.school===_activeIdx);
-  if(sSr)L=L.filter(s=>s.name.toLowerCase().includes(sSr)||(s.mah||'').toLowerCase().includes(sSr)||(s.ilce||'').toLowerCase().includes(sSr));
+  // Gelişmiş filtreler
+  if(_sfIlce) L=L.filter(s=>s.ilce===_sfIlce);
+  if(_sfSinif) L=L.filter(s=>s.cls===_sfSinif);
+  if(_sfRota==='none') L=L.filter(s=>!routes.some(r=>r.students.some(rs=>rs.id===s.id)));
+  else if(_sfRota) L=L.filter(s=>routes.find(r=>r.id===+_sfRota)?.students.some(rs=>rs.id===s.id));
+  if(sSr)L=L.filter(s=>s.name.toLowerCase().includes(sSr)||(s.mah||'').toLowerCase().includes(sSr)||(s.ilce||'').toLowerCase().includes(sSr)||(s.sok||'').toLowerCase().includes(sSr));
   _setText('s-lbl', L.length+' öğrenci'+(sSr?' (arama sonucu)':''));
   if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon">🔍</div>Sonuç yok.</div>';return;}
   w.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Ad Soyad</th><th>İlçe</th><th>Mahalle</th><th>Cadde/Sokak</th><th>Sınıf</th><th>Telefon</th><th></th><th></th></tr></thead><tbody>`+
@@ -2005,6 +2221,8 @@ function updateAll(){renderSTable();renderDrivers();renderRoutes();updateDash();
 function toast(m,t='success'){
   const e=document.getElementById('toast');
   e.textContent=m;e.className='toast '+t+' show';
+  if(t==='success') playSuccessSound();
+  else if(t==='error') playNotifSound();
   setTimeout(()=>e.classList.remove('show'),2800);
 }
 function updateRPanel(){
@@ -3086,6 +3304,7 @@ function renderRoutes(){
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:10px;color:var(--amber)">+${leg.legKm.toFixed(1)} km</div>
           <div style="font-size:10px;color:${timeColor};font-weight:${r.overTime&&leg.cumMin>maxMin?700:400}">${fmtMin(leg.cumMin)}</div>
+          ${routes.length>1?'<button onclick="event.stopPropagation();startMoveStudent('+s.id+','+r.id+')" style="font-size:9px;padding:3px 7px;border-radius:4px;border:1px solid rgba(59,130,246,.25);background:rgba(59,130,246,.08);color:#60a5fa;cursor:pointer;font-family:Outfit,sans-serif;margin-top:2px;">↔ Taşı</button>':''}
         </div>
       </div>`;
     }).join('');
@@ -3141,6 +3360,7 @@ function renderRoutes(){
   if(badge) badge.style.display=totalProblems>0?'inline-block':'none';
   // Şoför mobil butonlarını inject et
   setTimeout(injectDriverSheetButtons, 60);
+  _updateRotaFilterDropdown();
 }
 
 function clearRoutes(){
@@ -4457,6 +4677,118 @@ function injectDriverSheetButtons(){
 let _remRouteId   = null;   // düzenlenen rota id
 let _remStudents  = [];     // mevcut çalışma kopyası
 let _remSchool    = null;
+
+
+// ═══ ÖĞRENCİ ROTA ARASI TAŞIMA ═══
+var _moveStudentId = null;
+var _moveFromRoute = null;
+
+function startMoveStudent(studentId, fromRouteId){
+  _moveStudentId = studentId;
+  _moveFromRoute = fromRouteId;
+  var s = students.find(function(x){ return x.id===studentId; });
+  if(!s) return;
+  
+  // Hedef rota seçim modalını göster
+  var modal = document.getElementById('move-student-modal');
+  if(!modal) return;
+  
+  document.getElementById('ms-student-name').textContent = s.name;
+  document.getElementById('ms-from-route').textContent = routes.find(function(r){return r.id===fromRouteId;})?.label || '?';
+  
+  // Hedef rotaları listele
+  var list = document.getElementById('ms-route-list');
+  var html = '';
+  routes.forEach(function(r){
+    if(r.id === fromRouteId) return;
+    if(r.school !== s.school) return;
+    var dur = r.min;
+    var count = r.students.length;
+    var full = count >= 20;
+    var clickAttr = full ? '' : 'onclick="executeMoveStudent('+r.id+')"';
+    html += '<div '+clickAttr+' style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;cursor:'+(full?'not-allowed':'pointer')+';opacity:'+(full?'0.5':'1')+';transition:all .15s;">';
+    html += '<div style="width:12px;height:12px;border-radius:3px;background:'+r.color+';flex-shrink:0;"></div>';
+    html += '<div style="flex:1;"><div style="font-size:13px;font-weight:600;">'+escHtml(r.label)+'</div>';
+    html += '<div style="font-size:11px;color:var(--muted2);">'+count+'/20 öğrenci · ~'+Math.round(dur)+' dk</div></div>';
+    if(full) html += '<span style="font-size:10px;color:var(--red);">Dolu</span>';
+    else html += '<span style="font-size:18px;">→</span>';
+    html += '</div>';
+    html += '<div style="font-size:11px;color:var(--muted2);">'+count+'/20 öğrenci · ~'+Math.round(dur)+' dk</div></div>';
+    if(full) html += '<span style="font-size:10px;color:var(--red);">Dolu</span>';
+    else html += '<span style="font-size:18px;">→</span>';
+    html += '</div>';
+  });
+  if(!html) html = '<div style="color:var(--muted2);padding:20px;text-align:center;">Taşınabilecek başka rota yok</div>';
+  list.innerHTML = html;
+  
+  modal.classList.add('open');
+}
+
+function executeMoveStudent(toRouteId){
+  if(!_moveStudentId || _moveFromRoute===null) return;
+  
+  var fromRoute = routes.find(function(r){return r.id===_moveFromRoute;});
+  var toRoute = routes.find(function(r){return r.id===toRouteId;});
+  if(!fromRoute || !toRoute) return;
+  
+  // Öğrenciyi kaynak rotadan çıkar
+  var student = fromRoute.students.find(function(s){return s.id===_moveStudentId;});
+  if(!student) return;
+  
+  fromRoute.students = fromRoute.students.filter(function(s){return s.id!==_moveStudentId;});
+  toRoute.students.push(student);
+  
+  // Her iki rotayı yeniden optimize et
+  var sch1 = SCHOOLS[fromRoute.school];
+  var sch2 = SCHOOLS[toRoute.school];
+  var safetyP = parseInt(document.getElementById('r-safety').value)||10;
+  var direction = fromRoute.direction||'pickup';
+  
+  // Kaynak rota
+  if(fromRoute.students.length > 0){
+    var ordered1 = tsp(fromRoute.students, sch1, null);
+    fromRoute.students = ordered1;
+    var dur1 = estimateRouteDuration(ordered1, sch1, null);
+    var sched1 = getSchedule(sch1, direction, safetyP, dur1);
+    var start1 = direction==='pickup' ? sched1.firstPickup : sched1.departureTarget;
+    var drv1 = fromRoute.driverId ? drivers.find(function(d){return d.id===fromRoute.driverId;})||null : null;
+    var m1 = calcRouteMetrics(drv1, ordered1, sch1, start1);
+    fromRoute.legs=m1.legs; fromRoute.km=m1.totalKm; fromRoute.min=m1.totalMin;
+    fromRoute.schedule=sched1; fromRoute.pickupStartMin=start1;
+    fromRoute.overTime=m1.totalMin>fromRoute.hardTimeLimit;
+    fromRoute.mapsUrl=buildGoogleMapsUrl(drv1, ordered1, sch1);
+  }
+  
+  // Hedef rota
+  var ordered2 = tsp(toRoute.students, sch2, null);
+  toRoute.students = ordered2;
+  var dur2 = estimateRouteDuration(ordered2, sch2, null);
+  var sched2 = getSchedule(sch2, direction, safetyP, dur2);
+  var start2 = direction==='pickup' ? sched2.firstPickup : sched2.departureTarget;
+  var drv2 = toRoute.driverId ? drivers.find(function(d){return d.id===toRoute.driverId;})||null : null;
+  var m2 = calcRouteMetrics(drv2, ordered2, sch2, start2);
+  toRoute.legs=m2.legs; toRoute.km=m2.totalKm; toRoute.min=m2.totalMin;
+  toRoute.schedule=sched2; toRoute.pickupStartMin=start2;
+  toRoute.overTime=m2.totalMin>toRoute.hardTimeLimit;
+  toRoute.mapsUrl=buildGoogleMapsUrl(drv2, ordered2, sch2);
+  
+  // Boş kalan rotayı sil
+  routes = routes.filter(function(r){return r.students.length>0;});
+  
+  // Kapat ve güncelle
+  document.getElementById('move-student-modal').classList.remove('open');
+  _moveStudentId = null;
+  _moveFromRoute = null;
+  
+  renderRoutes(); updateDash(); saveData();
+  toast('✅ Öğrenci taşındı — rotalar güncellendi');
+}
+
+function closeMoveModal(){
+  document.getElementById('move-student-modal').classList.remove('open');
+  _moveStudentId = null;
+  _moveFromRoute = null;
+}
 
 function openRouteEdit(rid){
   const r = routes.find(x=>x.id===rid);
