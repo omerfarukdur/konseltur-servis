@@ -861,6 +861,11 @@ function _checkRemembered(){
           Demiryolu Cad. No:48/c · Nişantaş, Selçuklu / Konya · +90 332 235 55 30
         </div>
         <div style="margin-top:5px;font-size:10px;color:rgba(255,255,255,.12);">© 2024 Konseltur Taşımacılık</div>
+        <button onclick="forceUpdate()" style="margin-top:10px;padding:6px 14px;border-radius:8px;border:1px solid rgba(59,130,246,.2);background:rgba(59,130,246,.06);color:rgba(96,165,250,.6);font-size:10px;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;"
+          onmouseover="this.style.color='#60a5fa';this.style.borderColor='rgba(59,130,246,.4)'"
+          onmouseout="this.style.color='rgba(96,165,250,.6)';this.style.borderColor='rgba(59,130,246,.2)'">
+          🔄 Sistemi Güncelle
+        </button>
       </div>
     </div>
 
@@ -964,6 +969,9 @@ function _checkRemembered(){
 
   <!-- SAĞ: Tema + Kayıt + Sayaç -->
   <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+    <button onclick="forceUpdate()" id="update-btn" title="Sistemi Güncelle"
+      style="width:32px;height:32px;border-radius:8px;border:1px solid rgba(59,130,246,.3);background:rgba(59,130,246,.08);color:#60a5fa;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;"
+      onmouseover="this.style.background='rgba(59,130,246,.2)'" onmouseout="this.style.background='rgba(59,130,246,.08)'">🔄</button>
     <button onclick="toggleSound()" id="sound-btn" title="Bildirim Sesi"
       style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;"
       onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">🔔</button>
@@ -1641,6 +1649,34 @@ function toggleSound(){
 (function(){
   try{ if(localStorage.getItem('_konseltur_sound')==='0'){ _soundEnabled=false; setTimeout(function(){ var b=document.getElementById('sound-btn'); if(b) b.textContent='🔕'; },100); } }catch(e){}
 })();
+
+
+// ═══ SİSTEM GÜNCELLEME ═══
+function forceUpdate(){
+  var btn = document.getElementById('update-btn');
+  if(btn){ btn.textContent = '⏳'; btn.style.pointerEvents = 'none'; }
+  
+  // 1. Service Worker cache'ini temizle
+  if('caches' in window){
+    caches.keys().then(function(names){
+      return Promise.all(names.map(function(n){ return caches.delete(n); }));
+    }).then(function(){
+      console.log('Cache temizlendi');
+    });
+  }
+  
+  // 2. Service Worker'ı güncelle
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(function(regs){
+      regs.forEach(function(reg){ reg.update(); });
+    });
+  }
+  
+  // 3. Sayfayı zorla yenile (cache bypass)
+  setTimeout(function(){
+    window.location.href = window.location.pathname + '?v=' + Date.now();
+  }, 500);
+}
 
 // ═══ TEMA SİSTEMİ ═══
 function toggleTheme(){
