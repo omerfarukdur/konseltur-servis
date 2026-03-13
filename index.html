@@ -3908,16 +3908,82 @@ let _currentPage = 'dashboard';
 function _updateBackBtn(){
  const btn = document.getElementById('nav-back-btn');
  if(!btn) return;
- btn.style.display = _pageHistory.length > 0 ? 'flex' : 'none';
+ // Hiyerarşik navigasyonda her zaman göster
+ btn.style.display = 'flex';
 }
 
 function goBack(){
- if(!_pageHistory.length) return;
- const prev = _pageHistory.pop();
- _updateBackBtn();
- if(prev.startsWith('ucret-')) _gotoUNoHistory(prev);
- else if(prev.startsWith('sofor-')) _gotoSNoHistory(prev);
- else _gotoNoHistory(prev);
+  const p = _currentPage;
+
+  // ROTA modülü hiyerarşisi
+  // students/drivers/routes/map → dashboard → module-select → login
+  if(p === 'students' || p === 'drivers' || p === 'routes' || p === 'map'){
+    _pageHistory = [];
+    _gotoNoHistory('dashboard');
+    _updateBackBtn();
+    return;
+  }
+  if(p === 'dashboard'){
+    _pageHistory = [];
+    _updateBackBtn();
+    _showModuleSelect();
+    return;
+  }
+
+  // ÜCRET modülü hiyerarşisi
+  // ucret-ogrenci → ucret-genel → module-select → login
+  if(p === 'ucret-ogrenci'){
+    _pageHistory = [];
+    _gotoUNoHistory('ucret-genel');
+    _updateBackBtn();
+    return;
+  }
+  if(p === 'ucret-genel'){
+    _pageHistory = [];
+    _updateBackBtn();
+    _showModuleSelect();
+    return;
+  }
+
+  // ŞOFÖR modülü hiyerarşisi
+  // sofor-detay → sofor-liste → module-select → login
+  if(p === 'sofor-detay'){
+    _pageHistory = [];
+    _gotoSNoHistory('sofor-liste');
+    _updateBackBtn();
+    return;
+  }
+  if(p === 'sofor-liste'){
+    _pageHistory = [];
+    _updateBackBtn();
+    _showModuleSelect();
+    return;
+  }
+
+  // Fallback: eski history stack
+  if(_pageHistory.length){
+    const prev = _pageHistory.pop();
+    _updateBackBtn();
+    if(prev.startsWith('ucret-')) _gotoUNoHistory(prev);
+    else if(prev.startsWith('sofor-')) _gotoSNoHistory(prev);
+    else _gotoNoHistory(prev);
+  }
+}
+
+function _showModuleSelect(){
+  // Eğer doğrudan şoför girişiyle geldiyse login'e dön
+  const appWrapper = document.getElementById('app-wrapper');
+  const moduleScreen = document.getElementById('module-select-screen');
+  const loginScreen = document.getElementById('login-screen');
+  if(!_activeSchoolKey){
+    // Şoför cüzdanı direkt girişi — login'e dön
+    if(appWrapper) appWrapper.style.display='none';
+    if(loginScreen) loginScreen.style.display='flex';
+  } else {
+    // Okul seçilerek girildi — modül seçimine dön
+    if(appWrapper) appWrapper.style.display='none';
+    if(moduleScreen) moduleScreen.style.display='flex';
+  }
 }
 
 function _updateRotaTabs(p){
@@ -8651,9 +8717,15 @@ function saveSoforPayModal(){
   }
 
   saveSoforData();
-  document.getElementById('sofor-pay-modal').classList.remove('open');
+  // Modalı KAPATMA — içeriği güncelle
   renderSoforDetay(id);
   renderSoforListe();
+  // Modalı yeniden aç (özet + geçmiş güncellensin)
+  const s2 = soforler.find(x=>x.id===id);
+  const alacak3 = soforAyToplamAlacak(s2, ay);
+  const ayLabelEl = document.getElementById('spm-title');
+  const ayLabel2 = ayLabelEl ? ayLabelEl.querySelector('span:last-child')?.textContent||'' : '';
+  openSoforPayModal(id, ay, ayLabel2, alacak3);
 }
 
 function addEkstraIsFromModal(){
