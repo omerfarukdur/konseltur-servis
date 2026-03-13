@@ -609,6 +609,14 @@ body.light #login-screen{background:#f0f2f5;}
 document.addEventListener('keydown', function(e){
   // ESC → modalları kapat
   if(e.key === 'Escape'){
+    const deleteSchoolModal = document.getElementById('delete-school-modal');
+    if(deleteSchoolModal && deleteSchoolModal.style.display !== 'none'){
+      closeDeleteSchoolModal(); return;
+    }
+    const addSchoolModal = document.getElementById('add-school-modal');
+    if(addSchoolModal && addSchoolModal.style.display !== 'none'){
+      closeAddSchoolModal(); return;
+    }
     const confirmModal = document.getElementById('confirm-modal');
     if(confirmModal && confirmModal.style.display !== 'none'){
       confirmModal.style.display = 'none'; return;
@@ -771,6 +779,151 @@ function _checkRemembered(){
 <!-- ═══════════════════ NAV ═══════════════════ -->
 
 <!-- ═══════════ GİRİŞ EKRANI ═══════════ -->
+<!-- ══════════════════════════════════════════════════════
+     OKUL EKLE / DÜZENLE MODAL
+════════════════════════════════════════════════════════ -->
+<div id="add-school-modal" onclick="if(event.target===this)closeAddSchoolModal()" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);">
+  <div style="background:#0f1525;border:1px solid #1a2540;border-radius:20px;padding:28px;width:min(95vw,480px);max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.5);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;" id="add-school-modal-title">➕ Yeni Okul Ekle</div>
+      <button onclick="closeAddSchoolModal()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:8px;" onmouseover="this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background='none'">✕</button>
+    </div>
+
+    <!-- Form alanları -->
+    <div style="display:grid;gap:12px;">
+      <!-- Okul tam adı -->
+      <div>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">OKUL TAM ADI *</label>
+        <input id="asc-name" type="text" placeholder="Özel Örnek Anadolu Lisesi" maxlength="80"
+          style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;"
+          oninput="this.style.borderColor='#C8371A44'">
+      </div>
+      <!-- Kısa ad (tam genişlik) -->
+      <div>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">KISA AD * <span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400;">(nav çubuğunda görünür)</span></label>
+        <input id="asc-short" type="text" placeholder="Örnek Lisesi" maxlength="20"
+          style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+        <!-- Sistem anahtarı gizli — kısa addan otomatik üretilir -->
+        <input id="asc-key" type="hidden">
+      </div>
+      <!-- İlçe + Mahalle -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">İLÇE *</label>
+          <input id="asc-ilce" type="text" placeholder="Selçuklu" maxlength="40"
+            style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+        </div>
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">MAHALLE</label>
+          <input id="asc-mah" type="text" placeholder="Sanayi Mah." maxlength="60"
+            style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+        </div>
+      </div>
+      <!-- Adres -->
+      <div>
+        <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">ADRES *</label>
+        <input id="asc-adres" type="text" placeholder="Cadde, Sokak, No, İlçe/Konya" maxlength="120"
+          style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+      </div>
+      <!-- Koordinat -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">ENLEM (LAT)</label>
+          <input id="asc-lat" type="number" step="0.00001" placeholder="37.87000"
+            style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+        </div>
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">BOYLAM (LNG)</label>
+          <input id="asc-lng" type="number" step="0.00001" placeholder="32.49000"
+            style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+        </div>
+      </div>
+      <!-- Giriş / Çıkış saatleri -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">GİRİŞ SAATİ</label>
+          <input id="asc-giris" type="time" value="08:00"
+            style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;color-scheme:dark;">
+        </div>
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">ÇIKIŞ SAATİ</label>
+          <input id="asc-cikis" type="time" value="15:30"
+            style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;color-scheme:dark;">
+        </div>
+      </div>
+      <!-- Renk + İkon -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">RENK</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="asc-color" type="color" value="#3b82f6"
+              style="width:44px;height:36px;border:1px solid #1a2540;border-radius:8px;background:#060911;cursor:pointer;padding:3px;">
+            <input id="asc-color-hex" type="text" maxlength="7" placeholder="#3b82f6"
+              style="flex:1;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;"
+              oninput="syncColorFromHex(this.value)">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">İKON (emoji)</label>
+          <input id="asc-icon" type="text" value="🏫" maxlength="4"
+            style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:20px;font-family:'Outfit',sans-serif;outline:none;text-align:center;">
+        </div>
+      </div>
+
+      <!-- Hata mesajı -->
+      <div id="asc-error" style="color:#f87171;font-size:12px;display:none;padding:8px 12px;background:rgba(239,68,68,.1);border-radius:8px;border:1px solid rgba(239,68,68,.2);"></div>
+
+      <!-- Kaydet / İptal butonları -->
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button onclick="closeAddSchoolModal()"
+          style="flex:1;padding:11px;border-radius:10px;border:1px solid #1a2540;background:transparent;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">
+          İptal
+        </button>
+        <button id="asc-save-btn" onclick="saveNewSchool()"
+          style="flex:2;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#C8371A,#a82d15);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px rgba(200,55,26,.3);">
+          ✅ Kaydet
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     OKUL SİLME ONAY MODALI (confirm() yerine güvenli)
+════════════════════════════════════════════════════════ -->
+<div id="delete-school-modal" style="display:none;position:fixed;inset:0;z-index:10000;align-items:center;justify-content:center;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);">
+  <div style="background:#0f1525;border:1px solid rgba(239,68,68,.3);border-top:3px solid #ef4444;border-radius:20px;padding:28px;width:min(95vw,420px);box-shadow:0 32px 80px rgba(0,0,0,.6);">
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:40px;margin-bottom:12px;">🗑️</div>
+      <div id="dsm-title" style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#f87171;margin-bottom:8px;"></div>
+      <div id="dsm-body" style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.7;"></div>
+    </div>
+    <!-- İndirme durumu -->
+    <div id="dsm-download-status" style="display:none;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#34d399;text-align:center;"></div>
+    <!-- Butonlar -->
+    <div id="dsm-btns-step1" style="display:flex;gap:10px;">
+      <button onclick="closeDeleteSchoolModal()"
+        style="flex:1;padding:11px;border-radius:10px;border:1px solid #1a2540;background:transparent;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">
+        İptal
+      </button>
+      <button id="dsm-confirm-btn" onclick="confirmDeleteStep1()"
+        style="flex:2;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px rgba(239,68,68,.3);">
+        📥 Veriyi İndir ve Devam Et
+      </button>
+    </div>
+    <div id="dsm-btns-step2" style="display:none;flex;gap:10px;">
+      <button onclick="closeDeleteSchoolModal()"
+        style="flex:1;padding:11px;border-radius:10px;border:1px solid #1a2540;background:transparent;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">
+        İptal
+      </button>
+      <button onclick="confirmDeleteStep2()"
+        style="flex:2;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px rgba(239,68,68,.3);">
+        🗑️ Evet, Okulu Sil
+      </button>
+    </div>
+  </div>
+</div>
+
 <div id="login-screen" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#070a14;position:relative;overflow:hidden;">
 
   <!-- ── TAM EKRAN ARKA PLAN FOTOĞRAFI ── -->
@@ -806,47 +959,44 @@ function _checkRemembered(){
       </div>
     </div>
 
-    <!-- OKUL SEÇİM BAŞLIĞI -->
-    <div style="text-align:center;margin-bottom:22px;animation:loginFadeUp .65s .1s ease both;opacity:0;">
-      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.4);">Okul Seçin</div>
-      <div style="width:32px;height:2px;background:#C8371A;border-radius:1px;margin:8px auto 0;box-shadow:0 0 10px rgba(200,55,26,.5);"></div>
+    <!-- OKUL SEÇİM BAŞLIĞI + YÖNETİM BUTONU -->
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:22px;animation:loginFadeUp .65s .1s ease both;opacity:0;">
+      <div style="width:60px;"></div><!-- boşluk dengeleyici -->
+      <div style="text-align:center;">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.4);">Okul Seçin</div>
+        <div style="width:32px;height:2px;background:#C8371A;border-radius:1px;margin:8px auto 0;box-shadow:0 0 10px rgba(200,55,26,.5);"></div>
+      </div>
+      <div style="width:60px;display:flex;justify-content:flex-end;">
+        <button id="btn-manage-schools" onclick="toggleManageMode()"
+          style="padding:6px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.3);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;white-space:nowrap;"
+          onmouseover="this.style.borderColor='rgba(255,255,255,.3)';this.style.color='rgba(255,255,255,.7)';this.style.background='rgba(255,255,255,.05)'"
+          onmouseout="if(!window._schoolManageMode){this.style.borderColor='rgba(255,255,255,.12)';this.style.color='rgba(255,255,255,.3)';this.style.background='transparent';}">
+          ⚙️ Yönet
+        </button>
+      </div>
     </div>
 
-    <!-- OKUL KARTLARI -->
-    <div id="login-school-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;animation:loginFadeUp .65s .2s ease both;opacity:0;">
+    <!-- OKUL KARTLARI — JS tarafından dinamik render edilir -->
+    <div id="login-school-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;width:100%;animation:loginFadeUp .65s .2s ease both;opacity:0;">
+    </div>
 
-      <!-- Enderun -->
-      <div onclick="enterSchool('enderun')"
-           style="cursor:pointer;background:rgba(27,43,94,.15);border:1.5px solid rgba(74,127,212,.25);border-radius:18px;padding:16px 6px 14px;text-align:center;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;backdrop-filter:blur(10px);"
-           onmouseover="this.style.background='rgba(27,43,94,.35)';this.style.borderColor='rgba(74,127,212,.65)';this.style.transform='translateY(-5px) scale(1.03)';this.style.boxShadow='0 20px 50px rgba(27,43,94,.5)'"
-           onmouseout="this.style.background='rgba(27,43,94,.15)';this.style.borderColor='rgba(74,127,212,.25)';this.style.transform='none';this.style.boxShadow='none'">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(74,127,212,.8),transparent);"></div>
-        <div style="font-size:22px;margin-bottom:6px;filter:drop-shadow(0 3px 12px rgba(74,127,212,.5));">🎓</div>
-        <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#6aaef5;letter-spacing:0;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;">ENDERUN</div>
-        <div style="font-size:8px;color:rgba(255,255,255,.35);line-height:1.4;">Anadolu<br>Lisesi</div>
+    <!-- YÖNETİM MODU AKSIYON BUTONLARI (gizli, yönetim modunda açılır) -->
+    <div id="manage-actions" style="display:none;margin-top:14px;width:100%;animation:loginFadeUp .3s ease both;">
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="openAddSchoolModal()"
+          style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;border:1.5px solid rgba(52,211,153,.4);background:rgba(52,211,153,.08);color:#34d399;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;"
+          onmouseover="this.style.background='rgba(52,211,153,.2)';this.style.transform='translateY(-2px)'"
+          onmouseout="this.style.background='rgba(52,211,153,.08)';this.style.transform='none'">
+          ➕ Okul Ekle
+        </button>
+        <button onclick="toggleManageMode()"
+          style="display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;border:1.5px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;"
+          onmouseover="this.style.background='rgba(255,255,255,.07)';this.style.transform='translateY(-2px)'"
+          onmouseout="this.style.background='transparent';this.style.transform='none'">
+          ✓ Bitti
+        </button>
       </div>
-
-      <!-- Gençlik -->
-      <div onclick="enterSchool('genclik')"
-           style="cursor:pointer;background:rgba(34,197,94,.08);border:1.5px solid rgba(34,197,94,.25);border-radius:18px;padding:16px 6px 14px;text-align:center;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;backdrop-filter:blur(10px);"
-           onmouseover="this.style.background='rgba(34,197,94,.18)';this.style.borderColor='rgba(34,197,94,.6)';this.style.transform='translateY(-5px) scale(1.03)';this.style.boxShadow='0 20px 50px rgba(34,197,94,.25)'"
-           onmouseout="this.style.background='rgba(34,197,94,.08)';this.style.borderColor='rgba(34,197,94,.25)';this.style.transform='none';this.style.boxShadow='none'">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(34,197,94,.8),transparent);"></div>
-        <div style="font-size:22px;margin-bottom:6px;filter:drop-shadow(0 3px 12px rgba(34,197,94,.5));">📚</div>
-        <div style="font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#4ade80;letter-spacing:0;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;">GENÇLİK</div>
-        <div style="font-size:8px;color:rgba(255,255,255,.35);line-height:1.4;">İlk/Orta<br>Okulu</div>
-      </div>
-
-      <!-- Merkez İHL -->
-      <div onclick="enterSchool('merkez')"
-           style="cursor:pointer;background:rgba(139,92,246,.08);border:1.5px solid rgba(139,92,246,.25);border-radius:18px;padding:16px 6px 14px;text-align:center;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;backdrop-filter:blur(10px);"
-           onmouseover="this.style.background='rgba(139,92,246,.18)';this.style.borderColor='rgba(139,92,246,.6)';this.style.transform='translateY(-5px) scale(1.03)';this.style.boxShadow='0 20px 50px rgba(139,92,246,.25)'"
-           onmouseout="this.style.background='rgba(139,92,246,.08)';this.style.borderColor='rgba(139,92,246,.25)';this.style.transform='none';this.style.boxShadow='none'">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(139,92,246,.8),transparent);"></div>
-        <div style="font-size:22px;margin-bottom:6px;filter:drop-shadow(0 3px 12px rgba(139,92,246,.5));">🕌</div>
-        <div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:800;color:#a78bfa;letter-spacing:0;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;">MRK İHL</div>
-        <div style="font-size:8px;color:rgba(255,255,255,.35);line-height:1.4;">İmam Hatip<br>Lisesi</div>
-      </div>
+      <div style="text-align:center;margin-top:10px;font-size:10px;color:rgba(255,255,255,.25);letter-spacing:.3px;">Kart üzerindeki ✏️ ve 🗑️ butonlarını kullanın</div>
     </div>
 
     <!-- YEDEKLEME BUTONLARI -->
@@ -1531,7 +1681,7 @@ function _checkRemembered(){
 function exportDataFromLogin(){
   // Tüm 3 okul verisini tek dosyaya yaz (okul seçimine gerek yok)
   var allData = {};
-  ['enderun','genclik','merkez'].forEach(function(key){
+  getAllSchoolKeys().forEach(function(key){
     var mainRaw = localStorage.getItem('konseltur_main_v2_' + key);
     var payRaw  = localStorage.getItem('konseltur_pay_v2_'  + key);
     allData[key] = {
@@ -1570,46 +1720,115 @@ function exportDataFromLogin(){
 }
 
 function importDataFromLogin(event){
+  var infoEl = document.getElementById('login-backup-info');
+  function setInfo(msg, color){ if(infoEl) infoEl.innerHTML = '<span style="color:' + (color||'#60a5fa') + ';">' + msg + '</span>'; }
+
   var file = event.target.files[0];
-  if(!file) return;
-  if(!confirm('⚠️ Mevcut tüm veriler silinip bu yedek yüklenecek. Emin misiniz?')) return;
+  if(!file){ setInfo('❌ Dosya seçilemedi','#f87171'); return; }
+
+  setInfo('⏳ Dosya okunuyor: ' + file.name + ' (' + Math.round(file.size/1024) + ' KB)');
 
   var reader = new FileReader();
-  reader.onload = function(e){
-    try{
-      var payload = JSON.parse(e.target.result);
-      if(payload.version !== 'konseltur_backup_v1'){
-        var info = document.getElementById('login-backup-info');
-        if(info) info.innerHTML = '<span style="color:#f87171;">❌ Geçersiz yedek dosyası</span>';
-        return;
-      }
-      // Her okul verisini localStorage'a yaz
-      ['enderun','genclik','merkez'].forEach(function(key){
-        var d = payload.data[key];
-        if(!d) return;
+
+  reader.onload = function(ev){
+    setInfo('⏳ Dosya okundu, ayrıştırılıyor...');
+    var payload;
+    try {
+      payload = JSON.parse(ev.target.result);
+    } catch(err) {
+      setInfo('❌ JSON ayrıştırma hatası: ' + err.message, '#f87171');
+      event.target.value = '';
+      return;
+    }
+
+    if(!payload || payload.version !== 'konseltur_backup_v1'){
+      setInfo('❌ Geçersiz yedek dosyası. version: ' + (payload && payload.version), '#f87171');
+      event.target.value = '';
+      return;
+    }
+
+    var keys = Object.keys(payload.data || {});
+    if(keys.length === 0){
+      setInfo('❌ Yedek dosyasında veri yok', '#f87171');
+      event.target.value = '';
+      return;
+    }
+
+    setInfo('✅ Dosya geçerli. Okullar: ' + keys.join(', ') + ' — yükleniyor...', '#fbbf24');
+
+    var restoredSchools = [];
+
+    keys.forEach(function(key){
+      var d = payload.data[key];
+      if(!d){ return; }
+
+      try {
         if(d.main) localStorage.setItem('konseltur_main_v2_' + key, JSON.stringify(d.main));
         if(d.pay)  localStorage.setItem('konseltur_pay_v2_'  + key, JSON.stringify(d.pay));
-      });
-      // Firebase'e de gönder
-      if(window._fbReady && navigator.onLine){
-        ['enderun','genclik','merkez'].forEach(function(key){
-          var d = payload.data[key];
-          if(!d) return;
+      } catch(lsErr) {
+        setInfo('❌ localStorage yazma hatası (' + key + '): ' + lsErr.message, '#f87171');
+        return;
+      }
+
+      // Firebase
+      try {
+        if(window._fbReady && navigator.onLine){
           if(d.main) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/main'), d.main).catch(function(){});
           if(d.pay)  window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/payments'), d.pay).catch(function(){});
-        });
+        }
+      } catch(fbErr) { /* Firebase hatası kritik değil */ }
+
+      // SCHOOLS'da yoksa ekle
+      var existsInSchools = SCHOOLS.some(function(s){ return s.key === key; });
+      if(!existsInSchools){
+        var meta = (payload.deletedSchool && payload.deletedSchool.key === key) ? payload.deletedSchool : null;
+        var schoolName = (meta && meta.name) ? meta.name : key;
+        var studentCount = (d.main && d.main.students) ? d.main.students.length : 0;
+        var palette = ['#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
+        var usedColors = SCHOOLS.map(function(s){ return s.color; });
+        var newColor = '#60a5fa';
+        for(var pi=0; pi<palette.length; pi++){ if(usedColors.indexOf(palette[pi])===-1){ newColor=palette[pi]; break; } }
+        SCHOOLS.push({ key:key, name:schoolName, short:key.substring(0,8).toUpperCase(),
+          ilce:'', mah:'', adres:'', lat:37.87, lng:32.49, mapsAddr:'',
+          girisH:8, girisM:0, cikisH:15, cikisM:30, color:newColor, icon:'🏫' });
+        SC.push(newColor);
+        restoredSchools.push(schoolName + ' (' + studentCount + ' öğrenci)');
       }
-      var exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR');
-      var info = document.getElementById('login-backup-info');
-      if(info) info.innerHTML = '<span style="color:#34d399;">✅ Yedek yüklendi — Tarih: ' + exportDate + '</span>';
-      playSuccessSound();
-    }catch(err){
-      var info = document.getElementById('login-backup-info');
-      if(info) info.innerHTML = '<span style="color:#f87171;">❌ Dosya okunamadı: ' + err.message + '</span>';
+    });
+
+    try { _refreshSchoolMaps(); } catch(e){}
+    try { renderLoginSchoolCards(); } catch(e){}
+
+    var exportDate = '';
+    try { exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR'); } catch(e){}
+
+    var msg = '✅ Yedek yüklendi — ' + exportDate;
+    if(restoredSchools.length > 0){
+      msg += '<br><span style="color:#fbbf24;">⚠️ Geri eklenen: ' + restoredSchools.join(', ') + '</span>';
+      msg += '<br><span style="color:rgba(255,255,255,.4);font-size:10px;">⚙️ Yönet → ✏️ Düzenle ile bilgileri tamamlayın.</span>';
     }
+    setInfo(msg, '#34d399');
+
+    try { playSuccessSound(); } catch(e){}
+    event.target.value = '';
   };
-  reader.readAsText(file);
-  event.target.value = '';
+
+  reader.onerror = function(ev){
+    setInfo('❌ FileReader hatası: ' + (ev.target.error && ev.target.error.message), '#f87171');
+    event.target.value = '';
+  };
+
+  reader.onabort = function(){
+    setInfo('❌ Dosya okuma iptal edildi', '#f87171');
+    event.target.value = '';
+  };
+
+  try {
+    reader.readAsText(file);
+  } catch(err) {
+    setInfo('❌ readAsText hatası: ' + err.message, '#f87171');
+    event.target.value = '';
+  }
 }
 
 // ═══ BİLDİRİM SESİ ═══
@@ -1719,22 +1938,26 @@ function _setVal(id, val){
 
 const SCHOOLS=[
   // index 0 — Enderun | Giriş 08:15 | Çıkış 15:30
-  {name:"Özel Enderun Fen ve Anadolu Lisesi",short:"Enderun",ilce:"Karatay",mah:"Kayacık Araplar Mah.",
+  {key:"enderun",name:"Özel Enderun Fen ve Anadolu Lisesi",short:"Enderun",ilce:"Karatay",mah:"Kayacık Araplar Mah.",
    adres:"Kayacık Araplar Mah. Ataç Sk. No:1, 42050 Karatay/Konya",lat:37.88442,lng:32.50365,
    mapsAddr:"Keçeciler,+Ataç+Sk.+No:1,+42050+Karatay/Konya",
-   girisH:8,girisM:15, cikisH:15,cikisM:30},
+   girisH:8,girisM:15, cikisH:15,cikisM:30,
+   color:"#C8371A", icon:"🎓"},
   // index 1 — Gençlik | Giriş 09:30 | Çıkış 16:20
-  {name:"Özel Gençlik İlkokulu / Ortaokulu",short:"Gençlik",ilce:"Meram",mah:"Durunday Mah.",
+  {key:"genclik",name:"Özel Gençlik İlkokulu / Ortaokulu",short:"Gençlik",ilce:"Meram",mah:"Durunday Mah.",
    adres:"Durunday Mah. Büyükçiçek Sk. No:11, 42090 Meram/Konya",lat:37.83619,lng:32.41770,
    mapsAddr:"Durunday,+Büyükçiçek+Sk.+No:11,+42090+Meram/Konya",
-   girisH:9,girisM:30, cikisH:16,cikisM:20},
+   girisH:9,girisM:30, cikisH:16,cikisM:20,
+   color:"#22c55e", icon:"📚"},
   // index 2 — Merkez İHL | Giriş 08:00 | Çıkış 15:45
-  {name:"Konya Anadolu İmam Hatip Lisesi",short:"Merkez İHL",ilce:"Karatay",mah:"Şemsitebrizi Mah.",
+  {key:"merkez",name:"Konya Anadolu İmam Hatip Lisesi",short:"Merkez İHL",ilce:"Karatay",mah:"Şemsitebrizi Mah.",
    adres:"Şemsitebrizi Mah. Vali İzzetbey Cad. Bölüm Sk. No:2, 42050 Karatay/Konya",lat:37.87730,lng:32.49565,
    mapsAddr:"Şemsitebrizi,+Bölüm+Sk.+No:2,+42050+Karatay/Konya",
-   girisH:8,girisM:0, cikisH:15,cikisM:45},
+   girisH:8,girisM:0, cikisH:15,cikisM:45,
+   color:"#8b5cf6", icon:"🕌"},
 ];
-const SC=["#60a5fa","#a78bfa","#fbbf24"];
+// SC: SCHOOLS array'inden otomatik türetilir — yeni okul eklenince otomatik genişler
+const SC = SCHOOLS.map(s => s.color);
 const RC=["#60a5fa","#f59e0b","#34d399","#f87171","#a78bfa","#fb923c","#e879f9","#4ade80","#38bdf8","#f472b6","#facc15","#86efac","#c4b5fd","#fecaca","#67e8f9","#fed7aa","#d9f99d","#bbf7d0","#e9d5ff","#fca5a5","#a5f3fc","#ddd6fe","#fde68a"];
 
 // ═══════════════════════════════════════════════════
@@ -1758,8 +1981,14 @@ if (typeof requestIdleCallback !== 'undefined') {
 // ═══════════════════════════════════════════════════
 // KALICI HAFIZA — Güvenli localStorage Sistemi
 // ═══════════════════════════════════════════════════
-// Aktif okul: 'enderun' | 'genclik' | 'merkez'
-let _activeSchoolKey = 'enderun';
+// Aktif okul key'i — SCHOOLS array'indeki key alanlarından biri
+let _activeSchoolKey = SCHOOLS[0].key;
+
+// ─── Helper: okul key → index (tüm hardcoded mapping'lerin yerine) ───
+function getSchoolIdx(key){ return SCHOOLS.findIndex(s=>s.key===key); }
+function getSchoolByKey(key){ return SCHOOLS.find(s=>s.key===key)||SCHOOLS[0]; }
+// Tüm okul key'lerini döndürür — yedekleme ve döngüler için
+function getAllSchoolKeys(){ return SCHOOLS.map(s=>s.key); }
 // --- XSS Koruma: Kullanıcı girdilerini guvenli HTML'e cevir ---
 function escHtml(str){
   if(str===null||str===undefined) return '';
@@ -1886,10 +2115,346 @@ function saveData(){
 
 
 // ─── Okul değiştir — tüm veriyi o okula göre yükle ───────────────
-const SCHOOL_KEYS = {0:'enderun', 1:'genclik', 2:'merkez'};
-const SCHOOL_NAMES = {enderun:'Özel Enderun Anadolu Lisesi', genclik:'Özel Gençlik Ortaokulu', merkez:'Merkez İmam Hatip'};
-const SCHOOL_COLORS = {enderun:'#C8371A', genclik:'#22c55e', merkez:'#8b5cf6'};
-const SCHOOL_ICONS  = {enderun:'🎓', genclik:'📚', merkez:'🕌'};
+// ─── Dinamik türetilen haritalar (SCHOOLS array'inden otomatik) ───
+const SCHOOL_KEYS   = Object.fromEntries(SCHOOLS.map((s,i)=>[i,s.key]));
+const SCHOOL_NAMES  = Object.fromEntries(SCHOOLS.map(s=>[s.key,s.name]));
+const SCHOOL_COLORS = Object.fromEntries(SCHOOLS.map(s=>[s.key,s.color]));
+const SCHOOL_ICONS  = Object.fromEntries(SCHOOLS.map(s=>[s.key,s.icon]));
+
+
+// ═══════════════════════════════════════════════════════
+// LOGIN EKRANI — DİNAMİK OKUL KARTLARI & OKUL EKLE/SİL
+// ═══════════════════════════════════════════════════════
+
+// Yönetim modu state
+window._schoolManageMode = false;
+
+function toggleManageMode(){
+  window._schoolManageMode = !window._schoolManageMode;
+  const btn = document.getElementById('btn-manage-schools');
+  const actions = document.getElementById('manage-actions');
+  if(window._schoolManageMode){
+    if(btn){ btn.innerHTML='⚙️ Yönet'; btn.style.borderColor='rgba(200,55,26,.5)'; btn.style.color='rgba(200,55,26,.9)'; btn.style.background='rgba(200,55,26,.08)'; }
+    if(actions) actions.style.display='block';
+  } else {
+    if(btn){ btn.innerHTML='⚙️ Yönet'; btn.style.borderColor='rgba(255,255,255,.12)'; btn.style.color='rgba(255,255,255,.3)'; btn.style.background='transparent'; }
+    if(actions) actions.style.display='none';
+  }
+  renderLoginSchoolCards();
+}
+
+function renderLoginSchoolCards(){
+  const grid = document.getElementById('login-school-grid');
+  if(!grid) return;
+  const manageMode = window._schoolManageMode || false;
+  grid.innerHTML = SCHOOLS.map((s,i) => {
+    const col = s.color || '#60a5fa';
+    const r = parseInt(col.slice(1,3),16), g = parseInt(col.slice(3,5),16), b = parseInt(col.slice(5,7),16);
+    const rgba = (a) => `rgba(${r},${g},${b},${a})`;
+    const shortLabel = s.short.toUpperCase().substring(0,10);
+    if(manageMode){
+      // YÖNETİM MODU: Düzenle + Sil göster, giriş yok
+      return `<div data-school-key="${escHtml(s.key)}"
+        style="border-radius:18px;overflow:hidden;border:1.5px solid ${rgba('.4')};background:${rgba('.06')};">
+        <div style="padding:14px 6px 10px;text-align:center;position:relative;">
+          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,${rgba('.7')},transparent);"></div>
+          <div style="font-size:22px;margin-bottom:5px;">${s.icon||'🏫'}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:800;color:${col};margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;">${shortLabel}</div>
+          <div style="font-size:8px;color:rgba(255,255,255,.4);">${escHtml(s.ilce||'—')}</div>
+        </div>
+        <div style="display:flex;border-top:1px solid ${rgba('.2')};">
+          <button onclick="openEditSchoolModal(${i})"
+            style="flex:1;padding:8px 0;background:${rgba('.1')};border:none;color:${col};font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .15s;"
+            onmouseover="this.style.background='${rgba('.25')}'" onmouseout="this.style.background='${rgba('.1')}'">✏️ Düzenle</button>
+          <div style="width:1px;background:${rgba('.2')};"></div>
+          <button onclick="openDeleteSchoolModal(${i})"
+            style="flex:1;padding:8px 0;background:rgba(239,68,68,.06);border:none;color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .15s;"
+            onmouseover="this.style.background='rgba(239,68,68,.2)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">🗑️ Sil</button>
+        </div>
+      </div>`;
+    } else {
+      // NORMAL MOD: Sadece giriş kartı
+      return `<div onclick="enterSchool('${escHtml(s.key)}')"
+        data-school-key="${escHtml(s.key)}"
+        style="cursor:pointer;background:${rgba('.08')};border:1.5px solid ${rgba('.25')};border-radius:18px;padding:16px 6px 14px;text-align:center;transition:all .25s cubic-bezier(.34,1.56,.64,1);position:relative;overflow:hidden;backdrop-filter:blur(10px);"
+        onmouseover="this.style.background='${rgba('.22')}';this.style.borderColor='${rgba('.7')}';this.style.transform='translateY(-3px) scale(1.02)';this.style.boxShadow='0 16px 40px ${rgba('.25')}'"
+        onmouseout="this.style.background='${rgba('.08')}';this.style.borderColor='${rgba('.25')}';this.style.transform='none';this.style.boxShadow='none'">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,${rgba('.8')},transparent);"></div>
+        <div style="font-size:24px;margin-bottom:6px;filter:drop-shadow(0 3px 12px ${rgba('.5')});">${s.icon||'🏫'}</div>
+        <div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:800;color:${col};margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;">${shortLabel}</div>
+        <div style="font-size:8px;color:rgba(255,255,255,.4);line-height:1.4;">${escHtml(s.ilce||'—')}</div>
+      </div>`;
+    }
+  }).join('');
+}
+
+function openEditSchoolModal(idx){
+  const s = SCHOOLS[idx];
+  if(!s) return;
+  // Formu mevcut okul verileriyle doldur
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
+  set('asc-name',  s.name);
+  set('asc-short', s.short);
+  set('asc-key',   s.key);
+  set('asc-ilce',  s.ilce);
+  set('asc-mah',   s.mah);
+  set('asc-adres', s.adres);
+  set('asc-lat',   s.lat||'');
+  set('asc-lng',   s.lng||'');
+  set('asc-icon',  s.icon||'🏫');
+  const col = document.getElementById('asc-color'); if(col) col.value = s.color||'#3b82f6';
+  const hex = document.getElementById('asc-color-hex'); if(hex) hex.value = s.color||'#3b82f6';
+  // Saat formatı HH:MM
+  const pad = n => String(n||0).padStart(2,'0');
+  set('asc-giris', `${pad(s.girisH)}:${pad(s.girisM)}`);
+  set('asc-cikis', `${pad(s.cikisH)}:${pad(s.cikisM)}`);
+  // Hata temizle
+  const err = document.getElementById('asc-error'); if(err){ err.style.display='none'; err.textContent=''; }
+  // Başlığı düzenle moduna al
+  const title = document.getElementById('add-school-modal-title'); if(title) title.textContent='✏️ Okul Bilgilerini Düzenle';
+  const btn = document.getElementById('asc-save-btn'); if(btn) btn.setAttribute('data-edit-idx', idx);
+  document.getElementById('add-school-modal').style.display='flex';
+}
+
+function openAddSchoolModal(){
+  // Formu temizle
+  ['asc-name','asc-short','asc-key','asc-ilce','asc-mah','asc-adres','asc-lat','asc-lng'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  const giris = document.getElementById('asc-giris'); if(giris) giris.value='08:00';
+  const cikis = document.getElementById('asc-cikis'); if(cikis) cikis.value='15:30';
+  const icon  = document.getElementById('asc-icon');  if(icon)  icon.value='🏫';
+  const col   = document.getElementById('asc-color'); if(col)   col.value='#3b82f6';
+  const hex   = document.getElementById('asc-color-hex'); if(hex) hex.value='#3b82f6';
+  const err   = document.getElementById('asc-error'); if(err){ err.style.display='none'; err.textContent=''; }
+  const title = document.getElementById('add-school-modal-title'); if(title) title.textContent='➕ Yeni Okul Ekle';
+  const btn   = document.getElementById('asc-save-btn'); if(btn) btn.setAttribute('data-edit-idx','');
+  document.getElementById('add-school-modal').style.display='flex';
+}
+
+function closeAddSchoolModal(){
+  const modal = document.getElementById('add-school-modal');
+  if(modal) modal.style.display='none';
+}
+
+function syncColorFromHex(hex){
+  if(/^#[0-9a-fA-F]{6}$/.test(hex)){
+    const col = document.getElementById('asc-color');
+    if(col) col.value = hex;
+  }
+}
+
+// Renk picker değişince hex inputu da güncelle
+document.addEventListener('DOMContentLoaded', ()=>{
+  const cp = document.getElementById('asc-color');
+  if(cp) cp.addEventListener('input', function(){ const h=document.getElementById('asc-color-hex'); if(h) h.value=this.value; });
+  renderLoginSchoolCards();
+});
+
+function saveNewSchool(){
+  const name  = (document.getElementById('asc-name')?.value||'').trim();
+  const short = (document.getElementById('asc-short')?.value||'').trim();
+  const ilce  = (document.getElementById('asc-ilce')?.value||'').trim();
+  const mah   = (document.getElementById('asc-mah')?.value||'').trim();
+  const adres = (document.getElementById('asc-adres')?.value||'').trim();
+  const lat   = parseFloat(document.getElementById('asc-lat')?.value||'0') || 37.87;
+  const lng   = parseFloat(document.getElementById('asc-lng')?.value||'0') || 32.49;
+  const color = document.getElementById('asc-color')?.value || '#3b82f6';
+  const icon  = (document.getElementById('asc-icon')?.value||'🏫').trim()||'🏫';
+  const girisVal = document.getElementById('asc-giris')?.value||'08:00';
+  const cikisVal = document.getElementById('asc-cikis')?.value||'15:30';
+  const [girisH,girisM] = girisVal.split(':').map(Number);
+  const [cikisH,cikisM] = cikisVal.split(':').map(Number);
+
+  const editIdx = parseInt(document.getElementById('asc-save-btn')?.getAttribute('data-edit-idx')||'');
+  const isEdit  = !isNaN(editIdx) && editIdx >= 0;
+
+  // Key: düzenleme modunda mevcut key korunur, yeni eklemede kısa addan otomatik üretilir
+  let key;
+  if(isEdit){
+    key = SCHOOLS[editIdx].key; // değişmez
+  } else {
+    // Kısa adı Türkçe karakterlerden arındır, küçük harf + sadece alfanümerik
+    key = short.toLowerCase()
+      .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s')
+      .replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c')
+      .replace(/[^a-z0-9]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'');
+    // Çakışma varsa sonuna sayı ekle
+    let base = key, n = 2;
+    while(SCHOOLS.some(s=>s.key===key)){ key = base + n++; }
+  }
+  // key hidden inputa yaz (openEditSchoolModal için gerekli olabilir)
+  const keyEl = document.getElementById('asc-key'); if(keyEl) keyEl.value = key;
+
+  const errEl = document.getElementById('asc-error');
+  function showErr(msg){ if(errEl){errEl.textContent=msg;errEl.style.display='block';} }
+
+  if(!name){ showErr('⚠️ Okul adı zorunlu'); return; }
+  if(!short){ showErr('⚠️ Kısa ad zorunlu'); return; }
+  if(!adres){ showErr('⚠️ Okul adresi zorunlu'); return; }
+  if(!ilce){ showErr('⚠️ İlçe zorunlu'); return; }
+
+  const newSchool = {
+    key, name, short, ilce, mah, adres,
+    lat, lng, mapsAddr: '',
+    girisH: isNaN(girisH)?8:girisH, girisM: isNaN(girisM)?0:girisM,
+    cikisH: isNaN(cikisH)?15:cikisH, cikisM: isNaN(cikisM)?30:cikisM,
+    color, icon
+  };
+
+  if(isEdit){
+    SCHOOLS[editIdx] = newSchool;
+    // SC dizisini güncelle
+    while(SC.length < SCHOOLS.length) SC.push('#60a5fa');
+    SC[editIdx] = color;
+  } else {
+    SCHOOLS.push(newSchool);
+    SC.push(color);
+  }
+
+  // Dinamik haritaları yenile
+  _refreshSchoolMaps();
+  renderLoginSchoolCards();
+  closeAddSchoolModal();
+
+  // Yeni okul için localStorage'ı hazırla (boş veri)
+  if(!isEdit){
+    const emptyPayload = JSON.stringify({students:[],drivers:[],routes:[],nSid:1,nDid:1,savedAt:Date.now()});
+    if(!localStorage.getItem('konseltur_main_v2_'+key)){
+      try{ localStorage.setItem('konseltur_main_v2_'+key, emptyPayload); }catch(e){}
+    }
+  }
+
+  // Grid animasyonu — yeni kart için
+  setTimeout(()=>{
+    const card = document.querySelector(`[data-school-key="${key}"]`);
+    if(card){ card.style.transform='scale(1.05)'; setTimeout(()=>card.style.transform='',300); }
+  }, 50);
+}
+
+// Silme modalı state
+window._deleteSchoolIdx = -1;
+window._deleteSchoolHasData = false;
+
+function openDeleteSchoolModal(idx){
+  const s = SCHOOLS[idx];
+  if(!s) return;
+  if(SCHOOLS.length <= 1){
+    alert('⚠️ En az bir okul olmalı. Son okul silinemez.');
+    return;
+  }
+
+  const mainRaw = localStorage.getItem('konseltur_main_v2_' + s.key);
+  const payRaw  = localStorage.getItem('konseltur_pay_v2_'  + s.key);
+  const mainData = mainRaw ? JSON.parse(mainRaw) : null;
+  const payData  = payRaw  ? JSON.parse(payRaw)  : null;
+  const studentCount = mainData?.students?.length || 0;
+  const hasData = studentCount > 0 || !!payData;
+
+  window._deleteSchoolIdx = idx;
+  window._deleteSchoolHasData = hasData;
+  window._deleteSchoolMainData = mainData;
+  window._deleteSchoolPayData  = payData;
+
+  const title  = document.getElementById('dsm-title');
+  const body   = document.getElementById('dsm-body');
+  const step1  = document.getElementById('dsm-btns-step1');
+  const step2  = document.getElementById('dsm-btns-step2');
+  const dlStat = document.getElementById('dsm-download-status');
+  const btn    = document.getElementById('dsm-confirm-btn');
+
+  if(title) title.textContent = `"${s.name}" silinecek`;
+  if(dlStat){ dlStat.style.display='none'; dlStat.textContent=''; }
+
+  if(hasData){
+    if(body) body.innerHTML =
+      `Bu okulda <strong style="color:#fff">${studentCount} öğrenci</strong> ve ücret kayıtları mevcut.<br><br>` +
+      `Silmeden önce veriler otomatik olarak JSON dosyası olarak indirilecektir.<br>` +
+      `<span style="color:rgba(255,255,255,.4);font-size:11px;">Bu işlem geri alınamaz.</span>`;
+    if(btn) btn.innerHTML = '📥 Veriyi İndir ve Devam Et';
+    if(step1){ step1.style.display='flex'; }
+    if(step2){ step2.style.display='none'; }
+  } else {
+    if(body) body.innerHTML =
+      `Bu okulda kayıtlı veri bulunmuyor.<br>` +
+      `<span style="color:rgba(255,255,255,.4);font-size:11px;">Okul listeden kaldırılacak.</span>`;
+    if(btn) btn.innerHTML = '🗑️ Evet, Okulu Sil';
+    if(step1){ step1.style.display='flex'; }
+    if(step2){ step2.style.display='none'; }
+  }
+
+  document.getElementById('delete-school-modal').style.display = 'flex';
+}
+
+function confirmDeleteStep1(){
+  const idx = window._deleteSchoolIdx;
+  const s   = SCHOOLS[idx];
+  if(!s) return;
+
+  if(window._deleteSchoolHasData){
+    // Veriyi indir
+    const backup = {
+      version: 'konseltur_backup_v1',
+      exportedAt: new Date().toISOString(),
+      exportedBy: 'school-delete-safety',
+      deletedSchool: { key: s.key, name: s.name },
+      data: { [s.key]: { main: window._deleteSchoolMainData, pay: window._deleteSchoolPayData } }
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `konseltur-SILME-YEDEGI-${s.key}-${new Date().toLocaleDateString('tr-TR').replace(/\./g,'-')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // İndirme bilgisi göster, adım 2'ye geç
+    const dlStat = document.getElementById('dsm-download-status');
+    if(dlStat){ dlStat.style.display='block'; dlStat.textContent='✅ Yedek dosyası indirildi. Şimdi okulu silebilirsiniz.'; }
+    const step1 = document.getElementById('dsm-btns-step1');
+    const step2 = document.getElementById('dsm-btns-step2');
+    if(step1) step1.style.display='none';
+    if(step2) step2.style.display='flex';
+  } else {
+    // Veri yok, direkt sil
+    _doDeleteSchool(idx, s.key);
+    closeDeleteSchoolModal();
+  }
+}
+
+function confirmDeleteStep2(){
+  const idx = window._deleteSchoolIdx;
+  const s   = SCHOOLS[idx];
+  if(!s) return;
+  _doDeleteSchool(idx, s.key);
+  closeDeleteSchoolModal();
+}
+
+function closeDeleteSchoolModal(){
+  document.getElementById('delete-school-modal').style.display = 'none';
+  window._deleteSchoolIdx = -1;
+}
+
+function _doDeleteSchool(idx, key){
+  SCHOOLS.splice(idx, 1);
+  SC.splice(idx, 1);
+  _refreshSchoolMaps();
+  renderLoginSchoolCards();
+}
+
+function _refreshSchoolMaps(){
+  // Dinamik türetilen haritaları güncelle (yeni okul ekleme/silmede)
+  const keys  = SCHOOL_KEYS;
+  const names = SCHOOL_NAMES;
+  const cols  = SCHOOL_COLORS;
+  const icons = SCHOOL_ICONS;
+  SCHOOLS.forEach((s,i)=>{ keys[i]=s.key; names[s.key]=s.name; cols[s.key]=s.color; icons[s.key]=s.icon; });
+  // Eski key'leri temizle
+  Object.keys(keys).forEach(k=>{ if(+k >= SCHOOLS.length) delete keys[k]; });
+}
 
 function enterSchool(key){
   if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
@@ -1937,6 +2502,15 @@ function goToLogin(){
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('module-select-screen').style.display = 'none';
   document.getElementById('app-wrapper').style.display = 'none';
+  // Yönetim modunu kapat
+  if(window._schoolManageMode){
+    window._schoolManageMode = false;
+    const btn = document.getElementById('btn-manage-schools');
+    const actions = document.getElementById('manage-actions');
+    if(btn){ btn.style.borderColor='rgba(255,255,255,.12)'; btn.style.color='rgba(255,255,255,.3)'; btn.style.background='transparent'; }
+    if(actions) actions.style.display='none';
+  }
+  renderLoginSchoolCards();
 }
 
 function goToModuleSelect(){
@@ -1946,14 +2520,12 @@ function goToModuleSelect(){
 }
 
 function _updateStudentFilterChips(){
-  const schoolKeyToIdx = {enderun:0, genclik:1, merkez:2};
-  const idx = schoolKeyToIdx[_activeSchoolKey];
-  const names = {0:'Enderun', 1:'Gençlik', 2:'Merkez İHL'};
+  const idx = getSchoolIdx(_activeSchoolKey);
+  const sch = SCHOOLS[idx];
   // Okul select — aktif okul otomatik atanır
   const sel = document.getElementById('s-school');
   if(sel){
-    const schoolNames = ['Özel Enderun Anadolu Lisesi','Özel Gençlik Ortaokulu','Merkez İmam Hatip L. ve Ortaokulu'];
-    sel.innerHTML = `<option value="${idx}">${schoolNames[idx]}</option>`;
+    sel.innerHTML = `<option value="${idx}">${sch ? sch.name : ''}</option>`;
     sel.value = String(idx);
   }
 }
@@ -2231,8 +2803,7 @@ function addBulk(n){
   const ilceler=['Selçuklu','Meram','Karatay'];
   const siniflar=['5. Sınıf','6. Sınıf','7. Sınıf','8. Sınıf','9. Sınıf','10. Sınıf','11. Sınıf','12. Sınıf'];
   // Aktif okul index'ini bul
-  const schoolKeyToIdx = {enderun:0, genclik:1, merkez:2};
-  const fixedSchool = schoolKeyToIdx[_activeSchoolKey] ?? 0;
+  const fixedSchool = getSchoolIdx(_activeSchoolKey);
   for(let i=0;i<n;i++){
     const ilce=ilceler[Math.floor(Math.random()*3)];
     const school=fixedSchool;
@@ -2332,8 +2903,7 @@ function searchS(q){sSr=q.toLowerCase();renderSTable();}
 function renderSTable(){
   const w=document.getElementById('s-wrap');
   if(!w) return;
-  const _sKeyIdx={enderun:0,genclik:1,merkez:2};
-  const _activeIdx=_sKeyIdx[_activeSchoolKey]??0;
+  const _activeIdx=getSchoolIdx(_activeSchoolKey);
   let L=students.filter(s=>s.school===_activeIdx);
   // Gelişmiş filtreler
   if(_sfIlce) L=L.filter(s=>s.ilce===_sfIlce);
@@ -3126,7 +3696,7 @@ function startOptimize(){
   if(!students.length) return toast('Önce öğrenci ekleyin','error');
   if(!drivers.length) return toast('Önce şoför ekleyin','error');
   const btn = document.getElementById('opt-btn');
-  const schIdx = {enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0;
+  const schIdx = getSchoolIdx(_activeSchoolKey);
   const stuCnt = students.filter(s=>s.school===schIdx).length;
 
   // Öğrenci sayısına göre uyarı ve tahmini süre
@@ -3520,8 +4090,7 @@ function renderRoutes(){
     return;
   }
   st.style.display='block';
-  const schoolKeyToIdx={enderun:0,genclik:1,merkez:2};
-  const activeSchoolIdx=schoolKeyToIdx[_activeSchoolKey]??0;
+  const activeSchoolIdx=getSchoolIdx(_activeSchoolKey);
   let L=routes.filter(r=>r.school===activeSchoolIdx);
   _setText('r-lbl', L.length+' rota');
 
@@ -3739,16 +4308,16 @@ function clearRoutes(){
   );
 }
 function updateDash(){
-  const _dashSchIdx2={enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0;
+  const _dashSchIdx2=getSchoolIdx(_activeSchoolKey);
   _setText('d-s', students.filter(s=>s.school===_dashSchIdx2).length);
-  const _dashSchIdx3={enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0;
+  const _dashSchIdx3=getSchoolIdx(_activeSchoolKey);
   _setText('d-d', drivers.length); // şoförler okul bazlı değil
   _setText('d-r', routes.filter(r=>r.school===_dashSchIdx3).length);
   _setText('d-v', drivers.length);
-  const _dSchIdx={enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0;
+  const _dSchIdx=getSchoolIdx(_activeSchoolKey);
   const _dSch=SCHOOLS[_dSchIdx];
   const _dColors=['#60a5fa','#a78bfa','#fbbf24'];
-  const _dCol=_dColors[_dSchIdx];
+  const _dCol=_dSch ? _dSch.color : (_dColors[_dSchIdx]||'#60a5fa');
   const _dSchCard=document.getElementById('dash-school-card');
   if(_dSchCard){
     const _dIn=document.createElement('div');
@@ -3762,16 +4331,16 @@ function updateDash(){
   // Yeni dashboard mini sayaçlar
   const _dRouteCnt = document.getElementById('dash-route-count');
   const _dCovCnt   = document.getElementById('dash-covered-count');
-  if(_dRouteCnt) _dRouteCnt.textContent = routes.filter(r=>r.school===({enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0)).length;
-  if(_dCovCnt)   _dCovCnt.textContent   = routes.filter(r=>r.school===({enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0)).reduce((a,r)=>a+r.students.length,0);
+  if(_dRouteCnt) _dRouteCnt.textContent = routes.filter(r=>r.school===(getSchoolIdx(_activeSchoolKey))).length;
+  if(_dCovCnt)   _dCovCnt.textContent   = routes.filter(r=>r.school===(getSchoolIdx(_activeSchoolKey))).reduce((a,r)=>a+r.students.length,0);
 
-  const _pillSchIdx={enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0;
+  const _pillSchIdx=getSchoolIdx(_activeSchoolKey);
   const _pillCount = students.filter(s=>s.school===_pillSchIdx).length;
   _setText('pill-count', _pillCount+' öğrenci');
   const _hs=document.getElementById('dash-hero-school');
   const _hsub=document.getElementById('dash-hero-sub');
   if(_hs && _hsub){
-    const _dSch2=SCHOOLS[{enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0];
+    const _dSch2=SCHOOLS[getSchoolIdx(_activeSchoolKey)];
     _hs.textContent=_dSch2.name;
     _hsub.textContent=_dSch2.ilce+' · '+_dSch2.adres.split(',')[0];
   }
@@ -3821,7 +4390,7 @@ function renderUcretOgrenci(){
   if(!wrap) return;
   // Sadece ücret listesine eklenmiş öğrenciler (payments kaydı olanlar)
   let list = students.filter(s => payments[s.id] !== undefined);
-  const _uSchIdx={enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0;
+  const _uSchIdx=getSchoolIdx(_activeSchoolKey);
   list=list.filter(s=>s.school===_uSchIdx);
   if(uFilter==='unpaid') list=list.filter(s=>calcStudentTotals(s.id).paidMonths<AYLAR.length);
   if(uSearch) list=list.filter(s=>s.name.toLowerCase().includes(uSearch));
@@ -3873,7 +4442,7 @@ function renderUcretGenel(){
   if(el('u-unpaid-count')) el('u-unpaid-count').textContent=unpaidCount;
   if(el('u-total-amount')) el('u-total-amount').textContent='₺'+totalAmount.toLocaleString('tr-TR');
 
-  const _ugSchIdx={enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0;
+  const _ugSchIdx=getSchoolIdx(_activeSchoolKey);
   const sc=el('u-school-cards');
   const _ugSch=SCHOOLS[_ugSchIdx]; const _ugCol=SC[_ugSchIdx];
   const _ugSl=students.filter(x=>x.school===_ugSchIdx);
@@ -4000,7 +4569,15 @@ function closePaymentModal(){
 // EXCEL TOPLU YÜKLEME
 // ═══════════════════════════════════════════════════
 let _excelRows=[];
-const OKUL_MAP={'enderun':0,'ozel enderun':0,'genclik':1,'ozel genclik':1,'merkez ihl':2,'merkez imam hatip':2,'merkez':2,'ihl':2};
+// OKUL_MAP: Excel import için — key/short/name kombinasyonlarından otomatik türetilir
+// Yeni okul eklendiğinde otomatik genişler
+const OKUL_MAP = Object.fromEntries(
+  SCHOOLS.flatMap((s,i) => [
+    [s.key.toLowerCase(), i],
+    [s.short.toLowerCase(), i],
+    [s.name.toLowerCase(), i],
+  ])
+);
 
 function closeExcelModal(){
   document.getElementById('excel-modal').classList.remove('open');
@@ -4233,7 +4810,7 @@ function parseExcelFile(file){
         if(!ilce||!mah){skip++;}
         const okulRaw=norm((row[col['okul']]||'').toString());
         // Hangi okuldaysan öğrenciler o okula eklenir
-        var _activeSchoolIdx = {enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0;
+        var _activeSchoolIdx = getSchoolIdx(_activeSchoolKey);
         var school = _activeSchoolIdx;
         var sok = sok_raw || (row[col['sokak']]||'').toString().trim();
         const cls=(row[col['sinif']]||'').toString().trim();
@@ -4529,7 +5106,6 @@ function exportOgrenciExcel(){
   if(!students.length){ toast('Öğrenci bulunamadı','error'); return; }
 
   const schoolName = SCHOOL_NAMES[_activeSchoolKey] || 'Okul';
-  const SCHOOLS_LIST = ['Özel Enderun Fen ve Anadolu Lisesi','Özel Gençlik İlkokulu / Ortaokulu','Konya Anadolu İmam Hatip Lisesi'];
 
   // Başlık satırı
   const header = ['#','Ad Soyad','Okul','Sınıf','İlçe','Mahalle','Sokak','No','Telefon','Rota'];
@@ -4538,7 +5114,7 @@ function exportOgrenciExcel(){
     return [
       i+1,
       s.name,
-      SCHOOLS_LIST[s.school] || '',
+      (SCHOOLS[s.school]||{}).name || '',
       s.cls || '',
       s.ilce || '',
       s.mah || '',
@@ -4580,11 +5156,10 @@ function printUcretGenel(){
   const unpaidC= document.getElementById('u-unpaid-count')?.textContent || '0';
   const totalA = document.getElementById('u-total-amount')?.textContent || '₺0';
   const today  = new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
-  const SCHOOL_NAMES_LOCAL = {'enderun':'Özel Enderun Anadolu Lisesi','genclik':'Özel Gençlik Ortaokulu','merkez':'Merkez İmam Hatip'};
-  const sName  = SCHOOL_NAMES_LOCAL[_activeSchoolKey] || '';
+  const sName  = SCHOOL_NAMES[_activeSchoolKey] || '';
 
   // Öğrenci ödeme tablosunu oluştur
-  const _uSchIdx={enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0;
+  const _uSchIdx=getSchoolIdx(_activeSchoolKey);
   const ucretList = students.filter(s=>s.school===_uSchIdx && payments[s.id]!==undefined);
 
   const rows = ucretList.map(s=>{
@@ -4705,7 +5280,7 @@ function exportUcretExcel(){
 function exportData(){
   // Tüm 3 okul verisini tek dosyaya yaz
   const allData = {};
-  ['enderun','genclik','merkez'].forEach(key => {
+  getAllSchoolKeys().forEach(key => {
     const mainRaw = localStorage.getItem('konseltur_main_v2_' + key);
     const payRaw  = localStorage.getItem('konseltur_pay_v2_'  + key);
     allData[key] = {
@@ -4739,47 +5314,75 @@ function exportData(){
 function importData(event){
   const file = event.target.files[0];
   if(!file) return;
-  if(!confirm('⚠️ Mevcut tüm veriler silinip bu yedek yüklenecek. Emin misiniz?')) return;
 
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const payload = JSON.parse(e.target.result);
       if(payload.version !== 'konseltur_backup_v1'){
-        toast('❌ Geçersiz yedek dosyası','error'); return;
+        toast('❌ Geçersiz yedek dosyası','error');
+        event.target.value = '';
+        return;
       }
-      // Her okul verisini localStorage'a yaz
-      ['enderun','genclik','merkez'].forEach(key => {
+
+      const keys = Object.keys(payload.data || {});
+      const summary = keys.map(k => {
+        const n = payload.data[k]?.main?.students?.length || 0;
+        return k + ' (' + n + ' öğrenci)';
+      }).join(', ');
+      const exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR');
+
+      if(!confirm('📂 Yedek Yüklenecek\n\nTarih: ' + exportDate + '\nOkullar: ' + summary + '\n\nBu veriler sisteme yüklensin mi?')){
+        event.target.value = '';
+        return;
+      }
+
+      // Tüm key'leri işle (SCHOOLS'da olsun olmasın)
+      keys.forEach(key => {
         const d = payload.data[key];
         if(!d) return;
         if(d.main) localStorage.setItem('konseltur_main_v2_' + key, JSON.stringify(d.main));
         if(d.pay)  localStorage.setItem('konseltur_pay_v2_'  + key, JSON.stringify(d.pay));
+
+        // SCHOOLS'da yoksa ekle
+        if(!SCHOOLS.some(s => s.key === key)){
+          const meta = (payload.deletedSchool?.key === key) ? payload.deletedSchool : null;
+          const newColor = ['#3b82f6','#f59e0b','#ec4899','#06b6d4'].find(c => !SC.includes(c)) || '#60a5fa';
+          SCHOOLS.push({ key, name: meta?.name || key, short: key.substring(0,8).toUpperCase(),
+            ilce:'', mah:'', adres:'', lat:37.87, lng:32.49, mapsAddr:'',
+            girisH:8, girisM:0, cikisH:15, cikisM:30, color:newColor, icon:'🏫' });
+          SC.push(newColor);
+        }
       });
+
+      _refreshSchoolMaps();
+
+      // Firebase'e gönder
+      if(window._fbReady && navigator.onLine){
+        keys.forEach(key => {
+          const d = payload.data[key];
+          if(!d) return;
+          if(d.main) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/main'), d.main).catch(e=>console.warn(e));
+          if(d.pay)  window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/payments'), d.pay).catch(e=>console.warn(e));
+        });
+      }
+
       // Aktif okulu yeniden yükle
       students=[]; drivers=[]; routes=[]; nSid=1; nDid=1; payments={};
       loadData(); loadPayments(); updateAll();
-      // FIX #9: Geri yuklenen veriyi Firebase'e de gonder
-      if(window._fbReady && navigator.onLine){
-        ['enderun','genclik','merkez'].forEach(key => {
-          const d = payload.data[key];
-          if(!d) return;
-          const pathMain = 'konseltur/' + key + '/main';
-          const pathPay  = 'konseltur/' + key + '/payments';
-          if(d.main) window._fbSet(window._fbRef(window._fbDb, pathMain), d.main).catch(e=>console.warn('Restore Firebase main hatasi:', e));
-          if(d.pay)  window._fbSet(window._fbRef(window._fbDb, pathPay),  d.pay ).catch(e=>console.warn('Restore Firebase pay hatasi:', e));
-        });
-      }
+
       const info = document.getElementById('backup-info');
-      const exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR');
-      if(info) info.textContent = '✅ Yedek yüklendi · Alınma tarihi: ' + exportDate;
+      if(info) info.textContent = '✅ Yedek yüklendi · ' + exportDate;
       toast('✅ Veri başarıyla yüklendi','success');
+
     } catch(err) {
       toast('❌ Dosya okunamadı: ' + err.message, 'error');
     }
+    event.target.value = ''; // okuma bittikten sonra sıfırla
   };
-  reader.readAsText(file);
-  // Input'u sıfırla (aynı dosyayı tekrar seçebilmek için)
-  event.target.value = '';
+
+  reader.onerror = () => { toast('❌ Dosya okunamadı','error'); event.target.value = ''; };
+  reader.readAsText(file); // en sonda
 }
 
 
