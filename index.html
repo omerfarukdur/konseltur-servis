@@ -593,7 +593,7 @@ body.light #login-screen{background:#f0f2f5;}
  #login-screen > div:nth-child(2) { display: none !important; }
  /* Sağ okul seçim paneli — full width, overflow visible so cards show */
  #login-screen > div:last-child { width: 100% !important; flex: 1 !important; padding: 24px 20px 40px !important; overflow: visible !important; }
- .school-entry-card { overflow: hidden !important; }
+ .school-entry-card { overflow: hidden !important; touch-action: manipulation; }
  .school-entry-card .card-inner { padding: 16px 14px !important; gap: 12px !important; }
 }
 
@@ -1361,6 +1361,14 @@ body.light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); }
 }
 .school-entry-card:hover::after {
   animation: shimmerSlide .55s ease forwards;
+}
+/* Mobilde shimmer ve hover transform tamamen kapat — touch engellemesin */
+@media (max-width: 768px) {
+  .school-entry-card::after { display: none !important; }
+  .school-entry-card:hover { transform: none !important; }
+  .school-entry-card:active { transform: scale(.98) !important; }
+  .school-entry-card:hover .card-avatar { transform: none !important; }
+  .school-entry-card:hover .card-arrow { transform: none !important; }
 }
 /* Sol renk aksanı */
 .school-entry-card .card-accent-bar {
