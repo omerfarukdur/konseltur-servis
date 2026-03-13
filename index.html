@@ -592,7 +592,7 @@ body.light #login-screen{background:#f0f2f5;}
  /* Dikey ayraç gizle */
  #login-screen > div:nth-child(2) { display: none !important; }
  /* Sağ okul seçim paneli — full width, overflow visible so cards show */
- #login-screen > div:last-child { width: 100% !important; flex: 1 !important; padding: 24px 20px 40px !important; overflow: visible !important; }
+ #login-screen > div:last-child, #login-right-panel { width: 100% !important; flex: 1 !important; padding: 24px 20px 40px !important; overflow: visible !important; }
  .school-entry-card { overflow: hidden !important; touch-action: manipulation; }
  .school-entry-card .card-inner { padding: 16px 14px !important; gap: 12px !important; }
 }
@@ -1364,6 +1364,7 @@ body.light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); }
 }
 /* Mobilde shimmer ve hover transform tamamen kapat — touch engellemesin */
 @media (max-width: 768px) {
+  .school-entry-card { animation: none !important; opacity: 1 !important; }
   .school-entry-card::after { display: none !important; }
   .school-entry-card:hover { transform: none !important; }
   .school-entry-card:active { transform: scale(.98) !important; }
@@ -1868,7 +1869,7 @@ function _checkRemembered(){
   <div style="width:1px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.08) 15%,rgba(255,255,255,.08) 85%,transparent);flex-shrink:0;"></div>
 
   <!-- ══ SAĞ — OKUL SEÇİMİ %40 ══ -->
-  <div style="width:400px;flex-shrink:0;background:#060810;display:flex;flex-direction:column;padding:44px 38px;overflow-y:auto;position:relative;">
+  <div style="width:400px;flex-shrink:0;background:#060810;display:flex;flex-direction:column;padding:44px 38px;overflow-y:auto;position:relative;" id="login-right-panel">
     <!-- Üst kırmızı çizgi -->
     <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(214,61,30,.7),transparent);"></div>
 
@@ -1882,7 +1883,7 @@ function _checkRemembered(){
     </div>
 
     <!-- Okul kartları -->
-    <div id="login-school-grid" style="display:flex;flex-direction:column;gap:10px;width:100%;animation:loginFadeUp .4s .08s ease both;opacity:0;margin-bottom:16px;flex-shrink:0;"></div>
+    <div id="login-school-grid" style="display:flex;flex-direction:column;gap:10px;width:100%;margin-bottom:16px;flex-shrink:0;"></div>
 
     <!-- Yönetim modu -->
     <div id="manage-actions" style="display:none;margin-bottom:14px;padding:14px 16px;background:rgba(52,211,153,.04);border:1px solid rgba(52,211,153,.12);border-radius:11px;flex-shrink:0;">
