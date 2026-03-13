@@ -427,10 +427,11 @@ nav{
  .nav-tabs::-webkit-scrollbar { display: none; }
  .nav-tab { padding: 8px 12px; font-size: 12px; white-space: nowrap; flex-shrink: 0; }
  .nav-pill-count { font-size: 10px; padding: 3px 8px; }
- .page { flex-direction: column; height: auto; min-height: calc(100vh - 100px); }
- .page-scroll { height: auto; min-height: calc(100vh - 100px); }
- .sidebar { width: 100% !important; max-width: 100% !important; min-width: unset !important; border-right: none !important; border-bottom: 1px solid var(--border); max-height: 45vh; }
- .sidebar-body { max-height: 35vh; padding: 10px; }
+ /* Sidebar scroll — sınırsız yükseklik, overflow scroll */
+ .page { flex-direction: column; height: auto; min-height: calc(100vh - var(--nav-h, 56px)); }
+ .page-scroll { height: auto; }
+ .sidebar { width: 100% !important; max-width: 100% !important; min-width: unset !important; max-height: none !important; border-right: none !important; border-bottom: 1px solid var(--border); }
+ .sidebar-body { max-height: none !important; overflow-y: visible !important; padding: 12px 14px; }
  .sidebar-header { padding: 12px 14px; }
  .sidebar-footer { padding: 10px 12px; gap: 6px; }
  .main { padding: 12px; }
@@ -472,7 +473,8 @@ nav{
  .hero { padding: 14px 12px; }
  .modal { margin: 6px; padding: 16px 12px; }
  .btn { padding: 11px 14px; font-size: 13px; }
- .sidebar { max-height: 40vh; }
+ .sidebar { max-height: none !important; }
+ .sidebar-body { max-height: none !important; overflow-y: visible !important; }
 }
 
 @media (max-width: 360px) {
@@ -559,26 +561,35 @@ body.light #login-screen{background:#f0f2f5;}
  .nav-tabs { justify-content: space-around !important; }
 }
 
-/* Login okul kartları — mobil padding */
-@media (max-width: 480px) {
- #login-school-grid >div { padding: 20px 10px 18px !important; }
- #login-school-grid { gap: 8px !important; }
-}
-
-@media (max-width: 380px) {
- #login-school-grid >div { padding: 16px 8px 14px !important; }
- #login-school-grid { gap: 6px !important; }
-}
-
-
-/* OKUL KARTLARI MOBİL FIX */
+/* Login ekranı — mobilde tek sütun */
 @media (max-width: 768px) {
- #login-school-grid { gap: 6px !important; }
- #login-school-grid >div { padding: 14px 5px 12px !important; border-radius: 14px !important; }
+ #login-screen { flex-direction: column !important; height: auto !important; min-height: 100vh; }
+ /* Sol fotoğraf paneli — kompakt banner */
+ #login-screen > div:first-child { width: 100% !important; flex: none !important; height: 220px !important; }
+ #login-screen > div:first-child > div:last-child { padding: 24px 24px 20px !important; }
+ #login-screen > div:first-child > div:last-child > div:first-child img { height: 36px !important; }
+ #login-screen > div:first-child > div:last-child > div:nth-child(2) div[style*="font-size:46px"] { font-size: 28px !important; }
+ #login-screen > div:first-child > div:last-child > div:nth-child(2) > div:last-child { display: none; }
+ /* Dikey ayraç gizle */
+ #login-screen > div:nth-child(2) { display: none !important; }
+ /* Sağ okul seçim paneli — full width */
+ #login-screen > div:last-child { width: 100% !important; flex: 1 !important; padding: 24px 20px 32px !important; }
+ .school-entry-card .card-inner { padding: 16px 14px !important; gap: 12px !important; }
+}
+
+/* Modül seçim ekranı — mobil */
+@media (max-width: 600px) {
+ #module-select-screen > div > div[style*="gap:20px"] { flex-direction: column !important; max-width: 100% !important; gap: 12px !important; }
+ #module-select-screen > div > div[style*="gap:20px"] > div { padding: 32px 24px 28px !important; }
+}
+
+/* Login okul kartları — eski grid stilleri sıfırla */
+@media (max-width: 768px) {
+ #login-school-grid { gap: 8px !important; }
+ #login-school-grid > div { padding: 0 !important; border-radius: 14px !important; }
 }
 @media (max-width: 380px) {
- #login-school-grid { gap: 4px !important; }
- #login-school-grid >div { padding: 12px 4px 10px !important; border-radius: 12px !important; }
+ #login-school-grid { gap: 6px !important; }
 }
 
 /* 
@@ -1943,25 +1954,29 @@ function _checkRemembered(){
 <div id="app-wrapper" style="display:none;flex-direction:column;height:100vh;">
 <nav>
  <!-- SOL: Ana Sayfa + Geri -->
- <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+ <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
  <button onclick="goToLogin()" title="Ana Sayfa"
- style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid rgba(200,55,26,.3);background:rgba(200,55,26,.08);color:#C8371A;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .15s;"
+ style="display:flex;align-items:center;gap:5px;padding:7px 11px;border-radius:8px;border:1px solid rgba(200,55,26,.3);background:rgba(200,55,26,.08);color:#C8371A;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .15s;"
  onmouseover="this.style.background='rgba(200,55,26,.2)'" onmouseout="this.style.background='rgba(200,55,26,.08)'">
+ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
  <span class="nav-btn-text">Ana Sayfa</span>
  </button>
  <button onclick="doLogout()" title="Çıkış Yap"
- style="display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.06);color:#f87171;font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .15s;"
+ style="display:flex;align-items:center;gap:5px;padding:7px 11px;border-radius:8px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.06);color:#f87171;font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .15s;"
  onmouseover="this.style.background='rgba(239,68,68,.15)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">
+ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
  <span class="nav-btn-text">Çıkış</span>
  </button>
  <button onclick="goToModuleSelect()" title="Modül Seçimi"
- style="display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.45);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .15s;"
- onmouseover="this.style.background='rgba(255,255,255,.09)';this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.background='rgba(255,255,255,.04)';this.style.color='rgba(255,255,255,.45)'">
- <span class="nav-btn-text">← Modüller</span><span class="nav-btn-icon">←</span>
+ style="display:flex;align-items:center;gap:5px;padding:7px 11px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;transition:all .15s;"
+ onmouseover="this.style.background='rgba(255,255,255,.09)';this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.background='rgba(255,255,255,.04)';this.style.color='rgba(255,255,255,.5)'">
+ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+ <span class="nav-btn-text">Modüller</span>
  </button>
  <button id="nav-back-btn" onclick="goBack()" title="Geri Git"
- style="display:none;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">
- ‹ Geri
+ style="display:none;align-items:center;gap:5px;padding:7px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">
+ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+ Geri
  </button>
  </div>
 
