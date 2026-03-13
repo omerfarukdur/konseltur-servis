@@ -578,7 +578,7 @@ body.light #login-screen{background:#f0f2f5;}
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   // ÖNEMLİ: Firebase Console → Realtime Database → Rules ayarlayın!
   const firebaseConfig = {
@@ -599,6 +599,7 @@ body.light #login-screen{background:#f0f2f5;}
   window._fbSet = set;
   window._fbGet = get;
   window._fbOnValue = onValue;
+  window._fbRemove = remove;
   window._fbDb  = _fbDb;
   window._fbReady = true;
 
@@ -1679,18 +1680,19 @@ function _checkRemembered(){
 
 // ═══ LOGIN EKRANI YEDEKLEME ═══
 function exportDataFromLogin(){
-  // Tüm 3 okul verisini tek dosyaya yaz (okul seçimine gerek yok)
   var allData = {};
+  var totalStudents = 0, totalDrivers = 0;
+
   getAllSchoolKeys().forEach(function(key){
     var mainRaw = localStorage.getItem('konseltur_main_v2_' + key);
     var payRaw  = localStorage.getItem('konseltur_pay_v2_'  + key);
-    allData[key] = {
-      main: mainRaw ? JSON.parse(mainRaw) : null,
-      pay:  payRaw  ? JSON.parse(payRaw)  : null
-    };
+    var mainObj = mainRaw ? JSON.parse(mainRaw) : null;
+    var payObj  = payRaw  ? JSON.parse(payRaw)  : null;
+    if(mainObj && mainObj.students) totalStudents += mainObj.students.length;
+    if(mainObj && mainObj.drivers)  totalDrivers  += mainObj.drivers.length;
+    allData[key] = { main: mainObj, pay: payObj };
   });
 
-  // Veri var mı kontrol
   var hasData = Object.values(allData).some(function(d){ return d.main || d.pay; });
   if(!hasData){
     var info = document.getElementById('login-backup-info');
@@ -1699,23 +1701,32 @@ function exportDataFromLogin(){
   }
 
   var payload = {
-    version: 'konseltur_backup_v1',
+    version: 'konseltur_backup_v2',
     exportedAt: new Date().toISOString(),
     exportedBy: 'login-screen',
+    checksum: { totalStudents: totalStudents, totalDrivers: totalDrivers, schoolCount: SCHOOLS.length },
+    schools: JSON.parse(JSON.stringify(SCHOOLS)),
     data: allData
   };
 
   var blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
-  var date = new Date().toLocaleDateString('tr-TR').replace(/\./g,'-');
+  var now  = new Date();
+  var stamp = now.toLocaleDateString('tr-TR').replace(/\./g,'-')
+            + '_' + String(now.getHours()).padStart(2,'0')
+            + '-' + String(now.getMinutes()).padStart(2,'0');
   a.href     = url;
-  a.download = 'konseltur-yedek-' + date + '.json';
+  a.download = 'konseltur-yedek-' + stamp + '.json';
   a.click();
   URL.revokeObjectURL(url);
 
+  try { localStorage.setItem('konseltur_last_backup', now.toISOString()); } catch(e){}
+
   var info = document.getElementById('login-backup-info');
-  if(info) info.innerHTML = '<span style="color:#34d399;">✅ Yedek alındı — ' + new Date().toLocaleString('tr-TR') + '</span>';
+  if(info) info.innerHTML = '<span style="color:#34d399;">✅ Yedek alındı — '
+    + now.toLocaleString('tr-TR')
+    + ' (' + totalStudents + ' öğrenci, ' + totalDrivers + ' sürücü)</span>';
   playSuccessSound();
 }
 
@@ -1726,109 +1737,153 @@ function importDataFromLogin(event){
   var file = event.target.files[0];
   if(!file){ setInfo('❌ Dosya seçilemedi','#f87171'); return; }
 
+  // KRİTİK-3: Dosya boyutu limiti (50MB)
+  if(file.size > 50 * 1024 * 1024){
+    setInfo('❌ Dosya çok büyük (' + Math.round(file.size/1024/1024) + ' MB). Geçerli yedek dosyaları 50MB altındadır.','#f87171');
+    event.target.value = ''; return;
+  }
+  if(!file.name.endsWith('.json')){
+    setInfo('❌ Yalnızca .json uzantılı yedek dosyaları yüklenebilir.','#f87171');
+    event.target.value = ''; return;
+  }
+
   setInfo('⏳ Dosya okunuyor: ' + file.name + ' (' + Math.round(file.size/1024) + ' KB)');
 
   var reader = new FileReader();
 
   reader.onload = function(ev){
-    setInfo('⏳ Dosya okundu, ayrıştırılıyor...');
+    setInfo('⏳ Ayrıştırılıyor...');
     var payload;
     try {
       payload = JSON.parse(ev.target.result);
     } catch(err) {
       setInfo('❌ JSON ayrıştırma hatası: ' + err.message, '#f87171');
-      event.target.value = '';
-      return;
+      event.target.value = ''; return;
     }
 
-    if(!payload || payload.version !== 'konseltur_backup_v1'){
-      setInfo('❌ Geçersiz yedek dosyası. version: ' + (payload && payload.version), '#f87171');
-      event.target.value = '';
-      return;
+    // v1 ve v2 formatları her ikisini de kabul et
+    if(!payload || (payload.version !== 'konseltur_backup_v1' && payload.version !== 'konseltur_backup_v2')){
+      setInfo('❌ Geçersiz yedek dosyası. (version: ' + (payload && payload.version) + ')', '#f87171');
+      event.target.value = ''; return;
     }
 
     var keys = Object.keys(payload.data || {});
     if(keys.length === 0){
       setInfo('❌ Yedek dosyasında veri yok', '#f87171');
-      event.target.value = '';
-      return;
+      event.target.value = ''; return;
     }
 
-    setInfo('✅ Dosya geçerli. Okullar: ' + keys.join(', ') + ' — yükleniyor...', '#fbbf24');
+    // KRİTİK-4: Checksum doğrulama (v2 dosyalarında)
+    if(payload.checksum){
+      var actualStudents = 0;
+      keys.forEach(function(k){ var d = payload.data[k]; if(d && d.main && d.main.students) actualStudents += d.main.students.length; });
+      if(actualStudents !== payload.checksum.totalStudents){
+        setInfo('⚠️ Uyarı: Yedek dosyası bozuk olabilir. Beklenen öğrenci sayısı: '
+          + payload.checksum.totalStudents + ', gerçek: ' + actualStudents
+          + '. Yine de yüklemek için tekrar butona basın.', '#fbbf24');
+        // İkinci tıklamada devam etmesine izin ver (flag ile)
+        if(!window._importChecksumOverride){
+          window._importChecksumOverride = true;
+          event.target.value = ''; return;
+        }
+      }
+      window._importChecksumOverride = false;
+    }
+
+    var exportDate = '';
+    try { exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR'); } catch(e){}
+
+    var summary = keys.map(function(k){
+      var n = (payload.data[k] && payload.data[k].main && payload.data[k].main.students) ? payload.data[k].main.students.length : 0;
+      return k + ' (' + n + ' öğrenci)';
+    }).join(', ');
+
+    if(!confirm('📂 Yedek Yüklenecek\n\nTarih: ' + exportDate + '\nOkullar: ' + summary + '\n\nBu veriler sisteme yüklensin mi?')){
+      event.target.value = ''; return;
+    }
 
     var restoredSchools = [];
 
     keys.forEach(function(key){
       var d = payload.data[key];
-      if(!d){ return; }
+      if(!d) return;
 
       try {
         if(d.main) localStorage.setItem('konseltur_main_v2_' + key, JSON.stringify(d.main));
         if(d.pay)  localStorage.setItem('konseltur_pay_v2_'  + key, JSON.stringify(d.pay));
       } catch(lsErr) {
-        setInfo('❌ localStorage yazma hatası (' + key + '): ' + lsErr.message, '#f87171');
+        setInfo('❌ localStorage yazma hatası (' + key + '): ' + lsErr.message
+          + (lsErr.name === 'QuotaExceededError' ? ' — Tarayıcı depolama alanı dolu!' : ''), '#f87171');
         return;
       }
 
-      // Firebase
       try {
         if(window._fbReady && navigator.onLine){
           if(d.main) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/main'), d.main).catch(function(){});
           if(d.pay)  window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/payments'), d.pay).catch(function(){});
         }
-      } catch(fbErr) { /* Firebase hatası kritik değil */ }
+      } catch(e){}
 
-      // SCHOOLS'da yoksa ekle
-      var existsInSchools = SCHOOLS.some(function(s){ return s.key === key; });
-      if(!existsInSchools){
-        var meta = (payload.deletedSchool && payload.deletedSchool.key === key) ? payload.deletedSchool : null;
-        var schoolName = (meta && meta.name) ? meta.name : key;
-        var studentCount = (d.main && d.main.students) ? d.main.students.length : 0;
-        var palette = ['#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
-        var usedColors = SCHOOLS.map(function(s){ return s.color; });
-        var newColor = '#60a5fa';
-        for(var pi=0; pi<palette.length; pi++){ if(usedColors.indexOf(palette[pi])===-1){ newColor=palette[pi]; break; } }
-        SCHOOLS.push({ key:key, name:schoolName, short:key.substring(0,8).toUpperCase(),
-          ilce:'', mah:'', adres:'', lat:37.87, lng:32.49, mapsAddr:'',
-          girisH:8, girisM:0, cikisH:15, cikisM:30, color:newColor, icon:'🏫' });
-        SC.push(newColor);
-        restoredSchools.push(schoolName + ' (' + studentCount + ' öğrenci)');
+      // SCHOOLS'da var mı?
+      var existingIdx = SCHOOLS.findIndex(function(s){ return s.key === key; });
+
+      if(existingIdx === -1){
+        // KRİTİK-5: v2 yedekte tam okul metası var → onu kullan
+        var schoolMeta = null;
+        if(payload.schools && Array.isArray(payload.schools)){
+          schoolMeta = payload.schools.find(function(s){ return s.key === key; });
+        }
+        // v1 yedek: deletedSchool alanına bak
+        if(!schoolMeta && payload.deletedSchool && payload.deletedSchool.key === key){
+          schoolMeta = payload.deletedSchool;
+        }
+
+        if(schoolMeta){
+          // Tam meta ile geri ekle (adres, saat, renk, ikon hepsi korunur)
+          SCHOOLS.push(JSON.parse(JSON.stringify(schoolMeta)));
+          SC.push(schoolMeta.color || '#60a5fa');
+          var n = (d.main && d.main.students) ? d.main.students.length : 0;
+          restoredSchools.push(schoolMeta.name + ' (' + n + ' öğrenci) — tam bilgi ile geri eklendi');
+        } else {
+          // v1 yedek veya meta yoksa: minimum bilgiyle ekle
+          var palette = ['#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
+          var usedColors = SCHOOLS.map(function(s){ return s.color; });
+          var newColor = '#60a5fa';
+          for(var pi=0; pi<palette.length; pi++){ if(usedColors.indexOf(palette[pi])===-1){ newColor=palette[pi]; break; } }
+          var n = (d.main && d.main.students) ? d.main.students.length : 0;
+          SCHOOLS.push({ key:key, name:key, short:key.substring(0,8).toUpperCase(),
+            ilce:'', mah:'', adres:'', lat:37.87, lng:32.49, mapsAddr:'',
+            girisH:8, girisM:0, cikisH:15, cikisM:30, color:newColor, icon:'🏫' });
+          SC.push(newColor);
+          restoredSchools.push(key + ' (' + n + ' öğrenci) — ⚠️ okul bilgileri eksik, düzenleyin');
+        }
       }
     });
 
     try { _refreshSchoolMaps(); } catch(e){}
     try { renderLoginSchoolCards(); } catch(e){}
-
-    var exportDate = '';
-    try { exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR'); } catch(e){}
+    try { localStorage.setItem('konseltur_last_restore', new Date().toISOString()); } catch(e){}
 
     var msg = '✅ Yedek yüklendi — ' + exportDate;
     if(restoredSchools.length > 0){
-      msg += '<br><span style="color:#fbbf24;">⚠️ Geri eklenen: ' + restoredSchools.join(', ') + '</span>';
-      msg += '<br><span style="color:rgba(255,255,255,.4);font-size:10px;">⚙️ Yönet → ✏️ Düzenle ile bilgileri tamamlayın.</span>';
+      msg += '<br><span style="color:#fbbf24;">⚠️ Geri eklendi: ' + restoredSchools.join(' | ') + '</span>';
     }
     setInfo(msg, '#34d399');
-
     try { playSuccessSound(); } catch(e){}
     event.target.value = '';
   };
 
   reader.onerror = function(ev){
-    setInfo('❌ FileReader hatası: ' + (ev.target.error && ev.target.error.message), '#f87171');
+    setInfo('❌ Dosya okuma hatası: ' + (ev.target.error && ev.target.error.message), '#f87171');
     event.target.value = '';
   };
-
   reader.onabort = function(){
     setInfo('❌ Dosya okuma iptal edildi', '#f87171');
     event.target.value = '';
   };
 
-  try {
-    reader.readAsText(file);
-  } catch(err) {
-    setInfo('❌ readAsText hatası: ' + err.message, '#f87171');
-    event.target.value = '';
-  }
+  try { reader.readAsText(file); }
+  catch(err){ setInfo('❌ readAsText hatası: ' + err.message, '#f87171'); event.target.value = ''; }
 }
 
 // ═══ BİLDİRİM SESİ ═══
@@ -2439,6 +2494,17 @@ function closeDeleteSchoolModal(){
 }
 
 function _doDeleteSchool(idx, key){
+  // Önce localStorage'dan veriyi temizle (yoksa aynı key'le yeni okul eklenirse eski veri görünür)
+  try {
+    localStorage.removeItem('konseltur_main_v2_' + key);
+    localStorage.removeItem('konseltur_pay_v2_'  + key);
+  } catch(e){}
+  // Firebase'den de sil (online ise)
+  try {
+    if(window._fbReady && navigator.onLine){
+      window._fbRemove(window._fbRef(window._fbDb, 'konseltur/' + key)).catch(function(){});
+    }
+  } catch(e){}
   SCHOOLS.splice(idx, 1);
   SC.splice(idx, 1);
   _refreshSchoolMaps();
@@ -5278,36 +5344,45 @@ function exportUcretExcel(){
 
 
 function exportData(){
-  // Tüm 3 okul verisini tek dosyaya yaz
   const allData = {};
+  let totalStudents = 0, totalDrivers = 0;
+
   getAllSchoolKeys().forEach(key => {
     const mainRaw = localStorage.getItem('konseltur_main_v2_' + key);
     const payRaw  = localStorage.getItem('konseltur_pay_v2_'  + key);
-    allData[key] = {
-      main: mainRaw ? JSON.parse(mainRaw) : null,
-      pay:  payRaw  ? JSON.parse(payRaw)  : null
-    };
+    const mainObj = mainRaw ? JSON.parse(mainRaw) : null;
+    const payObj  = payRaw  ? JSON.parse(payRaw)  : null;
+    if(mainObj?.students) totalStudents += mainObj.students.length;
+    if(mainObj?.drivers)  totalDrivers  += mainObj.drivers.length;
+    allData[key] = { main: mainObj, pay: payObj };
   });
 
   const payload = {
-    version: 'konseltur_backup_v1',
+    version: 'konseltur_backup_v2',
     exportedAt: new Date().toISOString(),
     exportedBy: _activeSchoolKey,
+    checksum: { totalStudents, totalDrivers, schoolCount: SCHOOLS.length },
+    schools: JSON.parse(JSON.stringify(SCHOOLS)),
     data: allData
   };
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  const date = new Date().toLocaleDateString('tr-TR').replace(/\./g,'-');
+  const now  = new Date();
+  const stamp = now.toLocaleDateString('tr-TR').replace(/\./g,'-')
+              + '_' + String(now.getHours()).padStart(2,'0')
+              + '-' + String(now.getMinutes()).padStart(2,'0');
   a.href     = url;
-  a.download = `konseltur-yedek-${date}.json`;
+  a.download = `konseltur-yedek-${stamp}.json`;
   a.click();
   URL.revokeObjectURL(url);
 
-  // Bilgi güncelle
+  try { localStorage.setItem('konseltur_last_backup', now.toISOString()); } catch(e){}
+
   const info = document.getElementById('backup-info');
-  if(info) info.textContent = '✅ Yedek alındı: ' + new Date().toLocaleString('tr-TR');
+  if(info) info.textContent = '✅ Yedek alındı: ' + now.toLocaleString('tr-TR')
+    + ' (' + totalStudents + ' öğrenci, ' + totalDrivers + ' sürücü)';
   toast('✅ Veri yedeklendi','success');
 }
 
@@ -5315,61 +5390,99 @@ function importData(event){
   const file = event.target.files[0];
   if(!file) return;
 
+  // Dosya boyutu ve tip kontrolü
+  if(file.size > 50 * 1024 * 1024){
+    toast('❌ Dosya çok büyük (' + Math.round(file.size/1024/1024) + ' MB). Max 50MB.', 'error');
+    event.target.value = ''; return;
+  }
+  if(!file.name.endsWith('.json')){
+    toast('❌ Yalnızca .json uzantılı yedek dosyaları yüklenebilir.', 'error');
+    event.target.value = ''; return;
+  }
+
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const payload = JSON.parse(e.target.result);
-      if(payload.version !== 'konseltur_backup_v1'){
-        toast('❌ Geçersiz yedek dosyası','error');
-        event.target.value = '';
-        return;
+
+      // v1 ve v2 her ikisi de kabul
+      if(!payload || (payload.version !== 'konseltur_backup_v1' && payload.version !== 'konseltur_backup_v2')){
+        toast('❌ Geçersiz yedek dosyası (version: ' + (payload?.version) + ')','error');
+        event.target.value = ''; return;
+      }
+
+      // Checksum doğrulama (v2)
+      if(payload.checksum){
+        const keys2 = Object.keys(payload.data || {});
+        let actual = 0;
+        keys2.forEach(k => { actual += payload.data[k]?.main?.students?.length || 0; });
+        if(actual !== payload.checksum.totalStudents){
+          if(!confirm('⚠️ Yedek dosyasında tutarsızlık var.\nBeklenen öğrenci: ' + payload.checksum.totalStudents + ', bulunan: ' + actual + '\n\nYine de yüklemek istiyor musunuz?')){
+            event.target.value = ''; return;
+          }
+        }
       }
 
       const keys = Object.keys(payload.data || {});
+      const exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR');
       const summary = keys.map(k => {
         const n = payload.data[k]?.main?.students?.length || 0;
         return k + ' (' + n + ' öğrenci)';
       }).join(', ');
-      const exportDate = new Date(payload.exportedAt).toLocaleString('tr-TR');
 
       if(!confirm('📂 Yedek Yüklenecek\n\nTarih: ' + exportDate + '\nOkullar: ' + summary + '\n\nBu veriler sisteme yüklensin mi?')){
-        event.target.value = '';
-        return;
+        event.target.value = ''; return;
       }
 
-      // Tüm key'leri işle (SCHOOLS'da olsun olmasın)
       keys.forEach(key => {
         const d = payload.data[key];
         if(!d) return;
-        if(d.main) localStorage.setItem('konseltur_main_v2_' + key, JSON.stringify(d.main));
-        if(d.pay)  localStorage.setItem('konseltur_pay_v2_'  + key, JSON.stringify(d.pay));
+        try {
+          if(d.main) localStorage.setItem('konseltur_main_v2_' + key, JSON.stringify(d.main));
+          if(d.pay)  localStorage.setItem('konseltur_pay_v2_'  + key, JSON.stringify(d.pay));
+        } catch(lsErr){
+          toast('❌ Depolama hatası (' + key + '): ' + lsErr.message
+            + (lsErr.name === 'QuotaExceededError' ? ' — Tarayıcı depolama dolu!' : ''), 'error');
+          return;
+        }
 
-        // SCHOOLS'da yoksa ekle
+        // SCHOOLS'da yoksa ekle — v2'de tam meta var
         if(!SCHOOLS.some(s => s.key === key)){
-          const meta = (payload.deletedSchool?.key === key) ? payload.deletedSchool : null;
-          const newColor = ['#3b82f6','#f59e0b','#ec4899','#06b6d4'].find(c => !SC.includes(c)) || '#60a5fa';
-          SCHOOLS.push({ key, name: meta?.name || key, short: key.substring(0,8).toUpperCase(),
-            ilce:'', mah:'', adres:'', lat:37.87, lng:32.49, mapsAddr:'',
-            girisH:8, girisM:0, cikisH:15, cikisM:30, color:newColor, icon:'🏫' });
-          SC.push(newColor);
+          let schoolMeta = null;
+          if(payload.schools && Array.isArray(payload.schools)){
+            schoolMeta = payload.schools.find(s => s.key === key);
+          }
+          if(!schoolMeta && payload.deletedSchool?.key === key) schoolMeta = payload.deletedSchool;
+
+          if(schoolMeta){
+            SCHOOLS.push(JSON.parse(JSON.stringify(schoolMeta)));
+            SC.push(schoolMeta.color || '#60a5fa');
+          } else {
+            const newColor = ['#3b82f6','#f59e0b','#ec4899','#06b6d4'].find(c => !SC.includes(c)) || '#60a5fa';
+            SCHOOLS.push({ key, name:key, short:key.substring(0,8).toUpperCase(),
+              ilce:'', mah:'', adres:'', lat:37.87, lng:32.49, mapsAddr:'',
+              girisH:8, girisM:0, cikisH:15, cikisM:30, color:newColor, icon:'🏫' });
+            SC.push(newColor);
+          }
         }
       });
 
       _refreshSchoolMaps();
 
-      // Firebase'e gönder
       if(window._fbReady && navigator.onLine){
         keys.forEach(key => {
           const d = payload.data[key];
           if(!d) return;
-          if(d.main) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/main'), d.main).catch(e=>console.warn(e));
-          if(d.pay)  window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/payments'), d.pay).catch(e=>console.warn(e));
+          if(d.main) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/main'), d.main).catch(()=>{});
+          if(d.pay)  window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/payments'), d.pay).catch(()=>{});
         });
       }
 
       // Aktif okulu yeniden yükle
       students=[]; drivers=[]; routes=[]; nSid=1; nDid=1; payments={};
       loadData(); loadPayments(); updateAll();
+
+      try { localStorage.setItem('konseltur_last_restore', new Date().toISOString()); } catch(e){}
 
       const info = document.getElementById('backup-info');
       if(info) info.textContent = '✅ Yedek yüklendi · ' + exportDate;
@@ -5378,11 +5491,11 @@ function importData(event){
     } catch(err) {
       toast('❌ Dosya okunamadı: ' + err.message, 'error');
     }
-    event.target.value = ''; // okuma bittikten sonra sıfırla
+    event.target.value = '';
   };
 
   reader.onerror = () => { toast('❌ Dosya okunamadı','error'); event.target.value = ''; };
-  reader.readAsText(file); // en sonda
+  reader.readAsText(file);
 }
 
 
