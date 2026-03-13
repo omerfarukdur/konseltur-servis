@@ -582,7 +582,7 @@ body.light #login-screen{background:#f0f2f5;}
 
 /* Login ekranı — mobilde tek sütun */
 @media (max-width: 768px) {
- #login-screen { flex-direction: column !important; height: auto !important; min-height: 100vh; overflow-y: auto !important; }
+ #login-screen, .login-screen-root { flex-direction: column !important; height: auto !important; min-height: 100vh; overflow: visible !important; }
  /* Sol fotoğraf paneli — kompakt banner */
  #login-screen > div:first-child { width: 100% !important; flex: none !important; height: 220px !important; overflow: hidden !important; }
  #login-screen > div:first-child > div:last-child { padding: 24px 24px 20px !important; }
@@ -591,9 +591,9 @@ body.light #login-screen{background:#f0f2f5;}
  #login-screen > div:first-child > div:last-child > div:nth-child(2) > div:last-child { display: none; }
  /* Dikey ayraç gizle */
  #login-screen > div:nth-child(2) { display: none !important; }
- /* Sağ okul seçim paneli — full width, overflow visible so cards show */
- #login-screen > div:last-child, #login-right-panel { width: 100% !important; flex: 1 !important; padding: 24px 20px 40px !important; overflow: visible !important; }
- .school-entry-card { overflow: hidden !important; touch-action: manipulation; }
+ /* Sağ okul seçim paneli — full width */
+ #login-screen > div:last-child, #login-right-panel { width: 100% !important; flex: none !important; padding: 24px 20px 40px !important; overflow: visible !important; }
+ .school-entry-card { touch-action: manipulation; }
  .school-entry-card .card-inner { padding: 16px 14px !important; gap: 12px !important; }
 }
 
@@ -1811,7 +1811,7 @@ function _checkRemembered(){
  </div>
 </div>
 
-<div id="login-screen" style="display:flex;height:100vh;background:#060810;position:relative;overflow:hidden;">
+<div id="login-screen" style="display:flex;height:100vh;background:#060810;position:relative;" class="login-screen-root">
 
   <!-- Üst kırmızı çizgi -->
   <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,rgba(214,61,30,.9) 0%,rgba(214,61,30,.5) 60%,transparent 100%);z-index:10;"></div>
@@ -1869,7 +1869,7 @@ function _checkRemembered(){
   <div style="width:1px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.08) 15%,rgba(255,255,255,.08) 85%,transparent);flex-shrink:0;"></div>
 
   <!-- ══ SAĞ — OKUL SEÇİMİ %40 ══ -->
-  <div style="width:400px;flex-shrink:0;background:#060810;display:flex;flex-direction:column;padding:44px 38px;overflow-y:auto;position:relative;" id="login-right-panel">
+  <div style="width:400px;flex-shrink:0;background:#060810;display:flex;flex-direction:column;padding:44px 38px;position:relative;" id="login-right-panel">
     <!-- Üst kırmızı çizgi -->
     <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(214,61,30,.7),transparent);"></div>
 
