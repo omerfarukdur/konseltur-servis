@@ -4017,6 +4017,168 @@ function handleDrop(e){
 }
 function handleFileSelect(input){if(input.files[0])parseExcelFile(input.files[0]);}
 
+
+
+// ═══ AKILLI ADRES PARSER ═══
+// Tek sütundaki adresi İlçe, Mahalle, Sokak olarak ayırır
+// Örnek: "Bosna Hersek Mah. Osmanlı Cad. Selçuklu" → {ilce:"Selçuklu", mah:"Bosna Hersek Mah.", sok:"Osmanlı Cad."}
+function _parseAddress(fullAddr){
+  if(!fullAddr) return {ilce:'',mah:'',sok:''};
+  var addr = fullAddr.toString().trim();
+  var result = {ilce:'',mah:'',sok:''};
+  
+  // 1. İlçeyi bul (Selçuklu, Meram, Karatay)
+  var ilceList = ['Selçuklu','Meram','Karatay'];
+  var normAddr = _normalizeText(addr);
+  for(var i=0;i<ilceList.length;i++){
+    var normIlce = _normalizeText(ilceList[i]);
+    if(normAddr.indexOf(normIlce) !== -1){
+      result.ilce = ilceList[i];
+      // İlçeyi adresten çıkar
+      var regex = new RegExp(ilceList[i], 'gi');
+      addr = addr.replace(regex,'').trim();
+      // Normalize versiyonuyla da dene
+      var parts = addr.split(/\s+/);
+      addr = parts.filter(function(p){ return _normalizeText(p) !== normIlce; }).join(' ');
+      break;
+    }
+  }
+  
+  // Konya kelimesini de çıkar
+  addr = addr.replace(/konya/gi,'').trim();
+  // Başındaki ve sonundaki virgül, tire, slash temizle
+  addr = addr.replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
+  
+  // 2. Mahalleyi bul — MAHALLES veritabanından eşleştir
+  if(!MAHALLES) _ensureMAHALLES();
+  var bestMah = '';
+  var bestMahScore = 0;
+  var bestMahIlce = result.ilce;
+  
+  var searchIlces = result.ilce ? [result.ilce] : ilceList;
+  var normAddrClean = _normalizeText(addr);
+  
+  for(var ii=0;ii<searchIlces.length;ii++){
+    var ilce = searchIlces[ii];
+    if(!MAHALLES || !MAHALLES[ilce]) continue;
+    var mahList = Object.keys(MAHALLES[ilce]);
+    for(var mi=0;mi<mahList.length;mi++){
+      var mahName = mahList[mi];
+      // "Mah." soneki olmadan mahalle adı
+      var mahClean = _normalizeText(mahName).replace(/\s*mah\.?\s*$/,'').trim();
+      if(mahClean.length < 3) continue;
+      
+      // Adres metninde mahalle adı geçiyor mu?
+      if(normAddrClean.indexOf(mahClean) !== -1){
+        // Uzun eşleşme daha iyi (daha spesifik)
+        if(mahClean.length > bestMahScore){
+          bestMahScore = mahClean.length;
+          bestMah = mahName;
+          if(!result.ilce) bestMahIlce = ilce;
+        }
+      }
+    }
+  }
+  
+  if(bestMah){
+    result.mah = bestMah;
+    if(!result.ilce) result.ilce = bestMahIlce;
+    
+    // Mahalle adını adresten çıkar → kalan sokak
+    var mahCleanForRemove = bestMah.replace(/\s*Mah\.?\s*$/i,'').trim();
+    // Regex ile mahalle adını çıkar (büyük/küçük harf duyarsız)
+      var mahRegex = new RegExp(mahCleanForRemove, 'gi');
+    addr = addr.replace(mahRegex,'').trim();
+    addr = addr.replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
+  }
+  
+  // 3. Kalan metin = sokak/cadde
+  result.sok = addr.trim();
+  // Sokaktaki gereksiz karakterleri temizle
+  result.sok = result.sok.replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
+  
+  return result;
+}
+
+// ═══ EXCEL İLÇE/MAHALLE DOĞRULAMA ═══
+function _normalizeText(s){
+  return (s||'').toString().trim()
+    .replace(/İ/g,'i').replace(/I/g,'ı')
+    .toLowerCase()
+    .replace(/ğ/g,'g').replace(/ş/g,'s').replace(/ç/g,'c').replace(/ö/g,'o').replace(/ü/g,'u').replace(/ı/g,'i')
+    .replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+}
+
+function _bestMatchIlce(input){
+  var valid = ['Selçuklu','Meram','Karatay'];
+  var norm = _normalizeText(input);
+  // Tam eşleşme
+  for(var i=0;i<valid.length;i++){
+    if(_normalizeText(valid[i]) === norm) return valid[i];
+  }
+  // Başlangıç eşleşmesi
+  for(var i=0;i<valid.length;i++){
+    if(_normalizeText(valid[i]).startsWith(norm) || norm.startsWith(_normalizeText(valid[i]).substring(0,3))) return valid[i];
+  }
+  // Benzerlik (2 harf fark toleransı)
+  for(var i=0;i<valid.length;i++){
+    if(_stringSimilarity(norm, _normalizeText(valid[i])) > 0.6) return valid[i];
+  }
+  return input; // eşleşme yoksa olduğu gibi bırak
+}
+
+function _bestMatchMahalle(ilce, input){
+  if(!MAHALLES) _ensureMAHALLES();
+  if(!MAHALLES || !MAHALLES[ilce]) return input;
+  var mahList = Object.keys(MAHALLES[ilce]);
+  var norm = _normalizeText(input);
+  // Tam eşleşme
+  for(var i=0;i<mahList.length;i++){
+    if(_normalizeText(mahList[i]) === norm) return mahList[i];
+  }
+  // "Mah." veya "Mah" soneki olmadan dene
+  var normClean = norm.replace(/\s*mah\.?\s*$/,'').trim();
+  for(var i=0;i<mahList.length;i++){
+    var mNorm = _normalizeText(mahList[i]).replace(/\s*mah\.?\s*$/,'').trim();
+    if(mNorm === normClean) return mahList[i];
+  }
+  // Başlangıç eşleşmesi (en az 4 karakter)
+  if(normClean.length >= 4){
+    for(var i=0;i<mahList.length;i++){
+      var mNorm = _normalizeText(mahList[i]).replace(/\s*mah\.?\s*$/,'').trim();
+      if(mNorm.startsWith(normClean) || normClean.startsWith(mNorm.substring(0,Math.min(4,mNorm.length)))) return mahList[i];
+    }
+  }
+  // En benzer mahalle
+  var bestMatch = input, bestScore = 0;
+  for(var i=0;i<mahList.length;i++){
+    var score = _stringSimilarity(normClean, _normalizeText(mahList[i]).replace(/\s*mah\.?\s*$/,'').trim());
+    if(score > bestScore && score > 0.55){ bestScore = score; bestMatch = mahList[i]; }
+  }
+  return bestMatch;
+}
+
+function _stringSimilarity(a, b){
+  if(!a || !b) return 0;
+  if(a === b) return 1;
+  var longer = a.length > b.length ? a : b;
+  var shorter = a.length > b.length ? b : a;
+  if(longer.length === 0) return 1;
+  var dist = 0;
+  for(var i=0; i<shorter.length; i++){
+    if(longer.indexOf(shorter[i]) === -1) dist++;
+  }
+  // Levenshtein-lite
+  var maxLen = Math.max(a.length, b.length);
+  var common = 0;
+  for(var i=0; i<a.length; i++){
+    for(var j=Math.max(0,i-2); j<Math.min(b.length,i+3); j++){
+      if(a[i] === b[j]){ common++; break; }
+    }
+  }
+  return common / maxLen;
+}
+
 function parseExcelFile(file){
   const reader=new FileReader();
   reader.onload=e=>{
@@ -4027,7 +4189,7 @@ function parseExcelFile(file){
       if(!rows.length){toast('❗ Dosya boş','error');return;}
       const norm=k=>(k||'').toString().trim().toLowerCase()
         .replace(/[İI]/g,'i').replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ş/g,'s').replace(/ç/g,'c').replace(/ö/g,'o').replace(/ü/g,'u').replace(/\s+/g,' ');
-      const COL={'ad soyad':['ad soyad','ad','isim','ogrenci adi'],'okul':['okul','school'],'sinif':['sinif','class'],'telefon':['telefon','tel','phone'],'ilce':['ilce','district'],'mahalle':['mahalle','mah'],'sokak':['sokak','cadde','street','sok','cad']};
+      const COL={'ad soyad':['ad soyad','ad','isim','ogrenci adi','adi soyadi','ad-soyad','ogrenci','adsoyad','name'],'okul':['okul','school','kurum'],'sinif':['sinif','class','sinifi','snf'],'telefon':['telefon','tel','phone','gsm','cep','veli tel','veli telefon','veli telefonu'],'ilce':['ilce','district','ilcesi'],'mahalle':['mahalle','mah','mahallesi'],'sokak':['sokak','cadde','street','sok','cad','yol'],'adres':['adres','address','tam adres','full address','adress']};
       const keys=Object.keys(rows[0]).map(k=>({orig:k,norm:norm(k)}));
       const col={};
       for(const [f,aliases] of Object.entries(COL)){
@@ -4036,29 +4198,52 @@ function parseExcelFile(file){
       }
       const missing=[];
       if(!col['ad soyad'])missing.push('Ad Soyad');
-      if(!col['ilce'])missing.push('İlçe');
-      if(!col['mahalle'])missing.push('Mahalle');
-      if(missing.length){toast('❗ Eksik sütunlar: '+missing.join(', '),'error');return;}
+      var _hasAdresCol = !!col['adres'];
+      if(!col['ilce'] && !_hasAdresCol)missing.push('İlçe');
+      if(!col['mahalle'] && !_hasAdresCol)missing.push('Mahalle');
+      if(missing.length){toast('❗ Eksik sütunlar: '+missing.join(', ')+'\n(veya tek \'Adres\' sütunu kullanın)','error');return;}
       _excelRows=[];
       let skip=0;
       for(const row of rows){
         const name=(row[col['ad soyad']]||'').toString().trim();
-        const ilce=(row[col['ilce']]||'').toString().trim();
-        const mah=(row[col['mahalle']]||'').toString().trim();
-        if(!name||!ilce||!mah){skip++;continue;}
-        const okulRaw=norm((row[col['okul']]||'').toString());
-        let school=OKUL_MAP[okulRaw];
-        if(school===undefined){
-          if(okulRaw.includes('enderun'))school=0;
-          else if(okulRaw.includes('genclik'))school=1;
-          else if(okulRaw.includes('merkez')||okulRaw.includes('ihl'))school=2;
-          else school=0;
+        var ilce=(row[col['ilce']]||'').toString().trim();
+        var mah=(row[col['mahalle']]||'').toString().trim();
+        var sok_raw=(row[col['sokak']]||'').toString().trim();
+        // Adres sütunu varsa ve İlçe/Mahalle boşsa → adresten ayır
+        if(_hasAdresCol && (!ilce || !mah)){
+          var fullAddr = (row[col['adres']]||'').toString().trim();
+          if(fullAddr){
+            var parsed = _parseAddress(fullAddr);
+            if(!ilce && parsed.ilce) ilce = parsed.ilce;
+            if(!mah && parsed.mah) mah = parsed.mah;
+            if(!sok_raw && parsed.sok) sok_raw = parsed.sok;
+          }
         }
-        const sok=(row[col['sokak']]||'').toString().trim();
+        // İlçe veya Mahalle sütunu yoksa ama Sokak sütununda tam adres olabilir
+        if(!ilce || !mah){
+          var combinedAddr = (ilce + ' ' + mah + ' ' + sok_raw).trim();
+          if(combinedAddr.length > 5){
+            var parsed2 = _parseAddress(combinedAddr);
+            if(!ilce && parsed2.ilce) ilce = parsed2.ilce;
+            if(!mah && parsed2.mah) mah = parsed2.mah;
+            if(!sok_raw && parsed2.sok) sok_raw = parsed2.sok;
+          }
+        }
+        if(!name){skip++;continue;}
+        if(!ilce||!mah){skip++;}
+        const okulRaw=norm((row[col['okul']]||'').toString());
+        // Hangi okuldaysan öğrenciler o okula eklenir
+        var _activeSchoolIdx = {enderun:0,genclik:1,merkez:2}[_activeSchoolKey]??0;
+        var school = _activeSchoolIdx;
+        var sok = sok_raw || (row[col['sokak']]||'').toString().trim();
         const cls=(row[col['sinif']]||'').toString().trim();
         const ph=(row[col['telefon']]||'').toString().trim();
-        const c=getCoord(ilce,mah);
-        _excelRows.push({name,school,ilce,mah,sok,no:'–',cls,ph,...c});
+        // İlçe ve mahalle adını doğrula/düzelt
+        const fixedIlce = _bestMatchIlce(ilce);
+        const fixedMah = _bestMatchMahalle(fixedIlce, mah);
+        const c=getCoord(fixedIlce, fixedMah);
+        var _wasFixed = (fixedIlce !== ilce || fixedMah !== mah);
+        _excelRows.push({name,school,ilce:fixedIlce,mah:fixedMah,sok,no:'–',cls,ph,...c,_origIlce:_wasFixed?ilce:null,_origMah:_wasFixed?mah:null});
       }
       showExcelPreview(skip);
     }catch(err){toast('❗ Dosya okunamadı: '+err.message,'error');}
@@ -4071,32 +4256,57 @@ function showExcelPreview(skip){
   const shown=_excelRows.slice(0,6);
   document.getElementById('excel-preview-content').innerHTML=
     `<table class="tbl" style="font-size:11px;"><thead><tr><th>Ad Soyad</th><th>İlçe</th><th>Mahalle</th><th>Sokak</th></tr></thead><tbody>`+
-    shown.map(r=>`<tr><td style="font-weight:600">${escHtml(r.name)}</td><td>${escHtml(r.ilce)}</td><td>${escHtml(r.mah)}</td><td style="color:var(--muted2)">${escHtml(r.sok||'--')}</td></tr>`).join('')+
+    shown.map(r=>{
+      var ilceHtml = r._origIlce ? '<span style="color:var(--amber);font-weight:600;" title="Düzeltildi: '+escHtml(r._origIlce)+'">⚠ '+escHtml(r.ilce)+'</span>' : escHtml(r.ilce);
+      var mahHtml = r._origMah ? '<span style="color:var(--amber);font-weight:600;" title="Düzeltildi: '+escHtml(r._origMah)+'">⚠ '+escHtml(r.mah)+'</span>' : escHtml(r.mah);
+      return '<tr><td style="font-weight:600">'+escHtml(r.name)+'</td><td>'+ilceHtml+'</td><td>'+mahHtml+'</td><td style="color:var(--muted2)">'+escHtml(r.sok||'--')+'</td></tr>';
+    }).join('')+
     `</tbody></table>`+(_excelRows.length>6?`<div style="text-align:center;padding:8px;font-size:11px;color:var(--muted2)">... ve ${_excelRows.length-6} öğrenci daha</div>`:'');
   document.getElementById('excel-stats').innerHTML=
     `<span style="color:var(--green);font-weight:700">✅ ${_excelRows.length} öğrenci hazır</span>`+
-    (skip?` · <span style="color:var(--amber)">⚠️ ${skip} satır atlandı</span>`:'');
+    (skip?` · <span style="color:var(--amber)">⚠️ ${skip} satır atlandı</span>`:'')+
+    (function(){var fc=_excelRows.filter(function(r){return r._origIlce||r._origMah;}).length; return fc?` · <span style="color:var(--amber)">📝 ${fc} adres düzeltildi</span>`:'';})();
   document.getElementById('excel-preview').style.display='block';
   document.getElementById('excel-import-btn').disabled=false;
 }
 
 function importExcel(){
-  if(!_excelRows.length)return;
-  _excelRows.forEach(r=>students.push({id:nSid++,...r}));
-  updateAll(); saveData(); closeExcelModal();
-  toast(`✅ ${_excelRows.length} öğrenci yüklendi`);
+  if(!_excelRows.length){toast('❗ Yüklenecek öğrenci bulunamadı. Excel sütun adlarını kontrol edin.','error');return;}
+  try{
+    var count = _excelRows.length;
+    for(var i=0; i<_excelRows.length; i++){
+      var r = _excelRows[i];
+      students.push({id:nSid++, name:r.name, school:r.school, ilce:r.ilce, mah:r.mah, sok:r.sok||'', no:r.no||'–', cls:r.cls||'', ph:r.ph||'', lat:r.lat, lng:r.lng});
+    }
+    _excelRows = [];
+    updateAll(); saveData(); closeExcelModal();
+    toast('✅ ' + count + ' öğrenci yüklendi');
+  }catch(err){
+    toast('❗ Yükleme hatası: ' + err.message, 'error');
+    console.error('importExcel hata:', err);
+  }
 }
 
 function downloadTemplate(){
-  const ws=XLSX.utils.aoa_to_sheet([
-    ['Ad Soyad','Okul','Sinif','Telefon','Ilce','Mahalle','Sokak'],
-    ['Ayse Yilmaz','Enderun','10. Sinif','0532 111 22 33','Selcuklu','Bosna Hersek Mah.','Osmanli Cad.'],
-    ['Mehmet Kaya','Genclik','7. Sinif','0533 222 33 44','Meram','Durunday Mah.','Genclik Cad.'],
-    ['Zeynep Celik','Merkez IHL','9. Sinif','','Karatay','Semsitebrizi Mah.','Mevlana Cad.'],
+  var wb=XLSX.utils.book_new();
+  // Sayfa 1: Ayrı sütunlar
+  var ws1=XLSX.utils.aoa_to_sheet([
+    ['Ad Soyad','Sinif','Telefon','Ilce','Mahalle','Sokak'],
+    ['Ayşe Yılmaz','10. Sınıf','0532 111 22 33','Selçuklu','Bosna Hersek Mah.','Osmanlı Cad.'],
+    ['Mehmet Kaya','7. Sınıf','0533 222 33 44','Meram','Durunday Mah.','Gençlik Cad.'],
+    ['Zeynep Çelik','9. Sınıf','','Karatay','Şemsitebrizi Mah.','Mevlana Cad.'],
   ]);
-  ws['!cols']=[{wch:20},{wch:15},{wch:12},{wch:18},{wch:12},{wch:25},{wch:22}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Ogrenciler');
+  ws1['!cols']=[{wch:22},{wch:12},{wch:18},{wch:14},{wch:25},{wch:22}];
+  XLSX.utils.book_append_sheet(wb,ws1,'Ayrı Sütunlar');
+  // Sayfa 2: Tek adres sütunu
+  var ws2=XLSX.utils.aoa_to_sheet([
+    ['Ad Soyad','Sinif','Telefon','Adres'],
+    ['Ayşe Yılmaz','10. Sınıf','0532 111 22 33','Bosna Hersek Mah. Osmanlı Cad. Selçuklu'],
+    ['Mehmet Kaya','7. Sınıf','0533 222 33 44','Durunday Mah. Gençlik Cad. Meram'],
+    ['Zeynep Çelik','9. Sınıf','','Şemsitebrizi Mah. Mevlana Cad. Karatay'],
+  ]);
+  ws2['!cols']=[{wch:22},{wch:12},{wch:18},{wch:50}];
+  XLSX.utils.book_append_sheet(wb,ws2,'Tek Adres');
   XLSX.writeFile(wb,'konseltur_sablonu.xlsx');
 }
 
