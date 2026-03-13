@@ -1452,6 +1452,47 @@ body.light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); }
 .login-manage-btn:hover::before {
   background:rgba(214,61,30,.07);
 }
+
+/* ŞOFÖR CÜZDANI */
+.nav-tab.sofor-tab { color: var(--muted2); }
+.nav-tab.sofor-tab.active { color: #a78bfa; border-color: rgba(139,92,246,.25); }
+@media(max-width:768px){ .nav-tab.sofor-tab.active { color: #a78bfa; } }
+
+.sofor-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all .18s;
+  margin-bottom: 10px;
+}
+.sofor-card:hover { border-color: rgba(139,92,246,.35); background: rgba(139,92,246,.04); }
+.sofor-card.kadro { border-left: 3px solid #a78bfa; }
+.sofor-card.taseron { border-left: 3px solid var(--amber); }
+
+.sofor-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 20px;
+  font-size: 10px; font-weight: 700; letter-spacing: .4px;
+}
+.sofor-badge.kadro { background: rgba(139,92,246,.12); color: #a78bfa; border: 1px solid rgba(139,92,246,.25); }
+.sofor-badge.taseron { background: rgba(245,158,11,.1); color: var(--amber); border: 1px solid rgba(245,158,11,.25); }
+
+.sd-ay-btn {
+  flex: 1; min-width: 0; padding: 10px 4px;
+  border-radius: 10px; border: 1px solid var(--border);
+  background: var(--card2); color: var(--muted2);
+  font-size: 10px; font-weight: 700; cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: all .15s; text-align: center;
+}
+.sd-ay-btn.odendi { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.3); color: var(--green); }
+.sd-ay-btn.bekliyor { background: rgba(245,158,11,.08); border-color: rgba(245,158,11,.25); color: var(--amber); }
+.sd-ay-btn:hover { border-color: rgba(139,92,246,.4); }
+
+body.light .sofor-card { background: #fff; border-color: #e2e5ea; }
+body.light .sofor-card:hover { border-color: rgba(139,92,246,.4); background: rgba(139,92,246,.03); }
 </style>
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
@@ -1876,7 +1917,7 @@ function _checkRemembered(){
     <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(214,61,30,.7),transparent);"></div>
 
     <!-- Başlık + Yönet -->
-    <div class="login-panel-header" style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:32px;flex-shrink:0;">
+    <div class="login-panel-header" style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-shrink:0;">
       <div>
         <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:900;color:#fff;letter-spacing:-.3px;margin-bottom:7px;">Okul Seçin</div>
         <div style="font-size:12px;color:rgba(255,255,255,.28);letter-spacing:.2px;">Devam etmek istediğiniz okulu seçin</div>
@@ -1884,15 +1925,54 @@ function _checkRemembered(){
       <button id="btn-manage-schools" class="login-manage-btn" onclick="toggleManageMode()">Yönet</button>
     </div>
 
+    <!-- Şoför Cüzdanı — Okul Bağımsız Erişim -->
+    <div style="margin-bottom:20px;flex-shrink:0;">
+      <button onclick="enterSoforDirect()"
+        style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;border:1px solid rgba(139,92,246,.28);background:rgba(139,92,246,.06);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;text-align:left;position:relative;overflow:hidden;"
+        onmouseover="this.style.background='rgba(139,92,246,.14)';this.style.borderColor='rgba(139,92,246,.5)';this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(139,92,246,.18)'"
+        onmouseout="this.style.background='rgba(139,92,246,.06)';this.style.borderColor='rgba(139,92,246,.28)';this.style.transform='none';this.style.boxShadow='none'">
+        <!-- İkon -->
+        <div style="width:42px;height:42px;border-radius:11px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="12.01"/></svg>
+        </div>
+        <!-- Metin -->
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:.2px;">Şoför Cüzdanı</div>
+          <div style="font-size:11px;color:rgba(139,92,246,.65);margin-top:2px;">Okul seçmeden doğrudan erişim</div>
+        </div>
+        <!-- Ok -->
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(139,92,246,.5)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
+        <!-- Üst çizgi -->
+        <div style="position:absolute;top:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,.4),transparent);"></div>
+      </button>
+    </div>
+
+    <!-- Ayraç -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-shrink:0;">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.05);"></div>
+      <span style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.15);">Öğrenci Yönetimi</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.05);"></div>
+    </div>
+
     <!-- Okul kartları -->
     <div id="login-school-grid" style="display:flex;flex-direction:column;gap:10px;width:100%;margin-bottom:16px;flex-shrink:0;"></div>
 
     <!-- Yönetim modu -->
-    <div id="manage-actions" style="display:none;margin-bottom:14px;padding:14px 16px;background:rgba(52,211,153,.04);border:1px solid rgba(52,211,153,.12);border-radius:11px;flex-shrink:0;">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <button onclick="openAddSchoolModal()" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.08);color:#34d399;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .15s;" onmouseover="this.style.background='rgba(52,211,153,.18)'" onmouseout="this.style.background='rgba(52,211,153,.08)'">+ Okul Ekle</button>
-        <button onclick="toggleManageMode()" style="padding:8px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.background='transparent'">Bitti</button>
-        <span style="font-size:10px;color:rgba(255,255,255,.2);">Kart üzerindeki düzenle / sil butonlarını kullanın</span>
+    <div id="manage-actions" style="display:none;margin-bottom:14px;flex-shrink:0;">
+      <div style="display:flex;gap:8px;align-items:center;padding:12px 14px;background:rgba(214,61,30,.06);border:1px solid rgba(214,61,30,.18);border-radius:12px;">
+        <button onclick="openAddSchoolModal()"
+          style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:9px;border:1px solid rgba(52,211,153,.35);background:rgba(52,211,153,.1);color:#34d399;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;"
+          onmouseover="this.style.background='rgba(52,211,153,.2)'" onmouseout="this.style.background='rgba(52,211,153,.1)'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Yeni Okul
+        </button>
+        <button onclick="toggleManageMode()"
+          style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.45);font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;"
+          onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Bitti
+        </button>
+        <span style="font-size:10px;color:rgba(255,255,255,.18);margin-left:4px;line-height:1.4;">Kartlardaki butonlarla düzenle veya sil</span>
       </div>
     </div>
 
@@ -1941,7 +2021,7 @@ function _checkRemembered(){
     </div>
 
     <!-- Modül kartları — büyük, tam ekrana yayılan -->
-    <div style="display:flex;gap:20px;width:100%;max-width:640px;margin-bottom:44px;">
+    <div style="display:flex;gap:20px;width:100%;max-width:480px;margin-bottom:44px;">
 
       <!-- Rota Yönetimi -->
       <div id="ms-rota-card" onclick="enterModule('rota')"
@@ -2054,6 +2134,17 @@ function _checkRemembered(){
  <button class="nav-tab ucret-tab" id="utab-ogrenci" onclick="gotoU('ucret-ogrenci')">
    <svg class="tab-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
    <span class="tab-text">Ödemeler</span>
+ </button>
+ </div>
+ <!-- ŞOFÖR CÜZDANI TABS -->
+ <div id="tabs-sofor" class="nav-tabs" style="display:none;">
+ <button class="nav-tab sofor-tab active" id="stab-liste" onclick="gotoS('sofor-liste')">
+   <svg class="tab-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+   <span class="tab-text">Şoförler</span>
+ </button>
+ <button class="nav-tab sofor-tab" id="stab-detay" style="display:none;">
+   <svg class="tab-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+   <span class="tab-text" id="stab-detay-text">Detay</span>
  </button>
  </div>
  </div>
@@ -2181,6 +2272,13 @@ function _checkRemembered(){
  <div class="sidebar-body">
  <div class="field"><label>Ad Soyad</label><input type="text" id="d-name" placeholder="Şoför adı soyadı"></div>
  <div class="field"><label>Telefon</label><input type="text" id="d-phone" placeholder="05XX XXX XX XX"></div>
+ <div class="field"><label>Şoför Tipi</label>
+ <select id="d-tip">
+   <option value="kadro">Kadro (Sabit Maaş)</option>
+   <option value="taseron">Taşeron (Yövmiyeli)</option>
+ </select>
+ </div>
+ <div class="field"><label>Araç Plakası</label><input type="text" id="d-plaka" placeholder="42 ABC 123" oninput="this.value=this.value.toUpperCase()"></div>
  <div class="field"><label>Ehliyet</label>
  <select id="d-lic"><option>D Sınıfı (Minibüs/Otobüs)</option><option>C Sınıfı</option><option>B Sınıfı</option></select>
  </div>
@@ -2325,6 +2423,79 @@ function _checkRemembered(){
  </div>
  <div class="search-wrap"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" placeholder="Öğrenci ara..." oninput="searchUcret(this.value)"></div>
  <div id="u-student-list"><div class="empty"><div class="empty-icon"></div>Öğrenci bulunamadı.</div></div>
+</div>
+</div>
+
+<!-- ŞOFÖR CÜZDANİ - LİSTE -->
+<div class="page-scroll" id="page-sofor-liste">
+<div class="page-inner">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;">Şoför Cüzdanı</h2>
+      <div style="font-size:12px;color:var(--muted2);margin-top:3px;">Tüm şoförlerin ücret ve ödeme takibi</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-sm" style="background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:#60a5fa;" onclick="openImportSoforModal()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Şoförlerden Aktar
+      </button>
+      <button class="btn btn-sm" style="background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.3);color:#a78bfa;" onclick="openAddSoforModal()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Manuel Ekle
+      </button>
+      <button class="btn btn-sm btn-ghost" onclick="exportSoforExcel()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Özet kartlar -->
+  <div id="sofor-summary-row" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;"></div>
+
+  <!-- Filtre -->
+  <div class="filter-bar" style="margin-bottom:12px;">
+    <div class="filter-chip active" id="sf-chip-all" onclick="filterSoforListe('all',this)">Tümü</div>
+    <div class="filter-chip" id="sf-chip-kadro" onclick="filterSoforListe('kadro',this)">Kadro</div>
+    <div class="filter-chip" id="sf-chip-taseron" onclick="filterSoforListe('taseron',this)" style="border-color:rgba(245,158,11,.3);color:var(--amber);">Taşeron</div>
+    <div class="filter-chip" id="sf-chip-borclu" onclick="filterSoforListe('borclu',this)" style="border-color:rgba(239,68,68,.3);color:var(--red);">Borçlu</div>
+  </div>
+
+  <div id="sofor-liste-wrap"></div>
+</div>
+</div>
+
+<!-- ŞOFÖR CÜZDANİ - DETAY -->
+<div class="page-scroll" id="page-sofor-detay">
+<div class="page-inner">
+  <!-- Geri + Başlık -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <button onclick="gotoS('sofor-liste')" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--muted2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div style="flex:1;min-width:0;">
+      <h2 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="sd-name">Şoför Adı</h2>
+      <div style="font-size:11px;color:var(--muted2);margin-top:2px;" id="sd-subtitle">—</div>
+    </div>
+    <button onclick="openEditSoforModal(window._activeSoforId)" style="padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--card2);color:var(--muted2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;" onmouseover="this.style.borderColor='rgba(139,92,246,.4)';this.style.color='#a78bfa'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted2)'">Düzenle</button>
+  </div>
+
+  <!-- Profil + Özet -->
+  <div id="sd-profil-card" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;"></div>
+
+  <!-- Okullar & Rotalar (taşeron için) -->
+  <div id="sd-okullar-section" style="display:none;margin-bottom:16px;">
+    <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Okul Bazlı Yövmiye</div>
+    <div id="sd-okullar-wrap"></div>
+  </div>
+
+  <!-- Ödeme Takvimi -->
+  <div style="font-family:'Syne',sans-serif;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px;">Ödeme Takvimi (Eylül–Haziran)</div>
+  <div id="sd-takvim-wrap" style="margin-bottom:16px;"></div>
+
+  <!-- Yıl özeti -->
+  <div id="sd-yil-ozet" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px;"></div>
+
 </div>
 </div>
 
@@ -2583,14 +2754,21 @@ function _checkRemembered(){
 </div>
 
 <!-- Şoför Düzenleme Modal -->
-<div class="modal-bg" id="driver-edit-modal">
+ <div class="modal-bg" id="driver-edit-modal">
  <div class="modal" style="width:520px;">
  <h2>Şoför Düzenle</h2>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
  <div class="field" style="grid-column:1/-1"><label>Ad Soyad</label><input type="text" id="de-name" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  <div class="field"><label>Telefon</label><input type="text" id="de-ph" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Şoför Tipi</label>
+   <select id="de-tip" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;">
+     <option value="kadro">Kadro (Sabit Maaş)</option>
+     <option value="taseron">Taşeron (Yövmiyeli)</option>
+   </select>
+ </div>
+ <div class="field"><label>Araç Plakası</label><input type="text" id="de-plaka" placeholder="42 ABC 123" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  <div class="field"><label>Ehliyet Sınıfı</label><input type="text" id="de-lic" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>Araç Plakası</label><input type="text" id="de-veh" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Araç Tipi</label><input type="text" id="de-veh" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  <div class="field"><label>İlçe</label><input type="text" id="de-ilce" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  <div class="field"><label>Mahalle</label><input type="text" id="de-mah" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  <div class="field" style="grid-column:1/-1"><label>Not</label><input type="text" id="de-note" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
@@ -3119,10 +3297,10 @@ function toggleManageMode(){
  const btn = document.getElementById('btn-manage-schools');
  const actions = document.getElementById('manage-actions');
  if(window._schoolManageMode){
- if(btn){ btn.innerHTML=' Yönet'; btn.style.borderColor='rgba(200,55,26,.5)'; btn.style.color='rgba(200,55,26,.9)'; btn.style.background='rgba(200,55,26,.08)'; }
+ if(btn){ btn.innerHTML='✕ Kapat'; btn.style.borderColor='rgba(200,55,26,.5)'; btn.style.color='rgba(200,55,26,.9)'; btn.style.background='rgba(200,55,26,.08)'; }
  if(actions) actions.style.display='block';
  } else {
- if(btn){ btn.innerHTML=' Yönet'; btn.style.borderColor='rgba(255,255,255,.12)'; btn.style.color='rgba(255,255,255,.3)'; btn.style.background='transparent'; }
+ if(btn){ btn.innerHTML='Yönet'; btn.style.borderColor=''; btn.style.color=''; btn.style.background=''; }
  if(actions) actions.style.display='none';
  }
  renderLoginSchoolCards();
@@ -3138,23 +3316,33 @@ function renderLoginSchoolCards(){
  const rgba = (a) => `rgba(${r},${g},${b},${a})`;
  const shortLabel = s.short.toUpperCase().substring(0,10);
  if(manageMode){
- // YÖNETİM MODU: Düzenle + Sil göster, giriş yok
+ // YÖNETİM MODU: Modern geniş kart
+ const initials = s.short ? s.short.substring(0,2).toUpperCase() : s.name.substring(0,2).toUpperCase();
  return `<div data-school-key="${escHtml(s.key)}"
- style="border-radius:18px;overflow:hidden;border:1.5px solid ${rgba('.4')};background:${rgba('.06')};">
- <div style="padding:14px 6px 10px;text-align:center;position:relative;">
- <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,${rgba('.7')},transparent);"></div>
- <div style="font-size:22px;margin-bottom:5px;">${s.icon||''}</div>
- <div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:800;color:${col};margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px;">${shortLabel}</div>
- <div style="font-size:8px;color:rgba(255,255,255,.4);">${escHtml(s.ilce||'—')}</div>
+ style="border-radius:14px;overflow:hidden;border:1px solid ${rgba('.25')};background:rgba(255,255,255,.03);transition:border-color .2s;">
+ <!-- Üst: okul bilgisi -->
+ <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;">
+   <div style="width:42px;height:42px;border-radius:10px;background:${rgba('.18')};border:1px solid ${rgba('.3')};color:${col};display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:900;flex-shrink:0;">${initials}</div>
+   <div style="flex:1;min-width:0;">
+     <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(s.name)}</div>
+     <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">${escHtml(s.ilce||'—')} ${s.mah ? '· '+escHtml(s.mah) : ''}</div>
+   </div>
+   <div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0;box-shadow:0 0 8px ${rgba('.6')};"></div>
  </div>
- <div style="display:flex;border-top:1px solid ${rgba('.2')};">
- <button onclick="openEditSchoolModal(${i})"
- style="flex:1;padding:8px 0;background:${rgba('.1')};border:none;color:${col};font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .15s;"
- onmouseover="this.style.background='${rgba('.25')}'" onmouseout="this.style.background='${rgba('.1')}'">Düzenle</button>
- <div style="width:1px;background:${rgba('.2')};"></div>
- <button onclick="openDeleteSchoolModal(${i})"
- style="flex:1;padding:8px 0;background:rgba(239,68,68,.06);border:none;color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .15s;"
- onmouseover="this.style.background='rgba(239,68,68,.2)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">Sil</button>
+ <!-- Alt: butonlar -->
+ <div style="display:flex;gap:0;border-top:1px solid ${rgba('.15')};">
+   <button onclick="openEditSchoolModal(${i})"
+   style="flex:1;padding:10px 0;background:${rgba('.08')};border:none;border-right:1px solid ${rgba('.15')};color:${col};font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:6px;"
+   onmouseover="this.style.background='${rgba('.2')}'" onmouseout="this.style.background='${rgba('.08')}'">
+     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+     Düzenle
+   </button>
+   <button onclick="openDeleteSchoolModal(${i})"
+   style="flex:1;padding:10px 0;background:rgba(239,68,68,.05);border:none;color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .15s;display:flex;align-items:center;justify-content:center;gap:6px;"
+   onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.05)'">
+     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+     Sil
+   </button>
  </div>
  </div>`;
  } else {
@@ -3264,6 +3452,26 @@ document.addEventListener('DOMContentLoaded', ()=>{
  const cp = document.getElementById('asc-color');
  if(cp) cp.addEventListener('input', function(){ const h=document.getElementById('asc-color-hex'); if(h) h.value=this.value; });
  renderLoginSchoolCards();
+
+ // MOBİL LOGIN EKRANI DÜZELTMESİ — CSS çalışmıyorsa JS ile zorla
+ if(window.innerWidth <= 768){
+   const ls = document.getElementById('login-screen');
+   const leftPanel = document.getElementById('login-left-panel');
+   const rightPanel = document.getElementById('login-right-panel');
+   const divider = ls ? ls.children[1] : null;
+   if(ls){
+     ls.style.cssText = 'display:flex;flex-direction:column;height:auto;min-height:100vh;background:#060810;position:relative;overflow:visible;';
+   }
+   if(leftPanel){
+     leftPanel.style.cssText = 'display:none;';
+   }
+   if(divider && divider !== rightPanel){
+     divider.style.cssText = 'display:none;';
+   }
+   if(rightPanel){
+     rightPanel.style.cssText = 'width:100%;flex:1;background:#060810;display:flex;flex-direction:column;padding:40px 20px;position:relative;min-height:100vh;';
+   }
+ }
 });
 
 function saveNewSchool(){
@@ -3485,8 +3693,9 @@ function enterSchool(key){
  if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
  _activeSchoolKey = key;
  students=[]; drivers=[]; routes=[]; nSid=1; nDid=1; payments={};
+ // soforler ve soforPayments okul bağımsız — sıfırlanmaz
  window._incompatible=[];
- loadData(); loadPayments(); updateAll();
+ loadData(); loadPayments(); loadSoforData(); updateAll();
  // Başlık güncelle
  _setText('school-indicator', SCHOOL_ICONS[key] + ' ' + SCHOOL_NAMES[key]);
  const _si = document.getElementById('school-indicator'); if(_si) _si.style.color = SCHOOL_COLORS[key];
@@ -3504,21 +3713,55 @@ function enterSchool(key){
  const _muc = document.getElementById('ms-ucret-card'); if(_muc) _muc.style.borderColor = color+'55';
 }
 
-function enterModule(mod){
- // Modül seçim ekranını gizle, uygulamayı göster
+// Şoför Cüzdanına okul seçmeden doğrudan giriş
+function enterSoforDirect(){
+ if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
+ // Okul bilgisi gerekmez; sofor verisi global
+ // Okul indicator'ı temizle
+ _setText('school-indicator','🚗 Şoför Cüzdanı');
+ const _si = document.getElementById('school-indicator');
+ if(_si){ _si.style.color='#a78bfa'; _si.style.background='rgba(139,92,246,.12)'; }
+ // Şoför verisini yükle (eğer yüklü değilse)
+ loadSoforData();
+ // Login → Uygulama
+ document.getElementById('login-screen').style.display = 'none';
  document.getElementById('module-select-screen').style.display = 'none';
  document.getElementById('app-wrapper').style.display = 'flex';
- // Tab barlarını modüle göre sıfırla
+ // Sadece şoför tab'larını göster
  const tRota = document.getElementById('tabs-rota');
  const tUcret = document.getElementById('tabs-ucret');
+ const tSofor = document.getElementById('tabs-sofor');
+ if(tRota) tRota.style.display='none';
+ if(tUcret) tUcret.style.display='none';
+ if(tSofor) tSofor.style.display='flex';
+ switchApp('sofor');
+ gotoS('sofor-liste');
+}
+
+function enterModule(mod){
+ document.getElementById('module-select-screen').style.display = 'none';
+ document.getElementById('app-wrapper').style.display = 'flex';
+ const tRota = document.getElementById('tabs-rota');
+ const tUcret = document.getElementById('tabs-ucret');
+ const tSofor = document.getElementById('tabs-sofor');
  if(mod==='rota'){
- if(tRota) tRota.style.display = 'flex';
- if(tUcret) tUcret.style.display = 'none';
- goto('dashboard');
- } else {
- if(tRota) tRota.style.display = 'none';
- if(tUcret) tUcret.style.display = 'flex';
- switchApp('ucret'); gotoU('ucret-genel');
+   if(tRota) tRota.style.display='flex';
+   if(tUcret) tUcret.style.display='none';
+   if(tSofor) tSofor.style.display='none';
+   goto('dashboard');
+ } else if(mod==='ucret'){
+   if(tRota) tRota.style.display='none';
+   if(tUcret) tUcret.style.display='flex';
+   if(tSofor) tSofor.style.display='none';
+   switchApp('ucret'); gotoU('ucret-genel');
+ } else if(mod==='sofor'){
+   if(tRota) tRota.style.display='none';
+   if(tUcret) tUcret.style.display='none';
+   if(tSofor) tSofor.style.display='flex';
+   // Şoför modülü okul bağımsız — indicator güncelle
+   const _si = document.getElementById('school-indicator');
+   if(_si){ _si.textContent='🚗 Şoför Cüzdanı'; _si.style.color='#a78bfa'; _si.style.background='rgba(139,92,246,.12)'; }
+   switchApp('sofor'); gotoS('sofor-liste');
  }
 }
 
@@ -3539,6 +3782,10 @@ function goToLogin(){
 }
 
 function goToModuleSelect(){
+ // Eğer aktif okul yoksa (şoför direkt girişi), login'e git
+ if(!_activeSchoolKey || _activeSchoolKey === SCHOOLS[0].key && currentApp==='sofor'){
+   // Şoför direkt girişinden geliyorsa login'e dön
+ }
  // Uygulamadan modül seçimine dön
  document.getElementById('module-select-screen').style.display = 'flex';
  document.getElementById('app-wrapper').style.display = 'none';
@@ -3646,14 +3893,15 @@ const MIN_STUDENTS=14, MAX_STUDENTS=20;
 
 function switchApp(app){
  currentApp = app;
- const isRota = app==='rota';
- document.getElementById('tabs-rota').style.display = isRota?'flex':'none';
- document.getElementById('tabs-ucret').style.display = !isRota?'flex':'none';
- if(isRota) goto('dashboard');
- else gotoU('ucret-genel');
+ document.getElementById('tabs-rota').style.display = app==='rota'?'flex':'none';
+ document.getElementById('tabs-ucret').style.display = app==='ucret'?'flex':'none';
+ document.getElementById('tabs-sofor').style.display = app==='sofor'?'flex':'none';
+ if(app==='rota') goto('dashboard');
+ else if(app==='ucret') gotoU('ucret-genel');
+ else if(app==='sofor') gotoS('sofor-liste');
 }
 
-const ALL_PAGES = ['dashboard','students','drivers','routes','map','ucret-genel','ucret-ogrenci'];
+const ALL_PAGES = ['dashboard','students','drivers','routes','map','ucret-genel','ucret-ogrenci','sofor-liste','sofor-detay'];
 let _pageHistory = []; // gezinti geçmişi
 let _currentPage = 'dashboard';
 
@@ -3668,6 +3916,7 @@ function goBack(){
  const prev = _pageHistory.pop();
  _updateBackBtn();
  if(prev.startsWith('ucret-')) _gotoUNoHistory(prev);
+ else if(prev.startsWith('sofor-')) _gotoSNoHistory(prev);
  else _gotoNoHistory(prev);
 }
 
@@ -3724,6 +3973,25 @@ function gotoU(p){
  if(_currentPage && _currentPage !== p) _pageHistory.push(_currentPage);
  _updateBackBtn();
  _gotoUNoHistory(p);
+}
+
+function _gotoSNoHistory(p){
+ _currentPage = p;
+ ALL_PAGES.forEach(n=>{ const el=document.getElementById('page-'+n); if(el) el.classList.remove('active'); });
+ const target = document.getElementById('page-'+p);
+ if(target) target.classList.add('active');
+ // Tab aktif güncelle
+ document.querySelectorAll('#tabs-sofor .nav-tab').forEach(t=>t.classList.remove('active'));
+ if(p==='sofor-liste'){ const t=document.getElementById('stab-liste'); if(t) t.classList.add('active'); }
+ if(p==='sofor-detay'){ const t=document.getElementById('stab-detay'); if(t) t.classList.add('active'); }
+ if(p==='sofor-liste') renderSoforListe();
+ if(p==='sofor-detay') renderSoforDetay(window._activeSoforId);
+}
+
+function gotoS(p){
+ if(_currentPage && _currentPage !== p) _pageHistory.push(_currentPage);
+ _updateBackBtn();
+ _gotoSNoHistory(p);
 }
 
 // 
@@ -3963,6 +4231,8 @@ function addDriver(){
  const ph=document.getElementById('d-phone').value.trim();
  const lic=document.getElementById('d-lic').value;
  const veh=document.getElementById('d-veh').value;
+ const tip=(document.getElementById('d-tip')?.value)||'kadro';
+ const plaka=(document.getElementById('d-plaka')?.value||'').toUpperCase().trim();
  const ilce=document.getElementById('d-ilce').value;
  const mah=document.getElementById('d-mahalle').value;
  const sok=document.getElementById('d-sokak').value;
@@ -3972,8 +4242,8 @@ function addDriver(){
  if(!ilce)return toast(' İlçe seçin','error');
  if(!mah)return toast(' Mahalle seçin','error');
  const c=getCoord(ilce,mah);
- drivers.push({id:nDid++,name,ph,lic,veh,ilce,mah,sok,no,note,...c,assignedRoute:null});
- ['d-name','d-phone','d-no','d-note'].forEach(id=>document.getElementById(id).value='');
+ drivers.push({id:nDid++,name,ph,lic,veh,tip,plaka,ilce,mah,sok,no,note,...c,assignedRoute:null});
+ ['d-name','d-phone','d-no','d-note','d-plaka'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
  document.getElementById('d-ilce').value='';
  document.getElementById('d-mahalle').innerHTML='<option>-- Önce İlçe --</option>';
  document.getElementById('d-sokak').innerHTML='<option>-- Önce Mahalle --</option>';
@@ -4028,12 +4298,18 @@ function renderDrivers(){
  if(dSr)L=L.filter(d=>d.name.toLowerCase().includes(dSr)||(d.ilce||'').toLowerCase().includes(dSr));
  _setText('d-lbl', drivers.length+' şoför kayıtlı');
  if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon"></div><div>Henüz şoför eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden şoför ekleyin</div></div>';return;}
- w.innerHTML=L.map(d=>`<div class="driver-row ${d.assignedRoute!==null?'assigned':''}">
+ w.innerHTML=L.map(d=>{
+ const tipBadge = d.tip==='taseron'
+   ? `<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--amber);margin-left:6px;vertical-align:middle;">Taşeron</span>`
+   : d.tip==='kadro'
+   ? `<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);color:#a78bfa;margin-left:6px;vertical-align:middle;">Kadro</span>`
+   : '';
+ return `<div class="driver-row ${d.assignedRoute!==null?'assigned':''}">
  <div style="font-size:24px"></div>
  <div style="flex:1">
- <div style="font-size:13px;font-weight:700">${escHtml(d.name)}</div>
- <div style="font-size:11px;color:var(--muted2)"> ${escHtml(d.ilce)} / ${escHtml(d.mah)}${d.sok?' – '+escHtml(d.sok):''}</div>
- <div style="font-size:11px;color:var(--muted2);margin-top:1px">${d.lic} · ${d.veh}${d.ph?' · '+d.ph:''}</div>
+ <div style="font-size:13px;font-weight:700">${escHtml(d.name)}${tipBadge}</div>
+ <div style="font-size:11px;color:var(--muted2)">${escHtml(d.ilce)} / ${escHtml(d.mah)}${d.sok?' – '+escHtml(d.sok):''}</div>
+ <div style="font-size:11px;color:var(--muted2);margin-top:1px">${d.lic} · ${d.veh}${d.plaka?' · 🚌 '+escHtml(d.plaka):''}${d.ph?' · '+d.ph:''}</div>
  </div>
  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
  <span class="d-badge ${d.assignedRoute!==null?'':'unassigned'}">${d.assignedRoute!==null?' Atandı':'Bekliyor'}</span>
@@ -4042,7 +4318,8 @@ function renderDrivers(){
  <button class="btn btn-red btn-sm" onclick="removeDriver(${d.id})"></button>
  </div>
  </div>
- </div>`).join('');
+ </div>`;
+ }).join('');
 }
 
 // 
@@ -5975,6 +6252,10 @@ function openDriverEdit(id){
  document.getElementById('de-ilce').value = d.ilce || '';
  document.getElementById('de-mah').value = d.mah || '';
  document.getElementById('de-note').value = d.note || '';
+ const tipEl = document.getElementById('de-tip');
+ if(tipEl) tipEl.value = d.tip || 'kadro';
+ const plakaEl = document.getElementById('de-plaka');
+ if(plakaEl) plakaEl.value = d.plaka || '';
  document.getElementById('driver-edit-modal').classList.add('open');
 }
 
@@ -5987,9 +6268,20 @@ function saveDriverEdit(){
  d.ph = document.getElementById('de-ph').value.trim();
  d.lic = document.getElementById('de-lic').value.trim();
  d.veh = document.getElementById('de-veh').value.trim();
+ d.tip = document.getElementById('de-tip')?.value || d.tip || 'kadro';
+ d.plaka = (document.getElementById('de-plaka')?.value||'').toUpperCase().trim();
  d.ilce = document.getElementById('de-ilce').value.trim() || d.ilce;
  d.mah = document.getElementById('de-mah').value.trim() || d.mah;
  d.note = document.getElementById('de-note').value.trim();
+ // Cüzdan'da bu şoför varsa bilgileri de güncelle
+ const sc = soforler.find(s=>s.driverRef===d.id);
+ if(sc){
+   sc.name  = d.name;
+   sc.ph    = d.ph;
+   sc.plaka = d.plaka || sc.plaka;
+   sc.tip   = d.tip;
+   saveSoforData();
+ }
  document.getElementById('driver-edit-modal').classList.remove('open');
  renderDrivers(); saveData();
  toast(' Şoför güncellendi');
@@ -7272,7 +7564,8 @@ document.addEventListener('keydown', function(e){
  const modals = [
  'modal','payment-modal','student-edit-modal',
  'driver-edit-modal','route-edit-modal',
- 'excel-modal','ucret-add-modal'
+ 'excel-modal','ucret-add-modal',
+ 'sofor-add-modal','sofor-edit-modal','sofor-pay-modal','sofor-import-modal'
  ];
  for(const id of modals){
  const el = document.getElementById(id);
@@ -7282,13 +7575,1302 @@ document.addEventListener('keydown', function(e){
  break;
  }
  }
- // confirm modal
  const cm = document.getElementById('confirm-modal');
  if(cm && cm.style.display==='flex') cm.style.display='none';
 });
 
+// ═══════════════════════════════════════════════
+// ŞOFÖR CÜZDANI
+// ═══════════════════════════════════════════════
+
+// Veri: global soforler dizisi ve soforPayments objesi
+let soforler = [];          // [{id, name, tip:'kadro'|'taseron', plaka, ph, okulYovmiye:[{okulKey,yovmiye}], color}]
+let soforPayments = {};     // {soforId: {ay:'2024-09': {odendi:true, tutar:25000}, ...}}
+let nSid2 = 1;
+window._activeSoforId = null;
+window._soforFilter = 'all';
+
+const SOFOR_AYLAR = [
+  {key:'09',label:'Eyl'},{key:'10',label:'Eki'},{key:'11',label:'Kas'},
+  {key:'12',label:'Ara'},{key:'01',label:'Oca'},{key:'02',label:'Şub'},
+  {key:'03',label:'Mar'},{key:'04',label:'Nis'},{key:'05',label:'May'},
+  {key:'06',label:'Haz'},{key:'07',label:'Tem'},{key:'08',label:'Ağu'}
+];
+
+function LS_SOFOR(){ return 'konseltur_sofor_v1_GLOBAL'; }
+function LS_SOFORPAY(){ return 'konseltur_soforpay_v1_GLOBAL'; }
+
+function loadSoforData(){
+  try {
+    const raw = localStorage.getItem(LS_SOFOR());
+    if(raw){ const d=JSON.parse(raw); soforler=Array.isArray(d.soforler)?d.soforler:[]; nSid2=Number(d.nSid2)||soforler.length+1; }
+  } catch(e){}
+  try {
+    const raw = localStorage.getItem(LS_SOFORPAY());
+    if(raw){ const d=JSON.parse(raw); soforPayments=d&&typeof d==='object'?d:{}; }
+  } catch(e){}
+  // Firebase sync
+  if(window._fbReady && window._fbDb){
+    const path = 'konseltur/GLOBAL/sofor';
+    window._fbOnValue(window._fbRef(window._fbDb, path), snap=>{
+      const d = snap.val();
+      if(d){
+        soforler = Array.isArray(d.soforler)?d.soforler:[];
+        nSid2 = Number(d.nSid2)||soforler.length+1;
+        soforPayments = (d.payments&&typeof d.payments==='object')?d.payments:{};
+        try{ localStorage.setItem(LS_SOFOR(), JSON.stringify({soforler, nSid2})); }catch(e){}
+        try{ localStorage.setItem(LS_SOFORPAY(), JSON.stringify(soforPayments)); }catch(e){}
+        if(currentApp==='sofor') renderSoforListe();
+      }
+    });
+  }
+}
+
+function saveSoforData(){
+  const payload = {soforler, nSid2, payments:soforPayments, savedAt:Date.now()};
+  try{ localStorage.setItem(LS_SOFOR(), JSON.stringify({soforler, nSid2})); }catch(e){}
+  try{ localStorage.setItem(LS_SOFORPAY(), JSON.stringify(soforPayments)); }catch(e){}
+  if(window._fbReady && _isOnline){
+    const path = 'konseltur/GLOBAL/sofor';
+    window._fbSet(window._fbRef(window._fbDb, path), payload)
+      .then(()=>flashSaveDot())
+      .catch(e=>console.warn('Şoför Firebase kayıt hatası:',e));
+  }
+}
+
+// ── Yıl hesabı: Eylül'den itibaren ──
+function soforAkademikYil(){
+  const now = new Date();
+  const m = now.getMonth()+1;
+  return m >= 9 ? now.getFullYear() : now.getFullYear()-1;
+}
+
+function soforAyKey(ayKod){ // "09" → "2024-09"
+  const base = soforAkademikYil();
+  const ay = parseInt(ayKod);
+  return (ay>=9 ? base : base+1) + '-' + ayKod;
+}
+
+// Bir şoförün bir ay için TEMEL beklenen ücreti (ekstra hariç)
+function soforAyUcret(s, ayKod){
+  if(s.tip==='kadro') return 25000;
+  const list = Array.isArray(s.okulYovmiye)?s.okulYovmiye:[];
+  return list.reduce((sum,x)=>sum+(parseFloat(x.yovmiye)||0)*20,0);
+}
+
+function fmt(n){ return (parseFloat(n)||0).toLocaleString('tr-TR')+'₺'; }
+
+// ── RENDER: Liste & Detay → yeni kodda (satır ~8218) tanımlı ──
+
+function filterSoforListe(f, el){
+  window._soforFilter = f;
+  document.querySelectorAll('#page-sofor-liste .filter-chip').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderSoforListe();
+}
+
+function openSoforDetay(id){
+  window._activeSoforId = id;
+  const stab = document.getElementById('stab-detay');
+  const s = soforler.find(x=>x.id===id);
+  if(stab){
+    stab.style.display='flex';
+    const txt = document.getElementById('stab-detay-text');
+    if(txt && s) txt.textContent = s.name.split(' ')[0];
+    stab.onclick = ()=>gotoS('sofor-detay');
+  }
+  gotoS('sofor-detay');
+}
+
+// ── Şoför Ekle Modal ──
+function openAddSoforModal(){
+  window._editSoforId = null;
+  _soforModalFill(null);
+  document.getElementById('sofor-add-modal').classList.add('open');
+}
+function openEditSoforModal(id){
+  window._editSoforId = id;
+  _soforModalFill(soforler.find(x=>x.id===id));
+  document.getElementById('sofor-add-modal').classList.add('open');
+}
+
+function _soforModalFill(s){
+  document.getElementById('sam-name').value = s?s.name:'';
+  document.getElementById('sam-ph').value = s?s.ph:'';
+  document.getElementById('sam-plaka').value = s?s.plaka:'';
+  document.getElementById('sam-tip').value = s?s.tip:'kadro';
+  document.getElementById('sam-color').value = s?s.color:'#8b5cf6';
+  document.getElementById('sam-title').textContent = s?'Şoför Düzenle':'Yeni Şoför Ekle';
+  _buildOkulYovmiyeRows(s&&s.tip==='taseron'?s.okulYovmiye:[]);
+  _toggleSamTip();
+}
+
+function _toggleSamTip(){
+  const tip = document.getElementById('sam-tip').value;
+  const section = document.getElementById('sam-taseron-section');
+  if(section) section.style.display = tip==='taseron'?'block':'none';
+}
+
+function _buildOkulYovmiyeRows(list){
+  const wrap = document.getElementById('sam-okul-rows');
+  if(!wrap) return;
+  const rows = (Array.isArray(list)&&list.length)?list:[{okulKey:'',yovmiye:''}];
+  wrap.innerHTML = rows.map((oy,i)=>`
+    <div style="display:flex;gap:8px;margin-bottom:7px;align-items:center;" id="soy-row-${i}">
+      <select style="flex:1;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:'Outfit',sans-serif;" id="soy-okul-${i}">
+        <option value="">Okul Seçin</option>
+        ${SCHOOLS.map(sc=>`<option value="${sc.key}" ${oy.okulKey===sc.key?'selected':''}>${escHtml(sc.short||sc.name)}</option>`).join('')}
+      </select>
+      <input type="number" placeholder="Yövmiye ₺" value="${oy.yovmiye||''}" id="soy-yov-${i}"
+        style="width:110px;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:'Outfit',sans-serif;">
+      <button onclick="document.getElementById('soy-row-${i}').remove()" style="width:28px;height:28px;border-radius:7px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.07);color:#f87171;font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">×</button>
+    </div>`).join('');
+}
+
+function addOkulRow(){
+  const wrap = document.getElementById('sam-okul-rows');
+  const i = Date.now();
+  const div = document.createElement('div');
+  div.style.cssText='display:flex;gap:8px;margin-bottom:7px;align-items:center;';
+  div.id='soy-row-'+i;
+  div.innerHTML=`
+    <select style="flex:1;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:'Outfit',sans-serif;" id="soy-okul-${i}">
+      <option value="">Okul Seçin</option>
+      ${SCHOOLS.map(sc=>`<option value="${sc.key}">${escHtml(sc.short||sc.name)}</option>`).join('')}
+    </select>
+    <input type="number" placeholder="Yövmiye ₺" id="soy-yov-${i}"
+      style="width:110px;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:'Outfit',sans-serif;">
+    <button onclick="document.getElementById('soy-row-${i}').remove()" style="width:28px;height:28px;border-radius:7px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.07);color:#f87171;font-size:14px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">×</button>`;
+  wrap.appendChild(div);
+}
+
+function saveSoforModal(){
+  const name = document.getElementById('sam-name').value.trim();
+  if(!name){ toast('Ad zorunlu','error'); return; }
+  const tip   = document.getElementById('sam-tip').value;
+  const ph    = document.getElementById('sam-ph').value.trim();
+  const plaka = document.getElementById('sam-plaka').value.trim().toUpperCase();
+  const color = document.getElementById('sam-color').value;
+
+  // Taşeron: okul-yövmiye satırlarını topla
+  let okulYovmiye = [];
+  if(tip==='taseron'){
+    document.querySelectorAll('[id^="soy-okul-"]').forEach(sel=>{
+      const idx = sel.id.replace('soy-okul-','');
+      const yovEl = document.getElementById('soy-yov-'+idx);
+      if(sel.value && yovEl && yovEl.value){
+        okulYovmiye.push({okulKey:sel.value, yovmiye:parseFloat(yovEl.value)||0});
+      }
+    });
+  }
+
+  const editId = window._editSoforId;
+  if(editId){
+    const idx = soforler.findIndex(x=>x.id===editId);
+    if(idx>=0) soforler[idx]={...soforler[idx], name, tip, ph, plaka, color, okulYovmiye};
+  } else {
+    soforler.push({id:nSid2++, name, tip, ph, plaka, color, okulYovmiye});
+  }
+  saveSoforData();
+  document.getElementById('sofor-add-modal').classList.remove('open');
+  toast(editId?'✏️ Şoför güncellendi':'✅ Şoför eklendi');
+  if(editId && window._activeSoforId===editId) renderSoforDetay(editId);
+  else gotoS('sofor-liste');
+}
+
+function openDeleteSoforModal(id){
+  const s = soforler.find(x=>x.id===id);
+  if(!s) return;
+  openConfirmModal(
+    '🗑 '+s.name+' silinsin mi?',
+    'Bu şoförün tüm ödeme verileri de silinecek.',
+    ()=>{
+      soforler = soforler.filter(x=>x.id!==id);
+      delete soforPayments[id];
+      saveSoforData();
+      toast('🗑 Şoför silindi');
+      const stab = document.getElementById('stab-detay');
+      if(stab) stab.style.display='none';
+      gotoS('sofor-liste');
+    }
+  );
+}
+
+// ── Excel Export ──
+function exportSoforExcel(){
+  if(!window.XLSX){ toast('Excel kütüphanesi yüklenemedi','error'); return; }
+  const wb = XLSX.utils.book_new();
+
+  // Sayfa 1: Şoför Listesi Özeti
+  const ozet = [['Ad','Tip','Plaka','Telefon','Yıllık Alacak','Ödenen','Kalan']];
+  soforler.forEach(s=>{
+    ozet.push([
+      s.name,
+      s.tip==='kadro'?'Kadro':'Taşeron',
+      s.plaka||'',
+      s.ph||'',
+      soforYillikAlacak(s),
+      soforOdenen(s),
+      soforKalan(s)
+    ]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ozet), 'Özet');
+
+  // Sayfa 2: Aylık detay
+  const header = ['Ad','Tip','Plaka',...SOFOR_AYLAR.map(a=>a.label),'Toplam Alacak','Ödenen','Kalan'];
+  const detay = [header];
+  soforler.forEach(s=>{
+    const aylar = SOFOR_AYLAR.map(a=>{
+      const k=soforAyKey(a.key);
+      const od=soforAyOdenen(s.id,k);
+      return od>0?od:'';
+    });
+    detay.push([s.name, s.tip==='kadro'?'Kadro':'Taşeron', s.plaka||'', ...aylar,
+      soforYillikAlacak(s), soforOdenen(s), soforKalan(s)]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detay), 'Aylık Detay');
+
+  // Sayfa 3: Taşeron okul-yövmiye
+  const taseron = soforler.filter(s=>s.tip==='taseron');
+  if(taseron.length){
+    const tRows = [['Şoför Adı','Okul','Günlük Yövmiye','Aylık (×20)']];
+    taseron.forEach(s=>{
+      (s.okulYovmiye||[]).forEach(oy=>{
+        const sch=SCHOOLS.find(sc=>sc.key===oy.okulKey);
+        tRows.push([s.name, sch?sch.name:oy.okulKey, oy.yovmiye, (parseFloat(oy.yovmiye)||0)*20]);
+      });
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tRows), 'Taşeron Yövmiye');
+  }
+
+  const fn = 'sofor-cuzdani-'+(new Date().toISOString().slice(0,10))+'.xlsx';
+  XLSX.writeFile(wb, fn);
+  toast('📊 Excel indirildi');
+}
+
+// ── Şoförlerden İçe Aktar ──
+function openImportSoforModal(){
+  const el = document.getElementById('sim-list');
+  if(!el) return;
+
+  // Cüzdanda zaten kayıtlı driver id'lerini bul (driverRef alanı ile eşleştir)
+  const already = new Set(soforler.map(s=>s.driverRef).filter(Boolean));
+
+  // Tüm okulların şoförlerini topla (multi-school sistemi)
+  // drivers dizisi aktif okula aittir; bu yeterli
+  const candidates = drivers.filter(d=>!already.has(d.id));
+
+  if(!candidates.length){
+    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted2);font-size:13px;">
+      ${drivers.length===0
+        ? '⚠️ Bu okulda henüz şoför eklenmemiş.<br><span style="font-size:11px;">Rota → Şoförler sayfasından önce şoför ekleyin.</span>'
+        : '✅ Tüm şoförler zaten Cüzdan\'a eklenmiş.'}
+    </div>`;
+    document.getElementById('sofor-import-modal').classList.add('open');
+    return;
+  }
+
+  const COLORS = ['#8b5cf6','#3b82f6','#f59e0b','#22c55e','#ef4444','#ec4899','#06b6d4','#f97316'];
+
+  el.innerHTML = candidates.map((d,i)=>`
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;">
+      <!-- Şoför bilgisi + seçim -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <input type="checkbox" id="sim-chk-${d.id}" checked style="width:16px;height:16px;cursor:pointer;accent-color:#8b5cf6;flex-shrink:0;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:14px;">${escHtml(d.name)}</div>
+          <div style="font-size:11px;color:var(--muted2);">${d.ph?'📞 '+escHtml(d.ph)+' · ':''}${d.veh?'🚌 '+escHtml(d.veh):'—'}</div>
+        </div>
+        <input type="color" id="sim-col-${d.id}" value="${COLORS[i%COLORS.length]}"
+          style="width:32px;height:32px;padding:2px;border:1px solid var(--border);border-radius:8px;background:var(--card2);cursor:pointer;flex-shrink:0;" title="Renk seç">
+      </div>
+      <!-- Tip + Plaka -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Şoför Tipi</div>
+          <select id="sim-tip-${d.id}" style="width:100%;padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:'Outfit',sans-serif;">
+            <option value="kadro" ${(d.tip||'kadro')==='kadro'?'selected':''}>Kadro (25.000₺/ay)</option>
+            <option value="taseron" ${d.tip==='taseron'?'selected':''}>Taşeron (Yövmiyeli)</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Araç Plakası</div>
+          <input type="text" id="sim-plaka-${d.id}" placeholder="42 ABC 123" value="${escHtml(d.plaka||'')}"
+            style="width:100%;padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:'Outfit',sans-serif;text-transform:uppercase;"
+            oninput="this.value=this.value.toUpperCase()">
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Candidates'i data olarak sakla (id erişimi için)
+  el.dataset.candidateIds = JSON.stringify(candidates.map(d=>d.id));
+  document.getElementById('sofor-import-modal').classList.add('open');
+}
+
+function saveImportSofor(){
+  const el = document.getElementById('sim-list');
+  if(!el || !el.dataset.candidateIds) return;
+  const ids = JSON.parse(el.dataset.candidateIds);
+  let added = 0;
+
+  ids.forEach(did=>{
+    const chk = document.getElementById('sim-chk-'+did);
+    if(!chk || !chk.checked) return;
+
+    const d = drivers.find(x=>x.id===did);
+    if(!d) return;
+
+    const tip   = document.getElementById('sim-tip-'+did)?.value || 'kadro';
+    const plaka = (document.getElementById('sim-plaka-'+did)?.value||'').toUpperCase().trim();
+    const color = document.getElementById('sim-col-'+did)?.value || '#8b5cf6';
+
+    soforler.push({
+      id: nSid2++,
+      driverRef: d.id,       // Rota sistemindeki orijinal id — eşleştirme için
+      name:  d.name,
+      ph:    d.ph  || '',
+      plaka: plaka || d.veh || '', // plaka girilmemişse araç tipini fallback al
+      tip,
+      color,
+      okulYovmiye: []        // taşeron ise detay sayfasında elle doldurulur
+    });
+    added++;
+  });
+
+  if(!added){ toast('Hiçbir şoför seçilmedi','info'); return; }
+  saveSoforData();
+  document.getElementById('sofor-import-modal').classList.remove('open');
+  toast(`✅ ${added} şoför Cüzdan'a eklendi`);
+  renderSoforListe();
+}
+
+// ═══════════════════════════════════════════════
+// ŞOFÖR CÜZDANI — END
+// ═══════════════════════════════════════════════
 </script>
 
+<style>
+/* ─── ŞOFÖR CÜZDANI — PRO TASARIM ─── */
+
+/* Liste kartları */
+.sc-card {
+  background: linear-gradient(145deg, rgba(255,255,255,.03) 0%, rgba(255,255,255,.015) 100%);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+  position: relative;
+  overflow: hidden;
+}
+.sc-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 3px;
+  border-radius: 18px 0 0 18px;
+  background: var(--sc-color, #8b5cf6);
+  opacity: .7;
+}
+.sc-card:hover {
+  border-color: rgba(255,255,255,.1);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(0,0,0,.3);
+}
+.sc-card.kadro::before { background: #a78bfa; }
+.sc-card.taseron::before { background: var(--amber); }
+
+/* Avatar */
+.sc-avatar {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 900;
+  flex-shrink: 0;
+  position: relative;
+}
+.sc-avatar::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
+  pointer-events: none;
+}
+
+/* Özet stat kutuları */
+.sc-stat {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.025);
+  text-align: center;
+  transition: all .18s;
+}
+.sc-stat:hover { border-color: rgba(255,255,255,.1); background: rgba(255,255,255,.04); }
+
+/* Ay blokları — detay sayfası */
+.sd-ay-card {
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.02);
+  padding: 14px;
+  cursor: pointer;
+  transition: all .18s;
+  position: relative;
+  overflow: hidden;
+}
+.sd-ay-card:hover { border-color: rgba(255,255,255,.12); background: rgba(255,255,255,.04); transform: translateY(-2px); }
+.sd-ay-card.tam-odendi { border-color: rgba(34,197,94,.3); background: rgba(34,197,94,.04); }
+.sd-ay-card.kismi { border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.03); }
+.sd-ay-card.bekliyor { border-color: rgba(239,68,68,.2); background: rgba(239,68,68,.02); }
+.sd-ay-card .ay-shimmer {
+  position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.04), transparent);
+  transform: skewX(-15deg);
+  animation: ayShimmer 3s infinite;
+}
+@keyframes ayShimmer { 0%{left:-60%} 100%{left:160%} }
+
+/* İşlem geçmişi satırları */
+.islem-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.islem-row:last-child { border-bottom: none; }
+.islem-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* Progress ring */
+.prog-ring { transform: rotate(-90deg); }
+.prog-ring-track { fill: none; stroke: rgba(255,255,255,.06); }
+.prog-ring-fill { fill: none; stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+
+/* Ödeme modal — yeni tasarım */
+.pay-modal-inner {
+  background: linear-gradient(145deg, #0d1628 0%, #090f1e 100%);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 24px;
+  padding: 0;
+  width: 480px; max-width: 96vw;
+  max-height: 92vh; overflow-y: auto;
+  box-shadow: 0 40px 100px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.04);
+}
+.pmi-header {
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  position: relative;
+}
+.pmi-body { padding: 24px 28px 28px; }
+.pmi-section-label {
+  font-size: 9px; font-weight: 800; letter-spacing: 2.5px;
+  text-transform: uppercase; color: rgba(255,255,255,.2);
+  margin-bottom: 10px; margin-top: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+.pmi-section-label::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.05);
+}
+.pmi-input {
+  width: 100%; padding: 12px 14px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 11px; color: var(--text);
+  font-size: 14px; font-family: 'Outfit', sans-serif;
+  outline: none; transition: all .18s; box-sizing: border-box;
+}
+.pmi-input:focus {
+  border-color: rgba(139,92,246,.5);
+  background: rgba(139,92,246,.06);
+  box-shadow: 0 0 0 3px rgba(139,92,246,.08);
+}
+.islem-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 10px; font-weight: 700; letter-spacing: .3px;
+}
+.islem-chip.avans { background: rgba(245,158,11,.12); color: var(--amber); border: 1px solid rgba(245,158,11,.25); }
+.islem-chip.odeme { background: rgba(34,197,94,.1); color: var(--green); border: 1px solid rgba(34,197,94,.2); }
+.islem-chip.ekstra { background: rgba(96,165,250,.1); color: #60a5fa; border: 1px solid rgba(96,165,250,.2); }
+.islem-chip.duzeltme { background: rgba(139,92,246,.1); color: #a78bfa; border: 1px solid rgba(139,92,246,.2); }
+
+/* Header gradient line */
+.pmi-header::before {
+  content: '';
+  position: absolute; top: 0; left: 24px; right: 24px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,.6), transparent);
+}
+
+/* Detay sayfa hero */
+.sd-hero {
+  background: linear-gradient(135deg, rgba(255,255,255,.03) 0%, rgba(255,255,255,.01) 100%);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.sd-hero::after {
+  content: '';
+  position: absolute; top: -40px; right: -40px;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: var(--sd-color, rgba(139,92,246,.12));
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+/* Yeni özet liste kartları */
+.sd-stat-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;
+}
+@media(max-width:480px){ .sd-stat-row { grid-template-columns: repeat(3, 1fr); gap: 7px; } }
+.sd-stat-box {
+  padding: 16px 12px; border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.06);
+  background: rgba(255,255,255,.025);
+  text-align: center;
+}
+.sd-stat-val {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 800; line-height: 1.1;
+  margin-bottom: 4px;
+}
+.sd-stat-lbl {
+  font-size: 9px; color: rgba(255,255,255,.28);
+  font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+}
+</style>
+
+<script>
+// ─── YENİ ÖDEME VERİ MODELİ ───
+// soforPayments[soforId][ayKey] = {
+//   beklenen: 25000,           // o ay beklenen tutar (kadro=25000, taseron=hesaplanan)
+//   ekstra: [{aciklama, tutar, tarih}],   // ekstra iş gelirleri
+//   islemler: [{tip:'avans'|'odeme'|'ekstra'|'duzeltme', tutar, not, tarih}],
+//   tamOdendi: boolean         // tüm tutar ödendi mi
+// }
+
+function soforAyToplamAlacak(s, ayKey){
+  // Sadece maaş baz ücreti — ekstra işler ayrı takip edilir (ödeme olarak girilir)
+  const ayKod = ayKey.slice(5); // "2024-09" → "09"
+  return soforAyUcret(s, ayKod);
+}
+
+function soforAyOdenen(soforId, ayKey){
+  const pay = ((soforPayments[soforId]||{})[ayKey])||{};
+  // islemler: avans + maaş + ekstra ödemeleri
+  return (pay.islemler||[]).reduce((a,x)=>a+(parseFloat(x.tutar)||0),0);
+}
+
+// Toplam yıllık alacak (yeni model)
+function soforYillikAlacak(s){
+  return SOFOR_AYLAR.reduce((sum,a)=>sum+soforAyToplamAlacak(s, soforAyKey(a.key)),0);
+}
+
+// Toplam yıllık ödenen (yeni model)
+function soforOdenen(s){
+  return SOFOR_AYLAR.reduce((sum,a)=>sum+soforAyOdenen(s.id, soforAyKey(a.key)),0);
+}
+
+function soforKalan(s){ return soforYillikAlacak(s)-soforOdenen(s); }
+
+function soforAyDurumu(s, ayKey){
+  const alacak = soforAyToplamAlacak(s, ayKey);
+  const odenen = soforAyOdenen(s.id, ayKey);
+  if(odenen <= 0) return 'bekliyor';
+  if(odenen >= alacak) return 'tam-odendi';
+  return 'kismi';
+}
+
+// ─── RENDER: LİSTE ───
+function renderSoforListe(){
+  const sumEl = document.getElementById('sofor-summary-row');
+  if(sumEl){
+    const total = soforler.length;
+    const toplamAlacak = soforler.reduce((s,x)=>s+soforYillikAlacak(x),0);
+    const toplamOdenen = soforler.reduce((s,x)=>s+soforOdenen(x),0);
+    const toplamKalan  = toplamAlacak-toplamOdenen;
+    const odRatio = toplamAlacak>0?Math.round(toplamOdenen/toplamAlacak*100):0;
+    sumEl.innerHTML = `
+      <div class="sc-stat">
+        <div style="font-size:28px;margin-bottom:4px;">🧑‍✈️</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:900;color:var(--text);">${total}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.28);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Şoför</div>
+      </div>
+      <div class="sc-stat">
+        <div style="font-size:10px;color:rgba(255,255,255,.28);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">Toplam Alacak</div>
+        <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:900;color:var(--amber);">${fmt(toplamAlacak)}</div>
+        <div style="margin-top:8px;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;">
+          <div style="height:100%;width:${odRatio}%;background:linear-gradient(90deg,var(--green),#16a34a);border-radius:2px;transition:width .5s;"></div>
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:4px;">${odRatio}% tahsil edildi</div>
+      </div>
+      <div class="sc-stat">
+        <div style="font-size:10px;color:rgba(255,255,255,.28);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">Kalan Bakiye</div>
+        <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:900;color:${toplamKalan>0?'#f87171':'var(--green)'};">${fmt(toplamKalan)}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:6px;">${fmt(toplamOdenen)} ödendi</div>
+      </div>`;
+  }
+
+  const wrap = document.getElementById('sofor-liste-wrap');
+  if(!wrap) return;
+  let list = [...soforler];
+  const f = window._soforFilter||'all';
+  if(f==='kadro') list=list.filter(s=>s.tip==='kadro');
+  else if(f==='taseron') list=list.filter(s=>s.tip==='taseron');
+  else if(f==='borclu') list=list.filter(s=>soforKalan(s)>0);
+
+  if(!list.length){
+    wrap.innerHTML=`<div class="empty"><div class="empty-icon">👤</div><div>${soforler.length?'Filtre sonucu boş':'Henüz şoför eklenmedi'}</div></div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.map(s=>{
+    const col = s.color||'#8b5cf6';
+    const alacak = soforYillikAlacak(s);
+    const odenen = soforOdenen(s);
+    const kalan2 = alacak-odenen;
+    const odRatio = alacak>0?Math.round(odenen/alacak*100):0;
+    const initials = s.name?s.name.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase():'??';
+    const kalanCol = kalan2>0?'#f87171':'#4ade80';
+    const ayDurumlar = SOFOR_AYLAR.map(a=>soforAyDurumu(s, soforAyKey(a.key)));
+    const tamAy = ayDurumlar.filter(d=>d==='tam-odendi').length;
+    const kismiAy = ayDurumlar.filter(d=>d==='kismi').length;
+
+    return `<div class="sc-card ${s.tip}" onclick="openSoforDetay(${s.id})" style="--sc-color:${col}">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="sc-avatar" style="background:${col}18;border:1px solid ${col}30;color:${col};">${initials}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;">
+            <span style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;">${escHtml(s.name)}</span>
+            <span class="sofor-badge ${s.tip}">${s.tip==='kadro'?'Kadro':'Taşeron'}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            ${s.plaka?`<span style="font-size:11px;color:rgba(255,255,255,.35);display:flex;align-items:center;gap:4px;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 6 2v5h-6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>${escHtml(s.plaka)}</span>`:''}
+            <span style="font-size:11px;color:rgba(255,255,255,.3);">${tamAy} ay ödendi${kismiAy?` · ${kismiAy} kısmi`:''}</span>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:900;color:${kalanCol};">${fmt(kalan2)}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:1px;letter-spacing:.3px;">KALAN</div>
+        </div>
+      </div>
+      <!-- Progress bar -->
+      <div style="margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div style="display:flex;gap:12px;">
+            ${SOFOR_AYLAR.map(a=>{
+              const dur=soforAyDurumu(s,soforAyKey(a.key));
+              const c=dur==='tam-odendi'?'#22c55e':dur==='kismi'?'#f59e0b':'rgba(255,255,255,.1)';
+              return `<div title="${a.label}" style="width:6px;height:6px;border-radius:50%;background:${c};flex-shrink:0;"></div>`;
+            }).join('')}
+          </div>
+          <span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:600;">${odRatio}%</span>
+        </div>
+        <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;">
+          <div style="height:100%;width:${odRatio}%;background:linear-gradient(90deg,${col},${col}bb);border-radius:2px;transition:width .5s;"></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── RENDER: DETAY ───
+function renderSoforDetay(id){
+  const s = soforler.find(x=>x.id===id);
+  if(!s) return;
+  const col = s.color||'#8b5cf6';
+
+  // Başlık
+  const nameEl = document.getElementById('sd-name');
+  const subEl  = document.getElementById('sd-subtitle');
+  if(nameEl) nameEl.textContent = s.name;
+  if(subEl)  subEl.textContent  = (s.tip==='kadro'?'Kadro Şoförü':'Taşeron Şoförü')+(s.plaka?' · 🚌 '+s.plaka:'')+(s.ph?' · 📞 '+s.ph:'');
+
+  // Profil hero kartı
+  const profEl = document.getElementById('sd-profil-card');
+  if(profEl){
+    const alacak = soforYillikAlacak(s);
+    const odenen = soforOdenen(s);
+    const kalan  = alacak-odenen;
+    const odRatio = alacak>0?Math.round(odenen/alacak*100):0;
+    const initials = s.name?s.name.split(' ').map(x=>x[0]).slice(0,2).join('').toUpperCase():'??';
+    // SVG ring
+    const r=28, c=34, circ=2*Math.PI*r;
+    const dash=circ-(odRatio/100)*circ;
+
+    profEl.className='sd-hero';
+    profEl.style.setProperty('--sd-color',col+'20');
+    profEl.innerHTML = `
+      <div style="display:flex;align-items:flex-start;gap:20px;position:relative;z-index:1;">
+        <!-- Sol: avatar + ring -->
+        <div style="position:relative;flex-shrink:0;">
+          <svg width="68" height="68" viewBox="0 0 68 68" class="prog-ring">
+            <circle class="prog-ring-track" cx="${c}" cy="${c}" r="${r}" stroke-width="4"/>
+            <circle class="prog-ring-fill" cx="${c}" cy="${c}" r="${r}" stroke-width="4"
+              stroke="${col}" stroke-dasharray="${circ}" stroke-dashoffset="${dash}"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+            font-family:'Syne',sans-serif;font-size:15px;font-weight:900;color:${col};">${initials}</div>
+        </div>
+        <!-- Sağ: isim + istatistikler -->
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:900;margin-bottom:4px;">${escHtml(s.name)}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+            <span class="sofor-badge ${s.tip}">${s.tip==='kadro'?'📋 Kadro':'🔧 Taşeron'}</span>
+            ${s.plaka?`<span style="font-size:11px;color:rgba(255,255,255,.4);">🚌 ${escHtml(s.plaka)}</span>`:''}
+            ${s.ph?`<span style="font-size:11px;color:rgba(255,255,255,.4);">📞 ${escHtml(s.ph)}</span>`:''}
+          </div>
+          <div class="sd-stat-row" style="margin-bottom:0;">
+            <div class="sd-stat-box" style="border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.04);">
+              <div class="sd-stat-val" style="color:var(--amber);">${fmt(alacak)}</div>
+              <div class="sd-stat-lbl">Toplam</div>
+            </div>
+            <div class="sd-stat-box" style="border-color:rgba(34,197,94,.2);background:rgba(34,197,94,.04);">
+              <div class="sd-stat-val" style="color:#4ade80;">${fmt(odenen)}</div>
+              <div class="sd-stat-lbl">Ödenen</div>
+            </div>
+            <div class="sd-stat-box" style="border-color:${kalan>0?'rgba(239,68,68,.2)':'rgba(34,197,94,.2)'};background:${kalan>0?'rgba(239,68,68,.04)':'rgba(34,197,94,.04)'};">
+              <div class="sd-stat-val" style="color:${kalan>0?'#f87171':'#4ade80'};">${fmt(kalan)}</div>
+              <div class="sd-stat-lbl">Kalan</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Yıl progress -->
+      <div style="margin-top:18px;position:relative;z-index:1;">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.3);margin-bottom:6px;font-weight:600;">
+          <span>${soforAkademikYil()}–${soforAkademikYil()+1} Eğitim Yılı</span>
+          <span style="color:${col};">${odRatio}% tamamlandı</span>
+        </div>
+        <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${odRatio}%;background:linear-gradient(90deg,${col},${col}88);border-radius:3px;transition:width .6s ease;box-shadow:0 0 8px ${col}44;"></div>
+        </div>
+      </div>`;
+  }
+
+  // Taşeron okul yövmiye
+  const okuSec = document.getElementById('sd-okullar-section');
+  const okuWrap = document.getElementById('sd-okullar-wrap');
+  if(okuSec && okuWrap){
+    if(s.tip==='taseron' && Array.isArray(s.okulYovmiye) && s.okulYovmiye.length){
+      okuSec.style.display='block';
+      okuWrap.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;">
+      ${s.okulYovmiye.map(oy=>{
+        const sch = SCHOOLS.find(sc=>sc.key===oy.okulKey);
+        const yov = parseFloat(oy.yovmiye)||0;
+        return `<div style="padding:13px 15px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:12px;display:flex;align-items:center;gap:10px;">
+          <div style="width:10px;height:10px;border-radius:3px;background:${sch?.color||'#60a5fa'};flex-shrink:0;box-shadow:0 0 8px ${sch?.color||'#60a5fa'}44;"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(sch?.name||oy.okulKey)}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:1px;">${fmt(yov)}/gün · <span style="color:var(--amber);">${fmt(yov*20)}/ay</span></div>
+          </div>
+        </div>`;
+      }).join('')}
+      </div>`;
+    } else { okuSec.style.display='none'; }
+  }
+
+  // ─── Ödeme Takvimi ───
+  const takvimEl = document.getElementById('sd-takvim-wrap');
+  if(takvimEl){
+    takvimEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
+    ${SOFOR_AYLAR.map(a=>{
+      const k = soforAyKey(a.key);
+      const alacak2 = soforAyToplamAlacak(s, k);
+      const odenen2 = soforAyOdenen(s.id, k);
+      const dur = soforAyDurumu(s, k);
+      const ratio2 = alacak2>0?Math.round(odenen2/alacak2*100):0;
+      const pay = (soforPayments[s.id]||{})[k]||{};
+      const hasEkstra = (pay.ekstra||[]).length>0;
+      const durIcon = dur==='tam-odendi'?'✓':dur==='kismi'?`${ratio2}%`:'—';
+      const durCol = dur==='tam-odendi'?'#4ade80':dur==='kismi'?'#fbbf24':'rgba(255,255,255,.25)';
+      return `<div class="sd-ay-card ${dur}" onclick="openSoforPayModal(${s.id},'${k}','${a.label}',${alacak2})">
+        <div class="ay-shimmer"></div>
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;margin-bottom:6px;">${a.label}</div>
+        <div style="font-size:18px;font-weight:900;color:${durCol};font-family:'Syne',sans-serif;line-height:1;">${durIcon}</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.28);margin-top:4px;">${odenen2>0?fmt(odenen2):fmt(alacak2)}</div>
+        ${hasEkstra?`<div style="position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:#60a5fa;box-shadow:0 0 6px #60a5fa88;"></div>`:''}
+      </div>`;
+    }).join('')}
+    </div>
+    <div style="display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(255,255,255,.3);">
+        <div style="width:8px;height:8px;border-radius:2px;background:#22c55e;"></div> Tam ödendi
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(255,255,255,.3);">
+        <div style="width:8px;height:8px;border-radius:2px;background:var(--amber);"></div> Kısmi ödeme
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(255,255,255,.3);">
+        <div style="width:8px;height:8px;border-radius:2px;background:rgba(255,255,255,.1);"></div> Bekliyor
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(255,255,255,.3);">
+        <div style="width:6px;height:6px;border-radius:50%;background:#60a5fa;"></div> Ekstra iş var
+      </div>
+    </div>`;
+  }
+
+  // Yıl özeti
+  const yilEl = document.getElementById('sd-yil-ozet');
+  if(yilEl){
+    const yA=soforYillikAlacak(s), yO=soforOdenen(s), yK=yA-yO;
+    const pay = soforPayments[s.id]||{};
+    const tamAy = SOFOR_AYLAR.filter(a=>soforAyDurumu(s,soforAyKey(a.key))==='tam-odendi').length;
+    const kismiAy = SOFOR_AYLAR.filter(a=>soforAyDurumu(s,soforAyKey(a.key))==='kismi').length;
+    yilEl.style.cssText='background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px 20px;margin-bottom:20px;';
+    yilEl.innerHTML = `
+      <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:14px;">
+        ${soforAkademikYil()}–${soforAkademikYil()+1} Yıl Özeti
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div><div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:3px;">Tam Ödenen Ay</div><div style="font-weight:800;font-size:18px;color:#4ade80;">${tamAy}<span style="font-size:11px;font-weight:500;color:rgba(255,255,255,.3);"> / 12</span></div></div>
+        <div><div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:3px;">Kısmi Ödeme</div><div style="font-weight:800;font-size:18px;color:var(--amber);">${kismiAy}<span style="font-size:11px;font-weight:500;color:rgba(255,255,255,.3);"> ay</span></div></div>
+        <div><div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:3px;">Toplam Alacak</div><div style="font-weight:800;font-size:18px;color:var(--amber);">${fmt(yA)}</div></div>
+        <div><div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:3px;">Ödenen</div><div style="font-weight:800;font-size:18px;color:#4ade80;">${fmt(yO)}</div></div>
+        <div><div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:3px;">Kalan Borç</div><div style="font-weight:800;font-size:18px;color:${yK>0?'#f87171':'#4ade80'};">${fmt(yK)}</div></div>
+      </div>`;
+  }
+}
+
+// ─── ÖDEME MODAL (YENİ) ───
+function openSoforPayModal(soforId, ayKey, ayLabel, beklenen){
+  window._editSoforPayId = soforId;
+  window._editSoforPayAy = ayKey;
+  window._editSoforPayBeklenen = beklenen;
+  const s = soforler.find(x=>x.id===soforId);
+  const pay = ((soforPayments[soforId]||{})[ayKey])||{};
+  const odenen2 = soforAyOdenen(soforId, ayKey);
+  const alacak2 = soforAyToplamAlacak(s, ayKey);
+  const kalan2  = alacak2-odenen2;
+  const dur = soforAyDurumu(s, ayKey);
+
+  const modal = document.getElementById('sofor-pay-modal');
+  if(!modal) return;
+
+  // Edit state sıfırla
+  window._editIslemIdx = null;
+  window._editIslemTip = null;
+  setTimeout(()=>_setPayBtnEditMode(false), 0);
+
+  const titleEl = document.getElementById('spm-title');
+  if(titleEl) titleEl.innerHTML = `<span>${s?escHtml(s.name):''}</span> <span style="color:rgba(255,255,255,.3);font-weight:400;">·</span> <span style="color:var(--purple)">${ayLabel}</span>`;
+
+  // Özet satırı
+  const ozet = document.getElementById('spm-ozet');
+  if(ozet){
+    const col = dur==='tam-odendi'?'#4ade80':dur==='kismi'?'#fbbf24':'#f87171';
+    const durText = dur==='tam-odendi'?'✓ Tam Ödendi':dur==='kismi'?'⚡ Kısmi':'⏳ Bekliyor';
+    ozet.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:0;">
+        <div style="padding:10px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:10px;text-align:center;">
+          <div style="font-size:9px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Beklenen</div>
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--amber);">${fmt(alacak2)}</div>
+        </div>
+        <div style="padding:10px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:10px;text-align:center;">
+          <div style="font-size:9px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Ödenen</div>
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#4ade80;">${fmt(odenen2)}</div>
+        </div>
+        <div style="padding:10px;background:${kalan2>0?'rgba(239,68,68,.06)':'rgba(34,197,94,.06)'};border:1px solid ${kalan2>0?'rgba(239,68,68,.15)':'rgba(34,197,94,.15)'};border-radius:10px;text-align:center;">
+          <div style="font-size:9px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Kalan</div>
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${col};">${fmt(kalan2)}</div>
+        </div>
+      </div>
+      <div style="margin-top:8px;text-align:center;">
+        <span style="font-size:11px;font-weight:700;color:${col};">${durText}</span>
+      </div>`;
+  }
+
+  // İşlem geçmişi
+  _renderIslemGecmisi(soforId, ayKey);
+
+  // Ekstra işler listesi
+  _renderEkstraIsler(soforId, ayKey);
+
+  // Yeni ödeme tutar input'u sıfırla
+  const tutarEl = document.getElementById('spm-tutar');
+  if(tutarEl) tutarEl.value = kalan2>0?kalan2:'';
+  const notEl = document.getElementById('spm-not');
+  if(notEl) notEl.value = '';
+  const tipEl = document.getElementById('spm-tip');
+  if(tipEl) tipEl.value = 'odeme';
+
+  modal.classList.add('open');
+}
+
+function _renderIslemGecmisi(soforId, ayKey){
+  const wrap = document.getElementById('spm-islem-listesi');
+  if(!wrap) return;
+  const pay = ((soforPayments[soforId]||{})[ayKey])||{};
+  const islemler = pay.islemler||[];
+  if(!islemler.length){
+    wrap.innerHTML=`<div style="text-align:center;padding:12px;font-size:12px;color:rgba(255,255,255,.2);">Henüz işlem yok</div>`;
+    return;
+  }
+  wrap.innerHTML = islemler.map((ix,i)=>{
+    const tipMap = {avans:{label:'Avans',cls:'avans'},odeme:{label:'Ödeme',cls:'odeme'},ekstra:{label:'Ekstra Gelir',cls:'ekstra'},duzeltme:{label:'Düzeltme',cls:'duzeltme'}};
+    const t = tipMap[ix.tip]||{label:ix.tip,cls:'odeme'};
+    const tarih = ix.tarih?new Date(ix.tarih).toLocaleDateString('tr-TR',{day:'2-digit',month:'short',year:'numeric'}):'';
+    return `<div class="islem-row">
+      <div class="islem-dot" style="background:${ix.tip==='avans'?'#fbbf24':ix.tip==='ekstra'?'#60a5fa':ix.tip==='duzeltme'?'#a78bfa':'#4ade80'};"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+          <span class="islem-chip ${t.cls}">${t.label}</span>
+          ${ix.not?`<span style="font-size:11px;color:rgba(255,255,255,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;">${escHtml(ix.not)}</span>`:''}
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,.25);">${tarih}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#4ade80;">+${fmt(parseFloat(ix.tutar)||0)}</div>
+        <button onclick="editIslem(${soforId},'${ayKey}',${i})" title="Düzenle" style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(245,158,11,.2);background:rgba(245,158,11,.06);color:#fbbf24;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" onmouseover="this.style.background='rgba(245,158,11,.2)'" onmouseout="this.style.background='rgba(245,158,11,.06)'">✏️</button>
+        <button onclick="deleteIslem(${soforId},'${ayKey}',${i})" title="Sil" style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#f87171;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _renderEkstraIsler(soforId, ayKey){
+  const wrap = document.getElementById('spm-ekstra-listesi');
+  if(!wrap) return;
+  const pay = ((soforPayments[soforId]||{})[ayKey])||{};
+  const ekstralar = pay.ekstra||[];
+  if(!ekstralar.length){
+    wrap.innerHTML=`<div style="text-align:center;padding:10px;font-size:11px;color:rgba(255,255,255,.2);">Ekstra iş eklenmemiş</div>`;
+    return;
+  }
+  wrap.innerHTML = ekstralar.map((ex,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.15);border-radius:10px;margin-bottom:6px;">
+      <span style="font-size:13px;">💼</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:600;">${escHtml(ex.aciklama||'Ekstra iş')}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);">${ex.tarih?new Date(ex.tarih).toLocaleDateString('tr-TR',{day:'2-digit',month:'short'}):'—'}</div>
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#60a5fa;">${fmt(parseFloat(ex.tutar)||0)}</div>
+      <button onclick="editEkstra(${soforId},'${ayKey}',${i})" title="Düzenle" style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(245,158,11,.2);background:rgba(245,158,11,.06);color:#fbbf24;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(245,158,11,.2)'" onmouseout="this.style.background='rgba(245,158,11,.06)'">✏️</button>
+      <button onclick="deleteEkstra(${soforId},'${ayKey}',${i})" style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#f87171;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">×</button>
+    </div>`).join('');
+}
+
+function deleteIslem(soforId, ayKey, idx){
+  if(!soforPayments[soforId]) return;
+  if(!soforPayments[soforId][ayKey]) return;
+  const islemler = soforPayments[soforId][ayKey].islemler||[];
+  islemler.splice(idx,1);
+  soforPayments[soforId][ayKey].islemler = islemler;
+  saveSoforData();
+  const s = soforler.find(x=>x.id===soforId);
+  const alacak2 = soforAyToplamAlacak(s, ayKey);
+  openSoforPayModal(soforId, ayKey, '', alacak2);
+  toast('İşlem silindi','info');
+}
+
+function deleteEkstra(soforId, ayKey, idx){
+  if(!soforPayments[soforId]) return;
+  if(!soforPayments[soforId][ayKey]) return;
+  const ekstralar = soforPayments[soforId][ayKey].ekstra||[];
+  const ex = ekstralar[idx];
+  if(!ex) return;
+  ekstralar.splice(idx,1);
+  soforPayments[soforId][ayKey].ekstra = ekstralar;
+  // islemler'deki eşleşeni de sil (aynı tutar+tarih)
+  const islemler = soforPayments[soforId][ayKey].islemler||[];
+  const iIdx = islemler.findIndex(x=>x.tip==='ekstra'&&x.tutar==ex.tutar&&x.tarih===ex.tarih);
+  if(iIdx>=0) islemler.splice(iIdx,1);
+  soforPayments[soforId][ayKey].islemler = islemler;
+  saveSoforData();
+  const s = soforler.find(x=>x.id===soforId);
+  const alacak2 = soforAyToplamAlacak(s, ayKey);
+  openSoforPayModal(soforId, ayKey, '', alacak2);
+  renderSoforDetay(soforId);
+  toast('Ekstra silindi','info');
+}
+
+function saveSoforPayModal(){
+  const id = window._editSoforPayId;
+  const ay = window._editSoforPayAy;
+  if(!id || !ay) return;
+  if(!soforPayments[id]) soforPayments[id]={};
+  if(!soforPayments[id][ay]) soforPayments[id][ay]={islemler:[],ekstra:[]};
+
+  const tip = document.getElementById('spm-tip').value;
+  const tutar = parseFloat(document.getElementById('spm-tutar').value)||0;
+
+  // Ekstra iş açıklamasını not olarak kullan
+  let not2 = (document.getElementById('spm-not').value||'').trim();
+  if(tip==='ekstra'){
+    const acEl = document.getElementById('spm-ekstra-aciklama');
+    if(acEl && acEl.value.trim()) not2 = acEl.value.trim();
+  }
+
+  if(tutar<=0){ toast('Tutar sıfırdan büyük olmalı','error'); return; }
+
+  // Düzenleme modu mu?
+  const editIslemIdx = window._editIslemIdx;
+  const editIslemTip = window._editIslemTip; // 'islem' veya 'ekstra'
+
+  if(editIslemIdx !== null && editIslemIdx !== undefined){
+    // Var olan işlemi güncelle
+    if(editIslemTip==='ekstra'){
+      const ekstralar = soforPayments[id][ay].ekstra||[];
+      const oldEx = ekstralar[editIslemIdx];
+      if(oldEx){
+        // islemler'deki eşleşeni de güncelle
+        const islemler = soforPayments[id][ay].islemler||[];
+        const iIdx = islemler.findIndex(x=>x.tip==='ekstra'&&x.tutar==oldEx.tutar&&x.tarih===oldEx.tarih);
+        const newTarih = oldEx.tarih||new Date().toISOString();
+        ekstralar[editIslemIdx] = {aciklama:not2||'Ekstra iş',tutar,tarih:newTarih};
+        if(iIdx>=0) islemler[iIdx] = {tip:'ekstra',tutar,not:not2||'Ekstra iş',tarih:newTarih};
+      }
+    } else {
+      const islemler = soforPayments[id][ay].islemler||[];
+      if(islemler[editIslemIdx]){
+        islemler[editIslemIdx] = {tip,tutar,not:not2,tarih:islemler[editIslemIdx].tarih||new Date().toISOString()};
+      }
+    }
+    window._editIslemIdx = null;
+    window._editIslemTip = null;
+    toast('✏️ Düzenlendi');
+  } else {
+    // Yeni kayıt
+    if(tip==='ekstra'){
+      if(!soforPayments[id][ay].ekstra) soforPayments[id][ay].ekstra=[];
+      soforPayments[id][ay].ekstra.push({aciklama:not2||'Ekstra iş',tutar,tarih:new Date().toISOString()});
+      // Ekstra ödeme islemler'e de yansıtılır (ödenen tutara sayılsın)
+      if(!soforPayments[id][ay].islemler) soforPayments[id][ay].islemler=[];
+      soforPayments[id][ay].islemler.push({tip:'ekstra',tutar,not:not2||'Ekstra iş',tarih:new Date().toISOString()});
+    } else {
+      if(!soforPayments[id][ay].islemler) soforPayments[id][ay].islemler=[];
+      soforPayments[id][ay].islemler.push({tip,tutar,not:not2,tarih:new Date().toISOString()});
+    }
+    toast('✅ Kaydedildi');
+  }
+
+  saveSoforData();
+  document.getElementById('sofor-pay-modal').classList.remove('open');
+  renderSoforDetay(id);
+  renderSoforListe();
+}
+
+function addEkstraIsFromModal(){
+  document.getElementById('spm-tip').value = 'ekstra';
+  saveSoforPayModal();
+}
+
+function editIslem(soforId, ayKey, idx){
+  const pay = ((soforPayments[soforId]||{})[ayKey])||{};
+  const islemler = pay.islemler||[];
+  const ix = islemler[idx];
+  if(!ix) return;
+  window._editIslemIdx = idx;
+  window._editIslemTip = 'islem';
+  // Input'ları doldur
+  document.getElementById('spm-tutar').value = ix.tutar||'';
+  document.getElementById('spm-not').value = ix.not||'';
+  _setSpmTip(ix.tip, document.querySelector(`#spm-tip-grid [data-tip="${ix.tip}"]`));
+  // Kaydet butonunu düzenleme moduna al
+  _setPayBtnEditMode(true);
+}
+
+function editEkstra(soforId, ayKey, idx){
+  const pay = ((soforPayments[soforId]||{})[ayKey])||{};
+  const ekstralar = pay.ekstra||[];
+  const ex = ekstralar[idx];
+  if(!ex) return;
+  window._editIslemIdx = idx;
+  window._editIslemTip = 'ekstra';
+  document.getElementById('spm-tutar').value = ex.tutar||'';
+  const acEl = document.getElementById('spm-ekstra-aciklama');
+  if(acEl) acEl.value = ex.aciklama||'';
+  document.getElementById('spm-not').value = '';
+  _setSpmTip('ekstra', document.querySelector('#spm-tip-grid [data-tip="ekstra"]'));
+  _setPayBtnEditMode(true);
+}
+
+function _setPayBtnEditMode(editing){
+  const btn = document.getElementById('spm-kaydet-btn');
+  if(!btn) return;
+  btn.textContent = editing ? '✏️ Değişiklikleri Kaydet' : 'İşlemi Kaydet';
+  btn.style.background = editing
+    ? 'linear-gradient(135deg,#f59e0b,#d97706)'
+    : 'linear-gradient(135deg,#8b5cf6,#6d28d9)';
+  btn.style.boxShadow = editing
+    ? '0 6px 20px rgba(245,158,11,.35)'
+    : '0 6px 20px rgba(139,92,246,.35)';
+}
+
+</script>
+
+<!-- ŞOFÖR CÜZDANI MODALLERİ -->
+
+<!-- Şoför Ekle/Düzenle Modal -->
+<div class="modal-bg" id="sofor-add-modal">
+  <div class="modal" style="width:500px;max-width:96vw;">
+    <h2 id="sam-title">Yeni Şoför Ekle</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Ad Soyad *</div>
+        <input id="sam-name" type="text" placeholder="Şoför adı" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;">
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Telefon</div>
+        <input id="sam-ph" type="tel" placeholder="0532 000 0000" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;">
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Araç Plakası</div>
+        <input id="sam-plaka" type="text" placeholder="42 ABC 123" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;text-transform:uppercase;">
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Şoför Tipi</div>
+        <select id="sam-tip" onchange="_toggleSamTip()" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;">
+          <option value="kadro">Kadro (Sabit 25.000₺)</option>
+          <option value="taseron">Taşeron (Yövmiyeli)</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Renk</div>
+        <input id="sam-color" type="color" value="#8b5cf6" style="width:100%;height:36px;padding:2px;background:var(--card2);border:1px solid var(--border);border-radius:9px;cursor:pointer;">
+      </div>
+    </div>
+    <div id="sam-taseron-section" style="display:none;margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;">Okul Bazlı Yövmiye</div>
+      <div id="sam-okul-rows"></div>
+      <button onclick="addOkulRow()" style="padding:7px 14px;border-radius:8px;border:1px solid rgba(139,92,246,.3);background:rgba(139,92,246,.08);color:#a78bfa;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;margin-top:4px;">+ Okul Ekle</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-full" style="flex:1;background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.4);color:#a78bfa;" onclick="saveSoforModal()">Kaydet</button>
+      <button class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('sofor-add-modal').classList.remove('open')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- YENİ ÖDEME MODAL -->
+<div class="modal-bg" id="sofor-pay-modal">
+  <div class="pay-modal-inner">
+
+    <!-- Header -->
+    <div class="pmi-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div>
+          <h2 id="spm-title" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin:0 0 4px;">Ödeme Girişi</h2>
+          <div style="font-size:11px;color:rgba(255,255,255,.3);">İşlem tipini seçip tutarı girin</div>
+        </div>
+        <button onclick="document.getElementById('sofor-pay-modal').classList.remove('open')"
+          style="width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;"
+          onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.04)'">×</button>
+      </div>
+      <!-- Özet: beklenen / ödenen / kalan -->
+      <div id="spm-ozet"></div>
+    </div>
+
+    <div class="pmi-body">
+
+      <!-- İşlem geçmişi -->
+      <div class="pmi-section-label">İşlem Geçmişi</div>
+      <div id="spm-islem-listesi" style="margin-bottom:4px;"></div>
+
+      <!-- Ekstra işler -->
+      <div class="pmi-section-label">Ekstra İş Gelirleri <span style="color:#60a5fa;font-size:9px;font-weight:600;background:rgba(96,165,250,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(96,165,250,.2);margin-left:4px;">💼 Bu Ay</span></div>
+      <div id="spm-ekstra-listesi" style="margin-bottom:4px;"></div>
+
+      <!-- Yeni işlem formu -->
+      <div class="pmi-section-label">Yeni İşlem Ekle</div>
+
+      <!-- Tip seçimi -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;" id="spm-tip-grid">
+        <button onclick="_setSpmTip('avans',this)" data-tip="avans"
+          style="padding:9px 6px;border-radius:10px;border:1px solid rgba(245,158,11,.3);background:rgba(245,158,11,.08);color:#fbbf24;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center;">
+          💛 Avans
+        </button>
+        <button onclick="_setSpmTip('odeme',this)" data-tip="odeme"
+          style="padding:9px 6px;border-radius:10px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.12);color:#4ade80;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center;">
+          ✅ Maaş
+        </button>
+        <button onclick="_setSpmTip('ekstra',this)" data-tip="ekstra"
+          style="padding:9px 6px;border-radius:10px;border:1px solid rgba(96,165,250,.3);background:rgba(96,165,250,.08);color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center;">
+          💼 Ekstra
+        </button>
+        <button onclick="_setSpmTip('duzeltme',this)" data-tip="duzeltme"
+          style="padding:9px 6px;border-radius:10px;border:1px solid rgba(139,92,246,.3);background:rgba(139,92,246,.08);color:#a78bfa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center;">
+          🔧 Düzelt
+        </button>
+      </div>
+      <input type="hidden" id="spm-tip" value="odeme">
+
+      <!-- Ekstra iş açıklama alanı (sadece ekstra tipinde görünür) -->
+      <div id="spm-ekstra-aciklama-wrap" style="display:none;margin-bottom:10px;">
+        <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">İş Açıklaması</div>
+        <input id="spm-ekstra-aciklama" type="text" placeholder="Örn: Kayseri seferi, Özel transfer..." class="pmi-input" style="font-size:13px;">
+      </div>
+
+      <!-- Tutar -->
+      <div style="margin-bottom:10px;">
+        <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">Tutar (₺)</div>
+        <input id="spm-tutar" type="number" placeholder="0" class="pmi-input" style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif;color:#4ade80;">
+      </div>
+
+      <!-- Not -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">Not (opsiyonel)</div>
+        <input id="spm-not" type="text" placeholder="Avans detayı, açıklama..." class="pmi-input" style="font-size:13px;">
+      </div>
+
+      <!-- Kaydet butonu -->
+      <button id="spm-kaydet-btn" onclick="saveSoforPayModal()"
+        style="width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.5px;box-shadow:0 6px 20px rgba(139,92,246,.35);transition:all .2s;"
+        onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(139,92,246,.5)'"
+        onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 20px rgba(139,92,246,.35)'">
+        İşlemi Kaydet
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<!-- Şoförlerden Aktar Modalı -->
+<div class="modal-bg" id="sofor-import-modal">
+  <div class="modal" style="width:520px;max-width:96vw;">
+    <h2>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Şoförlerden Aktar
+    </h2>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Rota sistemindeki şoförler aşağıda. Her biri için <b style="color:var(--text);">tip</b> ve <b style="color:var(--text);">plaka</b> girin, seçip ekleyin.</div>
+    <div id="sim-list" style="max-height:420px;overflow-y:auto;"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn btn-full" style="flex:1;background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35);color:#60a5fa;" onclick="saveImportSofor()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+        Seçilenleri Ekle
+      </button>
+      <button class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('sofor-import-modal').classList.remove('open')">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Tip seçim butonu highlight
+function _setSpmTip(tip, btn){
+  document.querySelectorAll('#spm-tip-grid button').forEach(b=>{
+    b.style.opacity='0.55'; b.style.transform='scale(.97)';
+  });
+  btn.style.opacity='1'; btn.style.transform='scale(1.04)';
+  document.getElementById('spm-tip').value = tip;
+  // Ekstra açıklama alanını göster/gizle
+  const wrap = document.getElementById('spm-ekstra-aciklama-wrap');
+  if(wrap) wrap.style.display = tip==='ekstra'?'block':'none';
+}
+// Modal açıldığında maaş butonunu varsayılan olarak vurgula
+document.addEventListener('DOMContentLoaded',function(){
+  const grid = document.getElementById('spm-tip-grid');
+  if(grid){
+    const odemeBtn = grid.querySelector('[data-tip="odeme"]');
+    if(odemeBtn) setTimeout(()=>_setSpmTip('odeme',odemeBtn),0);
+  }
+});
+</script>
 
 </body>
 </html>
