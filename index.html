@@ -583,16 +583,18 @@ body.light #login-screen{background:#f0f2f5;}
 /* Login ekranı — mobilde tek sütun */
 @media (max-width: 768px) {
  #login-screen, .login-screen-root { flex-direction: column !important; height: auto !important; min-height: 100vh; overflow: visible !important; }
- /* Sol fotoğraf paneli — kompakt banner */
- #login-screen > div:first-child { width: 100% !important; flex: none !important; height: 220px !important; overflow: hidden !important; }
- #login-screen > div:first-child > div:last-child { padding: 24px 24px 20px !important; }
- #login-screen > div:first-child > div:last-child > div:first-child img { height: 36px !important; }
- #login-screen > div:first-child > div:last-child > div:nth-child(2) div[style*="font-size:46px"] { font-size: 28px !important; }
- #login-screen > div:first-child > div:last-child > div:nth-child(2) > div:last-child { display: none; }
+ /* Sol fotoğraf paneli — MOBİLDE TAMAMEN GİZLE */
+ #login-left-panel { display: none !important; }
  /* Dikey ayraç gizle */
  #login-screen > div:nth-child(2) { display: none !important; }
- /* Sağ okul seçim paneli — full width */
- #login-screen > div:last-child, #login-right-panel { width: 100% !important; flex: none !important; padding: 24px 20px 40px !important; overflow: visible !important; }
+ /* Sağ okul seçim paneli — tam ekran */
+ #login-screen > div:last-child, #login-right-panel {
+   width: 100% !important;
+   flex: 1 !important;
+   padding: 40px 20px 40px !important;
+   overflow: visible !important;
+   min-height: 100vh !important;
+ }
  .school-entry-card { touch-action: manipulation; }
  .school-entry-card .card-inner { padding: 16px 14px !important; gap: 12px !important; }
 }
@@ -1817,7 +1819,7 @@ function _checkRemembered(){
   <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,rgba(214,61,30,.9) 0%,rgba(214,61,30,.5) 60%,transparent 100%);z-index:10;"></div>
 
   <!-- ══ SOL — FOTOĞRAF %60 ══ -->
-  <div style="flex:1;min-width:0;position:relative;overflow:hidden;">
+  <div style="flex:1;min-width:0;position:relative;overflow:hidden;" id="login-left-panel">
     <img src="https://www.konseltur.com.tr/konseltur%20slider.jpeg"
          onerror="this.src='https://www.konseltur.com.tr/Konseltur%20Servis.jpeg';this.onerror=null;"
          style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
