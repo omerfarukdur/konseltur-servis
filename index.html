@@ -929,6 +929,7 @@ body.light .sc-card { background: #fff; border-color: #e2e5ea; }
 <script type="module">
  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
  import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+ import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
  // ÖNEMLİ: Firebase Console → Realtime Database → Rules ayarlayın!
  const firebaseConfig = {
@@ -942,16 +943,33 @@ body.light .sc-card { background: #fff; border-color: #e2e5ea; }
  };
 
  const _fbApp = initializeApp(firebaseConfig);
- const _fbDb = getDatabase(_fbApp);
+ const _fbDb  = getDatabase(_fbApp);
+ const _fbAuth = getAuth(_fbApp);
 
  // Global erişim için window'a aktar
- window._fbRef = ref;
- window._fbSet = set;
- window._fbGet = get;
+ window._fbRef    = ref;
+ window._fbSet    = set;
+ window._fbGet    = get;
  window._fbOnValue = onValue;
  window._fbRemove = remove;
- window._fbDb = _fbDb;
- window._fbReady = true;
+ window._fbDb     = _fbDb;
+ window._fbAuth   = _fbAuth;
+ window._fbSignIn = (email, password) => signInWithEmailAndPassword(_fbAuth, email, password);
+ window._fbSignOut = () => signOut(_fbAuth);
+ window._fbReady  = true;
+
+ // Auth durum değişikliği — oturum kapanırsa şifre ekranına dön
+ onAuthStateChanged(_fbAuth, (user) => {
+   window._fbUser = user || null;
+   if(!user){
+     // Oturum kapandı — şifre ekranını göster
+     const ps = document.getElementById('password-screen');
+     if(ps && ps.style.display === 'none'){
+       if(typeof doLogout === 'function') doLogout();
+     }
+   }
+   window.dispatchEvent(new CustomEvent('fb-auth-changed', { detail: { user } }));
+ });
 
  // Sayfa yüklenince Firebase hazır sinyali ver
  window.dispatchEvent(new Event('firebase-ready'));
@@ -1033,24 +1051,30 @@ try{
       <div style="position:absolute;top:0;left:24px;right:24px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,55,26,.5),transparent);border-radius:1px;"></div>
 
       <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fff;margin-bottom:5px;text-align:center;">Hoş Geldiniz</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.3);margin-bottom:28px;text-align:center;">Devam etmek için şifrenizi girin</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.3);margin-bottom:28px;text-align:center;">Devam etmek için giriş yapın</div>
+
+      <!-- Email input -->
+      <div style="position:relative;margin-bottom:12px;">
+        <div style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.22);pointer-events:none;line-height:0;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+        <input type="email" id="pw-email" placeholder="E-posta" autocomplete="email"
+          style="width:100%;box-sizing:border-box;padding:15px 16px 15px 46px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;color:#fff;font-size:14px;font-family:'Outfit',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;"
+          onfocus="this.style.borderColor='rgba(200,55,26,.6)';this.style.boxShadow='0 0 0 3px rgba(200,55,26,.1)'"
+          onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'"
+          onkeydown="if(event.key==='Enter')document.getElementById('pw-input').focus()">
+      </div>
 
       <!-- Şifre input -->
       <div style="position:relative;margin-bottom:16px;">
         <div style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.22);pointer-events:none;line-height:0;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
-        <input type="password" id="pw-input" placeholder="Şifre" maxlength="20" autofocus
+        <input type="password" id="pw-input" placeholder="Şifre" maxlength="64" autofocus
           style="width:100%;box-sizing:border-box;padding:15px 16px 15px 46px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;color:#fff;font-size:15px;font-family:'Outfit',sans-serif;outline:none;letter-spacing:3px;transition:border-color .2s,box-shadow .2s;"
           onfocus="this.style.borderColor='rgba(200,55,26,.6)';this.style.boxShadow='0 0 0 3px rgba(200,55,26,.1)'"
           onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'"
           onkeydown="if(event.key==='Enter')checkPassword()">
-      </div>
-
-      <!-- Hatırla -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:0 2px;">
-        <input type="checkbox" id="pw-remember" style="accent-color:#C8371A;cursor:pointer;width:14px;height:14px;flex-shrink:0;">
-        <label for="pw-remember" style="font-size:11px;color:rgba(255,255,255,.28);cursor:pointer;line-height:1;">Bu cihazda hatırla</label>
       </div>
 
       <!-- Hata -->
@@ -1069,68 +1093,122 @@ try{
   </div>
 </div>
 <script>
-const _VALID_PASSWORDS=['konseltur2024','Konseltur2024'];
-let _pwVerified=false;
+// ── Firebase Authentication ──────────────────────────────────────
+// Eski plain-text şifre sistemi kaldırıldı.
+// Tüm doğrulama Firebase Auth (email + şifre) ile yapılır.
+// Firebase Console → Authentication → Sign-in method → Email/Password etkinleştirin.
+// Kullanıcıları Firebase Console → Authentication → Users bölümünden ekleyin.
+
+let _pwVerified = false;
+
+function _onLoginSuccess(){
+  _pwVerified = true;
+  document.getElementById('password-screen').style.display = 'none';
+  var _ls = document.getElementById('login-screen');
+  var _ms = document.getElementById('module-select-screen');
+  var _aw = document.getElementById('app-wrapper');
+  // Hangi ekran görünmeli? Hepsi kapalıysa login-screen'i aç
+  const anyVisible = (_ls && _ls.style.display !== 'none') ||
+                     (_ms && _ms.style.display !== 'none') ||
+                     (_aw && _aw.style.display !== 'none');
+  if(!anyVisible && _ls) _ls.style.display = 'flex';
+  var errEl = document.getElementById('pw-error');
+  if(errEl) errEl.textContent = '';
+}
+
 function checkPassword(){
- var input=document.getElementById('pw-input').value.trim();
- var errEl=document.getElementById('pw-error');
- if(!input){errEl.textContent='Şifre boş olamaz';return;}
- if(_VALID_PASSWORDS.includes(input)){
- _pwVerified=true;
- document.getElementById('password-screen').style.display='none';
- // Login ekranının görünür olduğundan emin ol
- var _ls=document.getElementById('login-screen');
- if(_ls && _ls.style.display==='none') _ls.style.display='flex';
- // Hiçbir ekran görünmüyorsa login'i göster
- var _ms=document.getElementById('module-select-screen');
- var _aw=document.getElementById('app-wrapper');
- if((!_ls||_ls.style.display==='none')&&(!_ms||_ms.style.display==='none')&&(!_aw||_aw.style.display==='none')){
- if(_ls) _ls.style.display='flex';
- }
- if(document.getElementById('pw-remember').checked){
- try{localStorage.setItem('_konseltur_auth',JSON.stringify({v:1,exp:Date.now()+30*24*60*60*1000}));}catch(e){}
- }
- errEl.textContent='';
- }else{
- errEl.textContent='Yanlış şifre';
- document.getElementById('pw-input').value='';
- document.getElementById('pw-input').focus();
- var btn=document.querySelector('#password-screen button');
- if(btn){btn.disabled=true;setTimeout(function(){btn.disabled=false;},2000);}
- }
+  var email  = (document.getElementById('pw-email')  || {}).value || '';
+  var pw     = (document.getElementById('pw-input')  || {}).value || '';
+  var errEl  = document.getElementById('pw-error');
+  var btn    = document.querySelector('#password-screen button[onclick]');
+
+  email = email.trim();
+  pw    = pw.trim();
+
+  if(!email){ if(errEl) errEl.textContent = 'E-posta boş olamaz'; return; }
+  if(!pw)   { if(errEl) errEl.textContent = 'Şifre boş olamaz';   return; }
+
+  if(errEl) errEl.textContent = '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Giriş yapılıyor...'; }
+
+  // Firebase Auth hazır mı?
+  if(window._fbSignIn){
+    window._fbSignIn(email, pw)
+      .then(function(){
+        _onLoginSuccess();
+        // "Hatırla" seçiliyse token Firebase tarafından otomatik saklanır (persistence)
+        if(btn){ btn.disabled = false; btn.textContent = 'GİRİŞ YAP'; }
+      })
+      .catch(function(err){
+        var msg = 'Giriş başarısız';
+        if(err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' ||
+           err.code === 'auth/invalid-credential' || err.code === 'auth/invalid-email'){
+          msg = 'E-posta veya şifre hatalı';
+        } else if(err.code === 'auth/too-many-requests'){
+          msg = 'Çok fazla deneme. Lütfen bekleyin.';
+        } else if(err.code === 'auth/network-request-failed'){
+          msg = 'İnternet bağlantısı yok';
+        }
+        if(errEl) errEl.textContent = msg;
+        var inp = document.getElementById('pw-input');
+        if(inp){ inp.value = ''; inp.focus(); }
+        if(btn){ btn.disabled = false; btn.textContent = 'GİRİŞ YAP'; }
+        console.warn('Firebase Auth hatası:', err.code);
+      });
+  } else {
+    // Firebase henüz yüklenmediyse bekle
+    if(errEl) errEl.textContent = 'Bağlanıyor, lütfen bekleyin...';
+    window.addEventListener('firebase-ready', function(){
+      if(btn){ btn.disabled = false; btn.textContent = 'GİRİŞ YAP'; }
+      if(errEl) errEl.textContent = '';
+      checkPassword();
+    }, { once: true });
+  }
 }
+
 function doLogout(){
- try{localStorage.removeItem('_konseltur_auth');}catch(e){}
- _pwVerified=false;
- // Tüm ekranları gizle, sadece şifre ekranını göster
- var ls=document.getElementById('login-screen');
- var ms=document.getElementById('module-select-screen');
- var aw=document.getElementById('app-wrapper');
- if(ls)ls.style.display='none';
- if(ms)ms.style.display='none';
- if(aw)aw.style.display='none';
- document.getElementById('password-screen').style.display='flex';
- document.getElementById('pw-input').value='';
- document.getElementById('pw-input').focus();
+  _pwVerified = false;
+  // Firebase oturumunu kapat
+  if(window._fbSignOut){
+    window._fbSignOut().catch(function(e){ console.warn('Çıkış hatası:', e); });
+  }
+  try{ localStorage.removeItem('_konseltur_auth'); }catch(e){}
+  var ls = document.getElementById('login-screen');
+  var ms = document.getElementById('module-select-screen');
+  var aw = document.getElementById('app-wrapper');
+  if(ls) ls.style.display = 'none';
+  if(ms) ms.style.display = 'none';
+  if(aw) aw.style.display = 'none';
+  document.getElementById('password-screen').style.display = 'flex';
+  var emailEl = document.getElementById('pw-email');
+  var pwEl    = document.getElementById('pw-input');
+  if(emailEl) emailEl.value = '';
+  if(pwEl)    { pwEl.value = ''; pwEl.focus(); }
+  var errEl = document.getElementById('pw-error');
+  if(errEl) errEl.textContent = '';
 }
-// Hatırla kontrolü: DOM hazır olunca çalıştır
-if(document.readyState==='loading'){
- document.addEventListener('DOMContentLoaded',_checkRemembered);
-}else{
- _checkRemembered();
-}
+
+// Sayfa yüklenince: Firebase Auth oturumu zaten açıksa direkt giriş yap
 function _checkRemembered(){
- try{
- var auth=JSON.parse(localStorage.getItem('_konseltur_auth')||'{}');
- if(auth.v===1&&auth.exp>Date.now()){
- _pwVerified=true;
- var ps=document.getElementById('password-screen');
- if(ps)ps.style.display='none';
- // Login ekranının görünür olduğundan emin ol
- var ls=document.getElementById('login-screen');
- if(ls)ls.style.display='flex';
- }
- }catch(e){}
+  // onAuthStateChanged zaten Firebase Auth persistence'ı halleder.
+  // Kullanıcı önceden giriş yaptıysa token otomatik restore edilir.
+  // Burada sadece Firebase'in hazır olmasını bekliyoruz.
+  if(window._fbAuth && window._fbAuth.currentUser){
+    _onLoginSuccess();
+    return;
+  }
+  // Firebase modülü asenkron — fb-auth-changed event'ini dinle
+  window.addEventListener('fb-auth-changed', function(e){
+    if(e.detail && e.detail.user){
+      _onLoginSuccess();
+    }
+  }, { once: true });
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', _checkRemembered);
+} else {
+  _checkRemembered();
 }
 </script>
 
@@ -2359,10 +2437,11 @@ function importDataFromLogin(event){
 
  try {
  if(window._fbReady && navigator.onLine){
- if(d.main) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/main'), d.main).catch(function(){});
- if(d.pay) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/payments'), d.pay).catch(function(){});
+ const _fbWarnRestore = (e) => { console.warn('Firebase geri yükleme hatası:', e); };
+ if(d.main) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/main'), d.main).catch(_fbWarnRestore);
+ if(d.pay)  window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/payments'), d.pay).catch(_fbWarnRestore);
  }
- } catch(e){}
+ } catch(e){ console.warn('Firebase geri yükleme try/catch hatası:', e); }
 
  // SCHOOLS'da var mı?
  var existingIdx = SCHOOLS.findIndex(function(s){ return s.key === key; });
@@ -2885,6 +2964,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
  if(cp) cp.addEventListener('input', function(){ const h=document.getElementById('asc-color-hex'); if(h) h.value=this.value; });
  renderLoginSchoolCards();
 
+ // ÇOKLU SEKME KORUNMASI: Başka sekme localStorage'ı değiştirirse uyar
+ window.addEventListener('storage', function(e){
+   const mainKey = LS_MAIN ? LS_MAIN() : null;
+   const payKey  = LS_PAY  ? LS_PAY()  : null;
+   if(!mainKey || !payKey) return;
+   if(e.key === mainKey || e.key === payKey){
+     // Başka sekmede kayıt yapılmış — kullanıcıyı bilgilendir, otomatik ezme
+     if(document.visibilityState === 'visible'){
+       toast('⚠️ Başka bir sekmede değişiklik yapıldı. Sayfayı yenileyin.', 'error');
+     }
+   }
+ });
+
  // MOBİL LOGIN EKRANI DÜZELTMESİ — CSS çalışmıyorsa JS ile zorla
  if(window.innerWidth <= 768){
    const ls = document.getElementById('login-screen');
@@ -3101,9 +3193,10 @@ function _doDeleteSchool(idx, key){
  // Firebase'den de sil (online ise)
  try {
  if(window._fbReady && navigator.onLine){
- window._fbRemove(window._fbRef(window._fbDb, 'konseltur/' + key)).catch(function(){});
+ window._fbRemove(window._fbRef(window._fbDb, 'konseltur/' + key))
+   .catch(e => console.warn('Firebase okul silme hatası:', e));
  }
- } catch(e){}
+ } catch(e){ console.warn('Firebase okul silme try/catch hatası:', e); }
  SCHOOLS.splice(idx, 1);
  SC.splice(idx, 1);
  _refreshSchoolMaps();
@@ -3226,7 +3319,7 @@ function _updateStudentFilterChips(){
  // Okul select — aktif okul otomatik atanır
  const sel = document.getElementById('s-school');
  if(sel){
- sel.innerHTML = `<option value="${idx}">${sch ? sch.name : ''}</option>`;
+ sel.innerHTML = `<option value="${idx}">${sch ? escHtml(sch.name) : ''}</option>`;
  sel.value = String(idx);
  }
 }
@@ -3254,20 +3347,24 @@ function loadData(){
 
 function _loadFromFirebase(){
  const path = 'konseltur/' + _activeSchoolKey + '/main';
- const reqTime = Date.now(); // Bu isteğin zamanı
+ const reqTime = Date.now();
  window._fbGet(window._fbRef(window._fbDb, path)).then(snapshot=>{
- // RACE CONDITION KORUMASI: Temizleme bu istekten sonra yapıldıysa yükleme iptal
- if(_lastClearedAt >reqTime || _lastLocalSaveAt >reqTime){ return; }
+ // RACE CONDITION KORUMASI: Bu istekten sonra yerel kayıt yapıldıysa Firebase'i yoksay
+ if(_lastClearedAt > reqTime || _lastLocalSaveAt > reqTime){ return; }
  if(!snapshot.exists()) return;
  const d = snapshot.val();
  if(!d) return;
  students = Array.isArray(d.students) ? d.students : [];
- drivers = Array.isArray(d.drivers) ? d.drivers : [];
- routes = Array.isArray(d.routes) ? d.routes : [];
- nSid = Number(d.nSid) || students.length + 1;
- nDid = Number(d.nDid) || drivers.length + 1;
+ drivers  = Array.isArray(d.drivers)  ? d.drivers  : [];
+ routes   = Array.isArray(d.routes)   ? d.routes   : [];
+ // nSid/nDid ÇAKIŞMA KORUNMASI: Her iki kaynaktaki en büyük değeri al
+ // Böylece arada eklenen öğrencilerin id'si kesinlikle çakışmaz
+ const fbNSid = Number(d.nSid) || 1;
+ const fbNDid = Number(d.nDid) || 1;
+ nSid = Math.max(nSid, fbNSid, students.length + 1);
+ nDid = Math.max(nDid, fbNDid, drivers.length  + 1);
  updateAll();
- document.getElementById('save-dot').title = "Firebase'den yüklendi ";
+ document.getElementById('save-dot').title = "Firebase'den yüklendi";
  }).catch(e=>{ console.warn('Firebase yükleme hatası:', e); });
 }
 
@@ -6223,8 +6320,9 @@ function importData(event){
  keys.forEach(key => {
  const d = payload.data[key];
  if(!d) return;
- if(d.main) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/main'), d.main).catch(()=>{});
- if(d.pay) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/payments'), d.pay).catch(()=>{});
+ const _fbWarnImport = (e) => { console.warn('Firebase import hatası ('+key+'):', e); toast('⚠️ '+key+' Firebase\'e yazılamadı, yerel kayıt tamam', 'error'); };
+ if(d.main) window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/main'), d.main).catch(_fbWarnImport);
+ if(d.pay)  window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + key + '/payments'), d.pay).catch(_fbWarnImport);
  });
  }
 
