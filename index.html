@@ -106,11 +106,12 @@ nav::before {
  font-family:'Outfit',sans-serif;
  letter-spacing:.1px;
  position:relative;
+ white-space:nowrap;
 }
 .nav-tab:hover{
- background:rgba(255,255,255,.05);
- color:rgba(255,255,255,.7);
- border-color:rgba(255,255,255,.06);
+ background:rgba(255,255,255,.06);
+ color:rgba(255,255,255,.75);
+ border-color:rgba(255,255,255,.07);
 }
 .nav-tab.active{
  background:rgba(255,255,255,.07);
@@ -198,14 +199,14 @@ nav::before {
 .sidebar-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:2px;}
 .sidebar-sub{font-size:11px;color:var(--muted2);}
 .sidebar-body{flex:1;overflow:visible;padding:14px;}
-.sidebar::-webkit-scrollbar{width:3px;}
+.sidebar::-webkit-scrollbar{width:4px;}
 .sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 .sidebar::-webkit-scrollbar-thumb:hover{background:var(--muted);}
 .sidebar-footer{padding:12px 14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:7px;}
 
 /* FORM FIELDS */
 .field{margin-bottom:9px;}
-.field label{display:block;font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.field label{display:block;font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
 .field input,.field select{
  width:100%;padding:10px 13px;
  background:rgba(255,255,255,.03);border:1px solid var(--border);
@@ -247,26 +248,26 @@ nav::before {
 .dash-card{transition:all .2s;}
 .dash-card-glow{position:absolute;top:-15px;right:-15px;width:70px;height:70px;border-radius:50%;filter:blur(22px);opacity:.1;}
 .dash-card-icon{font-size:22px;line-height:1;}
-.dash-card-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1.1;}
-.dash-card-label{font-size:9px;color:var(--muted2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;}
+.dash-card-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1.1;letter-spacing:-.5px;}
+.dash-card-label{font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-top:2px;}
 
 /* TABLE */
 .tbl{width:100%;border-collapse:collapse;font-size:13px;}
-.tbl th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.02);color:var(--muted2);font-size:9px;text-transform:uppercase;letter-spacing:1.4px;font-weight:700;border-bottom:1px solid var(--border);}
-.tbl td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;transition:background .15s;}
+.tbl th{text-align:left;padding:11px 14px;background:rgba(255,255,255,.025);color:var(--muted2);font-size:9px;text-transform:uppercase;letter-spacing:1.4px;font-weight:700;border-bottom:1px solid var(--border);}
+.tbl td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;transition:background .15s;}
 .tbl tr:last-child td{border-bottom:none;}
-.tbl tr:hover td{background:rgba(255,255,255,.025);}
+.tbl tr:hover td{background:rgba(255,255,255,.05);}
 
 /* FILTER CHIPS */
 .filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-.filter-chip{padding:6px 14px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted2);transition:all .2s;}
+.filter-chip{padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted2);transition:all .18s;user-select:none;}
 .filter-chip:hover{border-color:rgba(255,255,255,.1);color:var(--text);background:rgba(255,255,255,.05);}
 .filter-chip.active{background:var(--brand);border-color:var(--brand);color:white;box-shadow:0 2px 10px rgba(200,55,26,.2);}
 
 /* SEARCH */
 .search-wrap{position:relative;margin-bottom:10px;}
 .search-wrap input{width:100%;padding:8px 11px 8px 34px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;}
-.search-wrap input:focus{border-color:var(--blue);}
+.search-wrap input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(200,55,26,.07);outline:none;}
 .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;}
 
 /* BADGES */
@@ -299,20 +300,20 @@ nav::before {
 .health-warn{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}
 .health-bad{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);}
 .health-info{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}
-.route-progress{height:4px;border-radius:2px;background:var(--border);margin:4px 0 9px;overflow:hidden;}
+.route-progress{height:5px;border-radius:3px;background:var(--border);margin:5px 0 10px;overflow:hidden;}
 .route-progress-fill{height:100%;border-radius:2px;transition:width .4s;}
 .outlier-badge{font-size:9px;font-weight:700;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);border-radius:4px;padding:1px 5px;margin-left:4px;}
 .stop-row.outlier{background:rgba(239,68,68,.04);border-left:3px solid #ef4444;padding-left:8px;border-radius:5px;margin:2px 0;}
 
 /* DRIVERS */
 .driver-row{
-  display:flex;align-items:center;gap:12px;padding:13px 16px;
+  display:flex;align-items:center;gap:14px;padding:15px 18px;
   background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);
   border-radius:14px;margin-bottom:8px;transition:all .2s;
 }
-.driver-row:hover{border-color:rgba(255,255,255,.1);box-shadow:0 6px 20px rgba(0,0,0,.15);}
+.driver-row:hover{border-color:rgba(255,255,255,.12);box-shadow:0 6px 24px rgba(0,0,0,.18);transform:translateY(-1px);}
 .driver-row.assigned{border-left:3px solid var(--green);}
-.d-badge{font-size:10px;padding:3px 9px;border-radius:10px;background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);font-weight:700;}
+.d-badge{font-size:10px;padding:3px 10px;border-radius:10px;background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2);font-weight:700;}
 .d-badge.unassigned{background:rgba(100,116,139,.08);color:var(--muted2);border-color:rgba(255,255,255,.06);}
 
 /* MODAL */
@@ -354,13 +355,13 @@ nav::before {
  backdrop-filter:blur(12px);
 }
 .toast.show{opacity:1;transform:translateY(0) scale(1);}
-.toast.success{background:rgba(22,163,74,.92);color:white;}
-.toast.error{background:rgba(220,38,38,.92);color:white;}
+.toast.success{background:rgba(22,163,74,.95);color:white;box-shadow:0 8px 32px rgba(22,163,74,.3);}
+.toast.error{background:rgba(220,38,38,.95);color:white;box-shadow:0 8px 32px rgba(220,38,38,.3);}
 .toast.info{background:rgba(37,99,235,.92);color:white;}
 
 /* EMPTY STATE */
 .empty{text-align:center;padding:60px 20px;color:var(--muted2);}
-.empty-icon{font-size:44px;margin-bottom:14px;opacity:.25;display:block;}
+.empty-icon{width:48px;height:48px;margin:0 auto 14px;opacity:.18;display:block;}
 
 /* SAVE INDICATOR */
 .save-dot{
@@ -1704,12 +1705,24 @@ if(document.readyState === 'loading'){
  <div class="dash-card"><div class="dash-card-glow" style="background:#60a5fa;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="d-s">0</div><div class="dash-card-label">Öğrenci</div></div>
  <div class="dash-card"><div class="dash-card-glow" style="background:#a78bfa;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="d-d">0</div><div class="dash-card-label">Şoför</div></div>
  <div class="dash-card"><div class="dash-card-glow" style="background:#22c55e;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="d-r">0</div><div class="dash-card-label">Rota</div></div>
- <div class="dash-card"><div class="dash-card-glow" style="background:#f59e0b;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="d-v">0</div><div class="dash-card-label">Şoför</div></div>
+ <div class="dash-card"><div class="dash-card-glow" style="background:#f59e0b;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="d-v">0</div><div class="dash-card-label">Servisteki</div></div>
  </div>
 
  <div id="dash-school-card" style="margin-bottom:20px;"></div>
 
+ <!-- GECİKEN ÖDEME UYARI PANELİ -->
+ <div id="dash-uyari-panel" style="margin-bottom:16px;"></div>
 
+ <!-- YEDEKLEME HATIRLATMA BANNER -->
+ <div id="dash-backup-reminder" style="display:none;margin-bottom:16px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:14px;padding:14px 18px;align-items:center;gap:14px;">
+  <div style="font-size:20px;flex-shrink:0;">&#x1F4BE;</div>
+  <div style="flex:1;min-width:0;">
+   <div style="font-size:13px;font-weight:700;color:#f59e0b;margin-bottom:2px;" id="backup-reminder-title">Yedek almay&#x131; unutmay&#x131;n</div>
+   <div style="font-size:11px;color:var(--muted2);" id="backup-reminder-sub">Son yedeklemenizden bu yana veri de&#x11F;i&#x15F;mi&#x15F; olabilir.</div>
+  </div>
+  <button onclick="exportData();document.getElementById('dash-backup-reminder').style.display='none';" style="padding:8px 16px;border-radius:9px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.12);color:#f59e0b;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;">&#x15E;imdi Yedekle</button>
+  <button onclick="document.getElementById('dash-backup-reminder').style.display='none';" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;color:var(--muted2);font-size:16px;cursor:pointer;flex-shrink:0;">&times;</button>
+ </div>
 
 </div>
 </div>
@@ -1771,7 +1784,7 @@ if(document.readyState === 'loading'){
  </select>
  </div>
  <div class="search-wrap"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" id="sf-search" placeholder="Öğrenci adı, mahalle veya sokak ara..." oninput="searchS(this.value)"></div>
- <div id="s-wrap"><div class="empty"><div class="empty-icon"></div><div>Henüz öğrenci eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden öğrenci ekleyin veya Excel'den toplu yükleyin</div></div></div>
+ <div id="s-wrap"><div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div>Henüz öğrenci eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden öğrenci ekleyin veya Excel'den toplu yükleyin</div></div></div>
  </div>
 </div>
 
@@ -1818,7 +1831,7 @@ if(document.readyState === 'loading'){
  <button class="btn btn-red btn-sm" onclick="clearDrivers()">Temizle</button>
  </div>
  <div class="search-wrap"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" placeholder="Şoför veya ilçe ara..." oninput="searchD(this.value)"></div>
- <div id="d-wrap"><div class="empty"><div class="empty-icon"></div><div>Henüz şoför eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden şoför ekleyin</div></div></div>
+ <div id="d-wrap"><div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="5"/><path d="M3 21v-1a9 9 0 0 1 18 0v1"/></svg></div><div>Henüz şoför eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden şoför ekleyin</div></div></div>
  </div>
 </div>
 
@@ -1880,7 +1893,7 @@ if(document.readyState === 'loading'){
  </div>
  </div>
 
- <div id="r-wrap"><div class="empty"><div class="empty-icon"></div>Henüz rota oluşturulmadı.</div></div>
+ <div id="r-wrap"><div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 6 2v5h-6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>Henüz rota oluşturulmadı.</div></div>
  </div>
 </div>
 
@@ -3799,7 +3812,7 @@ function renderSTable(){
  else if(_sfRota) L=L.filter(s=>routes.find(r=>r.id===+_sfRota)?.students.some(rs=>rs.id===s.id));
  if(sSr)L=L.filter(s=>s.name.toLowerCase().includes(sSr)||(s.mah||'').toLowerCase().includes(sSr)||(s.ilce||'').toLowerCase().includes(sSr)||(s.sok||'').toLowerCase().includes(sSr));
  _setText('s-lbl', L.length+' öğrenci'+(sSr?' (arama sonucu)':''));
- if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon"></div>Sonuç yok.</div>';return;}
+ if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>Arama sonucu bulunamadı.</div>';return;}
  w.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Ad Soyad</th><th>İlçe</th><th>Mahalle</th><th>Cadde/Sokak</th><th>Sınıf</th><th>Telefon</th><th></th><th></th></tr></thead><tbody>`+
  L.map((s,i)=>`<tr>
  <td style="color:var(--muted2);font-size:11px">${i+1}</td>
@@ -3903,7 +3916,7 @@ function renderDrivers(){
  let L=drivers;
  if(dSr)L=L.filter(d=>d.name.toLowerCase().includes(dSr)||(d.ilce||'').toLowerCase().includes(dSr));
  _setText('d-lbl', drivers.length+' şoför kayıtlı');
- if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon"></div><div>Henüz şoför eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden şoför ekleyin</div></div>';return;}
+ if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="5"/><path d="M3 21v-1a9 9 0 0 1 18 0v1"/></svg></div><div>Henüz şoför eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden şoför ekleyin</div></div>';return;}
  w.innerHTML=L.map(d=>{
  const tipBadge = d.tip==='taseron'
    ? `<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--amber);margin-left:6px;vertical-align:middle;">Taşeron</span>`
@@ -3918,7 +3931,7 @@ function renderDrivers(){
  <div style="font-size:11px;color:var(--muted2);margin-top:1px">${d.lic} · ${d.veh}${d.plaka?' · 🚌 '+escHtml(d.plaka):''}${d.ph?' · '+d.ph:''}</div>
  </div>
  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
- <span class="d-badge ${d.assignedRoute!==null?'':'unassigned'}">${d.assignedRoute!==null?' Atandı':'Bekliyor'}</span>
+ <span class="d-badge ${d.assignedRoute!==null?'':'unassigned'}">${d.assignedRoute!==null && typeof routes[d.assignedRoute]!=='undefined'?'✓ Atandı':'Bekliyor'}</span>
  <div style="display:flex;gap:5px;">
  <button class="btn btn-ghost btn-sm" onclick="openDriverEdit(${d.id})" style="padding:4px 10px;font-size:13px;" title="Düzenle">✏️</button>
  <button class="btn btn-red btn-sm" onclick="removeDriver(${d.id})" style="padding:4px 10px;font-size:13px;" title="Sil">🗑</button>
@@ -4994,7 +5007,7 @@ function renderRoutes(){
  if(!w || !st) return; // sayfada değiliz, sessizce çık
  const maxP = parseInt(_rmax?.value)||18;
  const maxMin = parseInt(_rmaxmin?.value)||60;
- const fb = document.getElementById('r-filter');
+ // r-filter: ileride kullanılabilir filtre alanı için yer tutucu
  if(!routes.length){
  w.innerHTML='<div class="empty"><div class="empty-icon"></div><div>Rotalar henüz oluşturulmadı</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Öğrenci ve şoför ekledikten sonra Optimize Et butonuna basın</div></div>';
  st.style.display='none';
@@ -5225,7 +5238,9 @@ function updateDash(){
  const _dashSchIdx3=getSchoolIdx(_activeSchoolKey);
  _setText('d-d', drivers.length); // şoförler okul bazlı değil
  _setText('d-r', routes.filter(r=>r.school===_dashSchIdx3).length);
- _setText('d-v', drivers.length);
+ const _dSchIdx4=getSchoolIdx(_activeSchoolKey);
+ const _servisteki = routes.filter(r=>r.school===_dSchIdx4).reduce((a,r)=>a+r.students.length,0);
+ _setText('d-v', _servisteki);
  const _dSchIdx=getSchoolIdx(_activeSchoolKey);
  const _dSch=SCHOOLS[_dSchIdx];
  const _dColors=['#60a5fa','#a78bfa','#fbbf24'];
@@ -5256,10 +5271,134 @@ function updateDash(){
  _hs.textContent=_dSch2.name;
  _hsub.textContent=_dSch2.ilce+' · '+_dSch2.adres.split(',')[0];
  }
+ // Geciken ödeme uyarıları + yedekleme hatırlatma
+ _updateDashWarnings();
 }
-// 
-// UYGULAMA GEÇİŞİ
-// 
+
+// ── Geciken Ödeme Uyarı Paneli ──────────────────────────────
+function _updateDashWarnings(){
+ _renderOverduePanel();
+ _checkBackupReminder();
+}
+
+function _renderOverduePanel(){
+ const panel = document.getElementById('dash-uyari-panel');
+ if(!panel) return;
+ const schIdx = getSchoolIdx(_activeSchoolKey);
+ const schoolStudents = students.filter(s => s.school === schIdx);
+ if(!schoolStudents.length){ panel.innerHTML=''; return; }
+
+ // Akademik yıla göre geçmiş ayları bul (bugüne kadar)
+ const now = new Date();
+ const nowMonth = now.getMonth() + 1; // 1-12
+ const nowYear  = now.getFullYear();
+ // Akademik yıl başlangıcı: Eylül
+ const akademikYilBaslangic = nowMonth >= 9 ? nowYear : nowYear - 1;
+ const AYLAR_SIRALI = [
+  {key:'eylul',  m:9},  {key:'ekim',   m:10}, {key:'kasim',  m:11},
+  {key:'aralik', m:12}, {key:'ocak',   m:1},  {key:'subat',  m:2},
+  {key:'mart',   m:3},  {key:'nisan',  m:4},  {key:'mayis',  m:5},
+  {key:'haziran',m:6},
+ ];
+ // Bugüne kadar geçmiş aylar
+ const gecmisAylar = AYLAR_SIRALI.filter(a => {
+  const ayYil = a.m >= 9 ? akademikYilBaslangic : akademikYilBaslangic + 1;
+  return (ayYil < nowYear) || (ayYil === nowYear && a.m < nowMonth);
+ });
+ if(!gecmisAylar.length){ panel.innerHTML=''; return; }
+
+ // Gecikenleri bul: en az 1 geçmiş ay ödenmemiş olan öğrenciler
+ const gecikenler = [];
+ schoolStudents.forEach(s => {
+  const p = payments[s.id] || {};
+  const odenmemisAylar = gecmisAylar.filter(a => !p[a.key] || !p[a.key].paid);
+  if(odenmemisAylar.length > 0){
+   gecikenler.push({ s, count: odenmemisAylar.length, aylar: odenmemisAylar });
+  }
+ });
+
+ if(!gecikenler.length){
+  panel.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:12px;margin-bottom:4px;">
+   <div style="font-size:18px;">✅</div>
+   <div style="font-size:13px;color:#22c55e;font-weight:600;">Tüm ödemeler güncel — geciken öğrenci yok</div>
+  </div>`;
+  return;
+ }
+
+ // Özet istatistik
+ const kritik = gecikenler.filter(g => g.count >= 3); // 3+ ay gecikmeli
+ const orta   = gecikenler.filter(g => g.count >= 1 && g.count < 3);
+ const toplamOdenmemis = gecikenler.reduce((a,g) => {
+  return a + g.aylar.reduce((s2, ay) => {
+   const tutar = (payments[g.s.id]||{})[ay.key]?.amount || 0;
+   return s2 + Number(tutar);
+  }, 0);
+ }, 0);
+
+ // En fazla geciken 5 öğrenci
+ const enFazla = [...gecikenler].sort((a,b) => b.count-a.count).slice(0,5);
+
+ panel.innerHTML = `
+  <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:14px;overflow:hidden;margin-bottom:4px;">
+   <!-- Başlık satırı -->
+   <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid rgba(239,68,68,.12);cursor:pointer;" onclick="this.parentElement.querySelector('.uyari-detay').style.display=this.parentElement.querySelector('.uyari-detay').style.display==='none'?'block':'none'">
+    <div style="font-size:20px;flex-shrink:0;">⚠️</div>
+    <div style="flex:1;min-width:0;">
+     <div style="font-size:13px;font-weight:700;color:#f87171;margin-bottom:2px;">${gecikenler.length} öğrencinin ödemesi gecikiyor</div>
+     <div style="font-size:11px;color:var(--muted2);">${kritik.length} kritik (3+ ay) · ${orta.length} orta · ${gecmisAylar.length} ay kontrol edildi</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+     ${toplamOdenmemis > 0 ? `<div style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;color:#f87171;">${toplamOdenmemis.toLocaleString('tr-TR')}₺ bekliyor</div>` : ''}
+     <div style="color:var(--muted2);font-size:12px;">▼</div>
+    </div>
+   </div>
+   <!-- Detay listesi (başlangıçta kapalı) -->
+   <div class="uyari-detay" style="display:none;padding:12px 18px;">
+    <div style="font-size:11px;color:var(--muted2);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;">En Fazla Geciken Öğrenciler</div>
+    ${enFazla.map(g => {
+     const renk = g.count >= 3 ? '#f87171' : '#fbbf24';
+     return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);" onclick="switchApp('ucret');gotoU('ucret-ogrenci');" style="cursor:pointer;">
+      <div style="width:28px;height:28px;border-radius:7px;background:${g.count>=3?'rgba(239,68,68,.12)':'rgba(245,158,11,.12)'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:${renk};flex-shrink:0;">${g.count}</div>
+      <div style="flex:1;min-width:0;">
+       <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(g.s.name)}</div>
+       <div style="font-size:10px;color:var(--muted2);">${g.aylar.map(a=>a.key.charAt(0).toUpperCase()+a.key.slice(1)).join(', ')}</div>
+      </div>
+      <div style="font-size:10px;color:${renk};font-weight:700;">${g.count} ay</div>
+     </div>`;
+    }).join('')}
+    <button onclick="switchApp('ucret');gotoU('ucret-ogrenci');" style="margin-top:10px;width:100%;padding:9px;border-radius:9px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.08);color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;">Tüm Ödeme Listesine Git →</button>
+   </div>
+  </div>`;
+}
+
+// ── Yedekleme Hatırlatma ─────────────────────────────────────
+function _checkBackupReminder(){
+ const banner = document.getElementById('dash-backup-reminder');
+ if(!banner) return;
+ const titleEl = document.getElementById('backup-reminder-title');
+ const subEl   = document.getElementById('backup-reminder-sub');
+ try{
+  const lastBackup = localStorage.getItem('konseltur_last_backup');
+  const UYARI_GUNU = 7; // 7 günde bir uyar
+  if(!lastBackup){
+   // Hiç yedek alınmamış
+   if(students.length > 0 || Object.keys(payments).length > 0){
+    if(titleEl) titleEl.textContent = 'Henüz hiç yedek almadınız!';
+    if(subEl)   subEl.textContent   = students.length + ' öğrenci ve ödeme verisi sadece bu tarayıcıda. Hemen yedekleyin.';
+    banner.style.display = 'flex';
+   }
+   return;
+  }
+  const gunFarki = Math.floor((Date.now() - new Date(lastBackup).getTime()) / (1000*60*60*24));
+  if(gunFarki >= UYARI_GUNU){
+   if(titleEl) titleEl.textContent = gunFarki + ' gündür yedek almadınız';
+   if(subEl)   subEl.textContent   = 'Son yedek: ' + new Date(lastBackup).toLocaleDateString('tr-TR') + ' · Verilerinizi kaybetmemek için yedekleyin.';
+   banner.style.display = 'flex';
+  } else {
+   banner.style.display = 'none';
+  }
+ }catch(e){ banner.style.display = 'none'; }
+}
 
 // 
 // ÜCRET YÖNETİMİ
