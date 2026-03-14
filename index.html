@@ -41,6 +41,8 @@
  --shadow-sm:0 2px 8px rgba(0,0,0,.2);
  --shadow-md:0 8px 24px rgba(0,0,0,.25);
  --shadow-lg:0 16px 48px rgba(0,0,0,.35);
+ --t-fast:.15s;
+ --t-slow:.25s;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;overflow:hidden;}
@@ -75,7 +77,7 @@ nav::before {
 .app-pill{
  display:flex;align-items:center;gap:9px;
  padding:7px 14px 7px 10px;border-radius:40px;
- cursor:pointer;transition:all .25s;
+ cursor:pointer;transition:all var(--t-slow);
  border:1px solid var(--border);
  background:transparent;
  user-select:none;
@@ -92,14 +94,14 @@ nav::before {
 .app-pill-icon.ucret{background:linear-gradient(135deg,var(--green),var(--green2));box-shadow:0 0 12px rgba(34,197,94,.2);}
 .app-pill-text{line-height:1.15;}
 .app-pill-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;letter-spacing:.3px;}
-.app-pill-sub{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;opacity:.6;}
+.app-pill-sub{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;opacity:.6;}
 .sep{width:1px;height:30px;background:var(--border);margin:0 2px;}
 
 /* NAV TABS — yeniden tasarım */
 .nav-tabs{display:flex;gap:2px;align-items:center;}
 .nav-tab{
  padding:8px 15px;border-radius:9px;font-size:12px;font-weight:600;
- cursor:pointer;transition:all .2s cubic-bezier(.4,0,.2,1);
+ cursor:pointer;transition:all var(--t-slow) cubic-bezier(.4,0,.2,1);
  color:rgba(255,255,255,.32);
  border:1px solid transparent;background:none;
  display:flex;align-items:center;gap:6px;
@@ -125,7 +127,7 @@ nav::before {
  background:currentColor;
  opacity:.7;
 }
-.nav-tab.active.rota-tab{ color:#e8553c; border-color:rgba(232,85,60,.2); }
+.nav-tab.active.rota-tab{ color:var(--brand); border-color:rgba(232,85,60,.2); }
 .nav-tab.active.rota-tab::after{ background:#e8553c; }
 .nav-tab.active.ucret-tab{ color:#4ade80; border-color:rgba(74,222,128,.2); }
 .nav-tab.active.ucret-tab::after{ background:#4ade80; }
@@ -146,8 +148,34 @@ nav::before {
   padding:7px 12px;border-radius:9px;
   font-size:11px;font-weight:700;
   cursor:pointer;font-family:'Outfit',sans-serif;
-  white-space:nowrap;transition:all .18s;
+  white-space:nowrap;transition:all var(--t-fast);
   letter-spacing:.2px;
+}
+
+/* Gece/gündüz ikon butonları (ses, tema) */
+.nav-icon-btn {
+  width:32px;height:32px;border-radius:9px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  color:rgba(255,255,255,.45);
+  font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all var(--t-slow);flex-shrink:0;
+}
+.nav-icon-btn:hover {
+  background:rgba(255,255,255,.1);
+  color:rgba(255,255,255,.85);
+  border-color:rgba(255,255,255,.14);
+}
+body.light .nav-icon-btn {
+  border-color:rgba(0,0,0,.1);
+  background:rgba(0,0,0,.03);
+  color:rgba(0,0,0,.45);
+}
+body.light .nav-icon-btn:hover {
+  background:rgba(0,0,0,.08);
+  color:rgba(0,0,0,.75);
+  border-color:rgba(0,0,0,.15);
 }
 
 /* School indicator */
@@ -212,15 +240,24 @@ nav::before {
  background:rgba(255,255,255,.03);border:1px solid var(--border);
  border-radius:var(--radius-sm);color:var(--text);
  font-family:'Outfit',sans-serif;font-size:13px;outline:none;
- transition:all .2s;
+ transition:all var(--t-slow);
+}
+.field select{
+ appearance:none;-webkit-appearance:none;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236878a0' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+ background-repeat:no-repeat;background-position:right 10px center;
+ padding-right:32px;
+}
+body.light .field select{
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
 }
 .field input:focus,.field select:focus{border-color:var(--brand);background:rgba(255,255,255,.05);box-shadow:0 0 0 3px rgba(200,55,26,.08);}
 .field select option{background:var(--card2);}
 .field input::placeholder{color:var(--muted);}
-.sec-label{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:12px 0 7px;}
+.sec-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin:12px 0 7px;}
 
 /* BUTTONS */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:var(--radius-sm);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:var(--radius-sm);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all var(--t-slow);}
 .btn-full{width:100%;}
 .btn-brand{background:linear-gradient(135deg,var(--brand),var(--brand2));color:white;box-shadow:0 2px 16px var(--brand-glow);letter-spacing:.3px;font-weight:700;}
 .btn-brand:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 6px 24px rgba(200,55,26,.25);}
@@ -242,10 +279,10 @@ nav::before {
 .dash-card{
  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
  padding:16px 14px;display:flex;flex-direction:column;gap:5px;
- position:relative;overflow:hidden;transition:all .2s;
+ position:relative;overflow:hidden;transition:all var(--t-slow);
 }
 .dash-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.15);}
-.dash-card{transition:all .2s;}
+.dash-card{transition:all var(--t-slow);}
 .dash-card-glow{position:absolute;top:-15px;right:-15px;width:70px;height:70px;border-radius:50%;filter:blur(22px);opacity:.1;}
 .dash-card-icon{font-size:22px;line-height:1;}
 .dash-card-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;line-height:1.1;letter-spacing:-.5px;}
@@ -253,14 +290,14 @@ nav::before {
 
 /* TABLE */
 .tbl{width:100%;border-collapse:collapse;font-size:13px;}
-.tbl th{text-align:left;padding:11px 14px;background:rgba(255,255,255,.025);color:var(--muted2);font-size:9px;text-transform:uppercase;letter-spacing:1.4px;font-weight:700;border-bottom:1px solid var(--border);}
+.tbl th{text-align:left;padding:11px 14px;background:rgba(255,255,255,.025);color:var(--muted2);font-size:10px;text-transform:uppercase;letter-spacing:1.4px;font-weight:700;border-bottom:1px solid var(--border);}
 .tbl td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;transition:background .15s;}
 .tbl tr:last-child td{border-bottom:none;}
 .tbl tr:hover td{background:rgba(255,255,255,.05);}
 
 /* FILTER CHIPS */
 .filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-.filter-chip{padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted2);transition:all .18s;user-select:none;}
+.filter-chip{padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted2);transition:all var(--t-fast);user-select:none;}
 .filter-chip:hover{border-color:rgba(255,255,255,.1);color:var(--text);background:rgba(255,255,255,.05);}
 .filter-chip.active{background:var(--brand);border-color:var(--brand);color:white;box-shadow:0 2px 10px rgba(200,55,26,.2);}
 
@@ -277,7 +314,7 @@ nav::before {
 .sc-2{background:rgba(245,158,11,.15);color:#fbbf24;}
 
 /* ROUTE CARDS */
-.route-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:all .25s;box-shadow:var(--shadow-sm);}
+.route-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:all var(--t-slow);box-shadow:var(--shadow-sm);}
 .route-card:hover{border-color:rgba(255,255,255,.06);box-shadow:var(--shadow-md);}
 .route-header{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
 .route-header:hover{background:rgba(255,255,255,.015);}
@@ -290,7 +327,7 @@ nav::before {
 .route-card.open .route-body{display:block;}
 .stop-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .stop-row:last-child{border-bottom:none;}
-.stop-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;margin-top:1px;}
+.stop-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;}
 .stop-info{flex:1;}
 .stop-name{font-weight:500;}
 .stop-addr{font-size:10px;color:var(--muted2);margin-top:1px;}
@@ -302,14 +339,14 @@ nav::before {
 .health-info{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}
 .route-progress{height:5px;border-radius:3px;background:var(--border);margin:5px 0 10px;overflow:hidden;}
 .route-progress-fill{height:100%;border-radius:2px;transition:width .4s;}
-.outlier-badge{font-size:9px;font-weight:700;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);border-radius:4px;padding:1px 5px;margin-left:4px;}
+.outlier-badge{font-size:10px;font-weight:700;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);border-radius:4px;padding:1px 5px;margin-left:4px;}
 .stop-row.outlier{background:rgba(239,68,68,.04);border-left:3px solid #ef4444;padding-left:8px;border-radius:5px;margin:2px 0;}
 
 /* DRIVERS */
 .driver-row{
   display:flex;align-items:center;gap:14px;padding:15px 18px;
   background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);
-  border-radius:14px;margin-bottom:8px;transition:all .2s;
+  border-radius:14px;margin-bottom:8px;transition:all var(--t-slow);
 }
 .driver-row:hover{border-color:rgba(255,255,255,.12);box-shadow:0 6px 24px rgba(0,0,0,.18);transform:translateY(-1px);}
 .driver-row.assigned{border-left:3px solid var(--green);}
@@ -348,7 +385,7 @@ nav::before {
  position:fixed;bottom:28px;right:28px;z-index:999;
  padding:13px 20px;border-radius:13px;font-size:13px;font-weight:600;
  opacity:0;transform:translateY(12px) scale(.96);
- transition:all .28s cubic-bezier(.4,0,.2,1);pointer-events:none;
+ transition:all var(--t-slow) cubic-bezier(.4,0,.2,1);pointer-events:none;
  max-width:340px;
  box-shadow:0 12px 40px rgba(0,0,0,.5);
  border:1px solid rgba(255,255,255,.08);
@@ -400,7 +437,7 @@ nav::before {
 /* month grid in modal */
 .month-cell{
  background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);
- border-radius:12px;padding:12px;transition:all .2s;
+ border-radius:12px;padding:12px;transition:all var(--t-slow);
 }
 .month-cell.paid{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.25);}
 .month-cell input[type=checkbox]{accent-color:var(--green);width:15px;height:15px;cursor:pointer;}
@@ -415,7 +452,7 @@ nav::before {
 /* EXCEL MODAL */
 #drop-zone{
  border:2px dashed rgba(255,255,255,.1);border-radius:14px;
- padding:32px;text-align:center;cursor:pointer;transition:all .2s;
+ padding:32px;text-align:center;cursor:pointer;transition:all var(--t-slow);
  background:rgba(255,255,255,.02);
 }
 #drop-zone:hover,#drop-zone.drag-over{border-color:rgba(59,130,246,.5);background:rgba(59,130,246,.04);}
@@ -445,12 +482,12 @@ nav::before {
 .stat-box{
  background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);
  border-radius:16px;padding:16px;text-align:center;
- position:relative;overflow:hidden;transition:all .2s;
+ position:relative;overflow:hidden;transition:all var(--t-slow);
 }
 .stat-box:hover{border-color:rgba(255,255,255,.11);background:rgba(255,255,255,.04);}
 .stat-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent,var(--brand)),transparent);opacity:.6;}
 .stat-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;line-height:1;}
-.stat-label{font-size:9px;color:var(--muted2);margin-top:4px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;}
+.stat-label{font-size:10px;color:var(--muted2);margin-top:4px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;}
 
 /* DASHBOARD CARDS */
 .dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
@@ -459,13 +496,13 @@ nav::before {
  border-radius:18px;padding:18px 16px;
  display:flex;flex-direction:column;gap:6px;
  position:relative;overflow:hidden;
- transition:all .22s cubic-bezier(.4,0,.2,1);
+ transition:all var(--t-slow) cubic-bezier(.4,0,.2,1);
 }
 .dash-card:hover{border-color:rgba(255,255,255,.1);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.25);}
 .dash-card-glow{position:absolute;top:-15px;right:-15px;width:80px;height:80px;border-radius:50%;filter:blur(26px);opacity:.12;}
 .dash-card-icon{font-size:22px;line-height:1;}
 .dash-card-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;line-height:1.1;}
-.dash-card-label{font-size:9px;color:var(--muted2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;}
+.dash-card-label{font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;}
 
 /* FILTER CHIPS */
 .filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
@@ -473,12 +510,12 @@ nav::before {
   padding:7px 16px;border-radius:22px;font-size:11px;font-weight:700;
   cursor:pointer;border:1px solid rgba(255,255,255,.07);
   background:rgba(255,255,255,.03);color:rgba(255,255,255,.4);
-  transition:all .18s;letter-spacing:.2px;
+  transition:all var(--t-fast);letter-spacing:.2px;
 }
 .filter-chip:hover{border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.75);background:rgba(255,255,255,.06);}
 .filter-chip.active{
   background:rgba(200,55,26,.12);border-color:rgba(200,55,26,.4);
-  color:#e8553c;box-shadow:0 2px 12px rgba(200,55,26,.15);
+  color:var(--brand);box-shadow:0 2px 12px rgba(200,55,26,.15);
 }
 
 /* SEARCH */
@@ -488,7 +525,7 @@ nav::before {
   background:rgba(255,255,255,.04);
   border:1px solid rgba(255,255,255,.07);
   border-radius:12px;color:var(--text);font-size:13px;
-  outline:none;font-family:'Outfit',sans-serif;transition:all .2s;
+  outline:none;font-family:'Outfit',sans-serif;transition:all var(--t-slow);
 }
 .search-wrap input:focus{border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.04);box-shadow:0 0 0 3px rgba(59,130,246,.08);}
 .search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.28);}
@@ -498,7 +535,7 @@ nav::before {
 .tbl th{
   text-align:left;padding:10px 14px;
   background:rgba(255,255,255,.02);color:rgba(255,255,255,.3);
-  font-size:9px;text-transform:uppercase;letter-spacing:1.4px;font-weight:800;
+  font-size:10px;text-transform:uppercase;letter-spacing:1.4px;font-weight:800;
   border-bottom:1px solid rgba(255,255,255,.05);
 }
 .tbl td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;transition:background .15s;}
@@ -515,7 +552,7 @@ nav::before {
 .route-card{
   background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);
   border-radius:16px;margin-bottom:10px;overflow:hidden;
-  transition:all .22s cubic-bezier(.4,0,.2,1);
+  transition:all var(--t-slow) cubic-bezier(.4,0,.2,1);
 }
 .route-card:hover{border-color:rgba(255,255,255,.09);box-shadow:0 8px 28px rgba(0,0,0,.2);}
 .route-header{padding:14px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
@@ -529,7 +566,7 @@ nav::before {
 .route-card.open .route-body{display:block;}
 .stop-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;}
 .stop-row:last-child{border-bottom:none;}
-.stop-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex-shrink:0;margin-top:1px;}
+.stop-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;}
 .stop-info{flex:1;}
 .stop-name{font-weight:600;}
 .stop-addr{font-size:10px;color:var(--muted2);margin-top:1px;}
@@ -541,7 +578,7 @@ nav::before {
 .health-info{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}
 .route-progress{height:4px;border-radius:2px;background:rgba(255,255,255,.06);margin:4px 0 9px;overflow:hidden;}
 .route-progress-fill{height:100%;border-radius:2px;transition:width .4s;}
-.outlier-badge{font-size:9px;font-weight:700;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);border-radius:4px;padding:1px 5px;margin-left:4px;}
+.outlier-badge{font-size:10px;font-weight:700;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);border-radius:4px;padding:1px 5px;margin-left:4px;}
 .stop-row.outlier{background:rgba(239,68,68,.04);border-left:3px solid #ef4444;padding-left:8px;border-radius:5px;margin:2px 0;}
 
 /* CARD generic */
@@ -572,15 +609,15 @@ nav::before {
  width:100%;padding:10px 13px;
  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
  border-radius:11px;color:var(--text);
- font-family:'Outfit',sans-serif;font-size:13px;outline:none;transition:all .2s;
+ font-family:'Outfit',sans-serif;font-size:13px;outline:none;transition:all var(--t-slow);
 }
 .field input:focus,.field select:focus{border-color:rgba(200,55,26,.5);background:rgba(200,55,26,.04);box-shadow:0 0 0 3px rgba(200,55,26,.08);}
 .field select option{background:#0e1424;}
 .field input::placeholder{color:rgba(255,255,255,.2);}
-.sec-label{font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.2);margin:14px 0 8px;}
+.sec-label{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.2);margin:14px 0 8px;}
 
 /* BUTTONS */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .2s;letter-spacing:.1px;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 18px;border-radius:11px;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all var(--t-slow);letter-spacing:.1px;}
 .btn-full{width:100%;}
 .btn-brand{background:linear-gradient(135deg,var(--brand),var(--brand2));color:white;box-shadow:0 4px 18px rgba(200,55,26,.3);}
 .btn-brand:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 8px 28px rgba(200,55,26,.35);}
@@ -646,8 +683,8 @@ nav::before {
 /* Sekmeler: mobilde ikon+yazı, 480px altında sadece ikon */
 @media (max-width: 600px) {
   .tab-icon { display: block; }
-  .nav-tab { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 10px !important; font-size: 9px !important; }
-  .tab-text { font-size: 9px; line-height: 1; }
+  .nav-tab { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 7px 10px !important; font-size: 10px !important; }
+  .tab-text { font-size: 10px; line-height: 1; }
 }
 @media (max-width: 380px) {
   .tab-text { display: none; }
@@ -691,7 +728,7 @@ nav::before {
  .dash-card { padding: 14px 12px; }
  .dash-card-val { font-size: 26px; }
  .dash-card-label { font-size: 10px; }
- .tbl th { padding: 8px 6px; font-size: 9px; }
+ .tbl th { padding: 8px 6px; font-size: 10px; }
  .tbl td { padding: 10px 6px; font-size: 12px; }
  .route-header { padding: 14px 12px; }
  .route-name { font-size: 14px; }
@@ -1083,14 +1120,14 @@ try{
 
       <!-- Giriş butonu -->
       <button onclick="checkPassword()"
-        style="width:100%;padding:15px;border:none;border-radius:13px;background:linear-gradient(135deg,#d63d1e 0%,#b03016 100%);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:1.5px;cursor:pointer;transition:all .2s cubic-bezier(.34,1.2,.64,1);box-shadow:0 6px 24px rgba(200,55,26,.35),inset 0 1px 0 rgba(255,255,255,.12);"
+        style="width:100%;padding:15px;border:none;border-radius:13px;background:linear-gradient(135deg,var(--brand) 0%,#b03016 100%);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:1.5px;cursor:pointer;transition:all var(--t-slow) cubic-bezier(.34,1.2,.64,1);box-shadow:0 6px 24px rgba(200,55,26,.35),inset 0 1px 0 rgba(255,255,255,.12);"
         onmouseover="this.style.transform='translateY(-2px) scale(1.01)';this.style.boxShadow='0 10px 32px rgba(200,55,26,.45),inset 0 1px 0 rgba(255,255,255,.15)'"
         onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 24px rgba(200,55,26,.35),inset 0 1px 0 rgba(255,255,255,.12)'">
         GİRİŞ YAP
       </button>
     </div>
 
-    <div style="text-align:center;margin-top:22px;font-size:9px;color:rgba(255,255,255,.1);letter-spacing:2px;">KONSELTUR TAŞIMACILIK · KONYA</div>
+    <div style="text-align:center;margin-top:22px;font-size:11px;color:rgba(255,255,255,.2);letter-spacing:1.5px;">KONSELTUR TAŞIMACILIK · KONYA</div>
   </div>
 </div>
 <script>
@@ -1365,7 +1402,7 @@ if(document.readyState === 'loading'){
 <div id="login-screen" style="display:flex;height:100vh;background:#060810;position:relative;" class="login-screen-root">
 
   <!-- Üst kırmızı çizgi -->
-  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,rgba(214,61,30,.9) 0%,rgba(214,61,30,.5) 60%,transparent 100%);z-index:10;"></div>
+  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,rgba(200,55,26,.9) 0%,rgba(200,55,26,.5) 60%,transparent 100%);z-index:10;"></div>
 
   <!-- ══ SOL — FOTOĞRAF %60 ══ -->
   <div style="flex:1;min-width:0;position:relative;overflow:hidden;" id="login-left-panel">
@@ -1393,11 +1430,11 @@ if(document.readyState === 'loading'){
       <!-- BAŞLIK + AÇIKLAMA — alt sol, koyu zeminde -->
       <div>
         <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:18px;background:rgba(6,8,16,.6);padding:6px 14px 6px 0;border-radius:4px;">
-          <div style="width:3px;height:16px;background:#d63d1e;border-radius:2px;"></div>
+          <div style="width:3px;height:16px;background:var(--brand);border-radius:2px;"></div>
           <span style="font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.65);">Konseltur Taşımacılık</span>
         </div>
         <div style="font-family:'Syne',sans-serif;font-size:46px;font-weight:900;color:#fff;line-height:1.05;letter-spacing:-1.5px;text-shadow:0 4px 24px rgba(0,0,0,.9);margin-bottom:20px;">Servis<br>Yönetim<br>Sistemi</div>
-        <div style="width:40px;height:3px;background:#d63d1e;border-radius:2px;margin-bottom:18px;"></div>
+        <div style="width:40px;height:3px;background:var(--brand);border-radius:2px;margin-bottom:18px;"></div>
         <!-- Açıklama — koyu pill arka plan ile -->
         <div style="display:inline-block;background:rgba(6,8,16,.65);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 18px;">
           <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.9;">
@@ -1422,7 +1459,7 @@ if(document.readyState === 'loading'){
   <!-- ══ SAĞ — OKUL SEÇİMİ %40 ══ -->
   <div style="width:400px;flex-shrink:0;background:#060810;display:flex;flex-direction:column;padding:44px 38px;position:relative;" id="login-right-panel">
     <!-- Üst kırmızı çizgi -->
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(214,61,30,.7),transparent);"></div>
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(200,55,26,.7),transparent);"></div>
 
     <!-- Başlık + Yönet -->
     <div class="login-panel-header" style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-shrink:0;">
@@ -1436,7 +1473,7 @@ if(document.readyState === 'loading'){
     <!-- Şoför Cüzdanı — Okul Bağımsız Erişim -->
     <div style="margin-bottom:20px;flex-shrink:0;">
       <button onclick="enterSoforDirect()"
-        style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;border:1px solid rgba(139,92,246,.28);background:rgba(139,92,246,.06);cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;text-align:left;position:relative;overflow:hidden;"
+        style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;border:1px solid rgba(139,92,246,.28);background:rgba(139,92,246,.06);cursor:pointer;font-family:'Outfit',sans-serif;transition:all var(--t-slow);text-align:left;position:relative;overflow:hidden;"
         onmouseover="this.style.background='rgba(139,92,246,.14)';this.style.borderColor='rgba(139,92,246,.5)';this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(139,92,246,.18)'"
         onmouseout="this.style.background='rgba(139,92,246,.06)';this.style.borderColor='rgba(139,92,246,.28)';this.style.transform='none';this.style.boxShadow='none'">
         <!-- İkon -->
@@ -1458,7 +1495,7 @@ if(document.readyState === 'loading'){
     <!-- Ayraç -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-shrink:0;">
       <div style="flex:1;height:1px;background:rgba(255,255,255,.05);"></div>
-      <span style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.15);">Öğrenci Yönetimi</span>
+      <span style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.15);">Öğrenci Yönetimi</span>
       <div style="flex:1;height:1px;background:rgba(255,255,255,.05);"></div>
     </div>
 
@@ -1467,7 +1504,7 @@ if(document.readyState === 'loading'){
 
     <!-- Yönetim modu -->
     <div id="manage-actions" style="display:none;margin-bottom:14px;flex-shrink:0;">
-      <div style="display:flex;gap:8px;align-items:center;padding:12px 14px;background:rgba(214,61,30,.06);border:1px solid rgba(214,61,30,.18);border-radius:12px;">
+      <div style="display:flex;gap:8px;align-items:center;padding:12px 14px;background:rgba(200,55,26,.06);border:1px solid rgba(200,55,26,.18);border-radius:12px;">
         <button onclick="openAddSchoolModal()"
           style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:9px;border:1px solid rgba(52,211,153,.35);background:rgba(52,211,153,.1);color:#34d399;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;"
           onmouseover="this.style.background='rgba(52,211,153,.2)'" onmouseout="this.style.background='rgba(52,211,153,.1)'">
@@ -1489,7 +1526,7 @@ if(document.readyState === 'loading'){
 
     <!-- Sistem -->
     <div style="padding-top:20px;border-top:1px solid rgba(255,255,255,.05);flex-shrink:0;animation:loginFadeUp .4s .2s ease both;opacity:0;">
-      <div style="font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.16);margin-bottom:12px;">Sistem</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.16);margin-bottom:12px;">Sistem</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
         <button onclick="exportDataFromLogin()" style="display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:8px;border:1px solid rgba(52,211,153,.18);background:rgba(52,211,153,.04);color:rgba(52,211,153,.75);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(52,211,153,.12)';this.style.color='#34d399'" onmouseout="this.style.background='rgba(52,211,153,.04)';this.style.color='rgba(52,211,153,.75)'">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1512,9 +1549,9 @@ if(document.readyState === 'loading'){
 <div id="module-select-screen" style="display:none;height:100vh;background:#04060e;position:relative;overflow:hidden;">
 
   <!-- Arka plan -->
-  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(214,61,30,.06) 0%,transparent 60%);pointer-events:none;"></div>
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(200,55,26,.06) 0%,transparent 60%);pointer-events:none;"></div>
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse 50% 50% at 80% 80%,rgba(34,197,94,.03) 0%,transparent 60%);pointer-events:none;"></div>
-  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(214,61,30,.8) 30%,rgba(214,61,30,.9) 50%,rgba(214,61,30,.8) 70%,transparent 100%);"></div>
+  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(200,55,26,.8) 30%,rgba(200,55,26,.9) 50%,rgba(200,55,26,.8) 70%,transparent 100%);"></div>
 
   <!-- Tam ekran flex wrapper -->
   <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;">
@@ -1533,21 +1570,21 @@ if(document.readyState === 'loading'){
 
       <!-- Rota Yönetimi -->
       <div id="ms-rota-card" onclick="enterModule('rota')"
-           style="flex:1;cursor:pointer;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:48px 28px 44px;text-align:center;transition:all .22s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;"
-           onmouseover="this.style.background='rgba(214,61,30,.07)';this.style.borderColor='rgba(214,61,30,.4)';this.style.transform='translateY(-6px)';this.style.boxShadow='0 28px 64px rgba(0,0,0,.5),0 0 0 1px rgba(214,61,30,.18)'"
+           style="flex:1;cursor:pointer;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:48px 28px 44px;text-align:center;transition:all var(--t-slow) cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;"
+           onmouseover="this.style.background='rgba(200,55,26,.07)';this.style.borderColor='rgba(200,55,26,.4)';this.style.transform='translateY(-6px)';this.style.boxShadow='0 28px 64px rgba(0,0,0,.5),0 0 0 1px rgba(200,55,26,.18)'"
            onmouseout="this.style.background='rgba(255,255,255,.02)';this.style.borderColor='rgba(255,255,255,.07)';this.style.transform='translateY(0)';this.style.boxShadow='none'">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(214,61,30,.8),transparent);"></div>
-        <div style="width:72px;height:72px;border-radius:20px;background:rgba(214,61,30,.1);border:1px solid rgba(214,61,30,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#d63d1e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 6 2v5h-6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(200,55,26,.8),transparent);"></div>
+        <div style="width:72px;height:72px;border-radius:20px;background:rgba(200,55,26,.1);border:1px solid rgba(200,55,26,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 6 2v5h-6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
         </div>
         <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:rgba(255,255,255,.9);margin-bottom:14px;letter-spacing:.4px;text-transform:uppercase;">Rota Yönetimi</div>
-        <div style="width:32px;height:2px;background:rgba(214,61,30,.5);border-radius:1px;margin:0 auto 18px;"></div>
+        <div style="width:32px;height:2px;background:rgba(200,55,26,.5);border-radius:1px;margin:0 auto 18px;"></div>
         <div style="font-size:13px;color:rgba(255,255,255,.3);line-height:2;">Öğrenci yönetimi<br>Rota optimizasyonu<br>Harita görünümü</div>
       </div>
 
       <!-- Ücret Yönetimi -->
       <div id="ms-ucret-card" onclick="enterModule('ucret')"
-           style="flex:1;cursor:pointer;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:48px 28px 44px;text-align:center;transition:all .22s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;"
+           style="flex:1;cursor:pointer;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:48px 28px 44px;text-align:center;transition:all var(--t-slow) cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;"
            onmouseover="this.style.background='rgba(34,197,94,.05)';this.style.borderColor='rgba(34,197,94,.35)';this.style.transform='translateY(-6px)';this.style.boxShadow='0 28px 64px rgba(0,0,0,.5),0 0 0 1px rgba(34,197,94,.14)'"
            onmouseout="this.style.background='rgba(255,255,255,.02)';this.style.borderColor='rgba(255,255,255,.07)';this.style.transform='translateY(0)';this.style.boxShadow='none'">
         <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(34,197,94,.7),transparent);"></div>
@@ -1563,7 +1600,7 @@ if(document.readyState === 'loading'){
 
     <!-- Geri butonu -->
     <button onclick="goToLogin()"
-      style="display:flex;align-items:center;gap:8px;padding:11px 24px;border-radius:10px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);color:rgba(255,255,255,.28);font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .18s;letter-spacing:.2px;"
+      style="display:flex;align-items:center;gap:8px;padding:11px 24px;border-radius:10px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);color:rgba(255,255,255,.28);font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all var(--t-fast);letter-spacing:.2px;"
       onmouseover="this.style.color='rgba(255,255,255,.65)';this.style.borderColor='rgba(255,255,255,.16)';this.style.background='rgba(255,255,255,.05)'"
       onmouseout="this.style.color='rgba(255,255,255,.28)';this.style.borderColor='rgba(255,255,255,.07)';this.style.background='rgba(255,255,255,.02)'">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -1578,7 +1615,7 @@ if(document.readyState === 'loading'){
  <!-- SOL: Aksiyon butonları -->
  <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
  <button onclick="goToLogin()" title="Ana Sayfa" class="nav-action-btn"
-   style="border:1px solid rgba(200,55,26,.25);background:rgba(200,55,26,.07);color:#e8553c;"
+   style="border:1px solid rgba(200,55,26,.25);background:rgba(200,55,26,.07);color:var(--brand);"
    onmouseover="this.style.background='rgba(200,55,26,.18)'" onmouseout="this.style.background='rgba(200,55,26,.07)'">
    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
    <span class="nav-btn-text">Ana Sayfa</span>
@@ -1658,14 +1695,10 @@ if(document.readyState === 'loading'){
      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
      <span class="nav-btn-text">Çıkış</span>
    </button>
-   <button onclick="toggleSound()" id="sound-btn" title="Ses"
-     style="width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);color:rgba(255,255,255,.35);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;"
-     onmouseover="this.style.background='rgba(255,255,255,.08)';this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.background='rgba(255,255,255,.03)';this.style.color='rgba(255,255,255,.35)'">
+   <button onclick="toggleSound()" id="sound-btn" title="Ses" class="nav-icon-btn">
      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
    </button>
-   <button onclick="toggleTheme()" id="theme-btn" title="Tema"
-     style="width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);color:rgba(255,255,255,.35);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;"
-     onmouseover="this.style.background='rgba(255,255,255,.08)';this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.background='rgba(255,255,255,.03)';this.style.color='rgba(255,255,255,.35)'">
+   <button onclick="toggleTheme()" id="theme-btn" title="Tema" class="nav-icon-btn">
      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
    </button>
    <div class="save-dot" id="save-dot" title="Bağlantı durumu"></div>
@@ -1691,21 +1724,21 @@ if(document.readyState === 'loading'){
  <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
  <div style="background:rgba(200,55,26,.08);border:1px solid rgba(200,55,26,.2);border-radius:8px;padding:6px 14px;text-align:center;">
  <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--brand);" id="dash-route-count">0</div>
- <div style="font-size:9px;color:var(--muted2);letter-spacing:.5px;text-transform:uppercase;">Rota</div>
+ <div style="font-size:10px;color:var(--muted2);letter-spacing:.5px;text-transform:uppercase;">Rota</div>
  </div>
  <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);border-radius:8px;padding:6px 14px;text-align:center;">
  <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--blue);" id="dash-covered-count">0</div>
- <div style="font-size:9px;color:var(--muted2);letter-spacing:.5px;text-transform:uppercase;">Servisteki</div>
+ <div style="font-size:10px;color:var(--muted2);letter-spacing:.5px;text-transform:uppercase;">Servisteki</div>
  </div>
  </div>
  </div>
  </div>
 
  <div class="dash-grid">
- <div class="dash-card"><div class="dash-card-glow" style="background:#60a5fa;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="d-s">0</div><div class="dash-card-label">Öğrenci</div></div>
- <div class="dash-card"><div class="dash-card-glow" style="background:#a78bfa;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="d-d">0</div><div class="dash-card-label">Şoför</div></div>
- <div class="dash-card"><div class="dash-card-glow" style="background:#22c55e;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="d-r">0</div><div class="dash-card-label">Rota</div></div>
- <div class="dash-card"><div class="dash-card-glow" style="background:#f59e0b;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="d-v">0</div><div class="dash-card-label">Servisteki</div></div>
+ <div class="dash-card"><div class="dash-card-glow" style="background:#60a5fa;"></div><div class="dash-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="dash-card-val" id="d-s">0</div><div class="dash-card-label">Öğrenci</div></div>
+ <div class="dash-card"><div class="dash-card-glow" style="background:#a78bfa;"></div><div class="dash-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div><div class="dash-card-val" id="d-d">0</div><div class="dash-card-label">Şoför</div></div>
+ <div class="dash-card"><div class="dash-card-glow" style="background:#22c55e;"></div><div class="dash-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 6 2v5h-6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="dash-card-val" id="d-r">0</div><div class="dash-card-label">Rota</div></div>
+ <div class="dash-card"><div class="dash-card-glow" style="background:#f59e0b;"></div><div class="dash-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="dash-card-val" id="d-v">0</div><div class="dash-card-label">Servisteki</div></div>
  </div>
 
  <div id="dash-school-card" style="margin-bottom:20px;"></div>
@@ -1911,14 +1944,14 @@ if(document.readyState === 'loading'){
  <button class="btn btn-ghost btn-sm" onclick="printUcretGenel()" style="display:flex;align-items:center;gap:6px;">Yazdır</button>
  </div>
  </div>
- <div style="font-size:72px;opacity:.1;filter:drop-shadow(0 0 30px var(--green));flex-shrink:0;margin-left:20px;"></div>
+ <div style="opacity:.1;flex-shrink:0;margin-left:20px;"><svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
  </div>
 
  <div class="dash-grid">
- <div class="dash-card"><div class="dash-card-glow" style="background:#22c55e;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="u-total-s">0</div><div class="dash-card-label">Toplam Öğrenci</div></div>
- <div class="dash-card"><div class="dash-card-glow" style="background:#60a5fa;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="u-paid-count">0</div><div class="dash-card-label">Güncel Ödemeler</div></div>
- <div class="dash-card"><div class="dash-card-glow" style="background:#f59e0b;"></div><div class="dash-card-icon">⏳</div><div class="dash-card-val" id="u-unpaid-count">0</div><div class="dash-card-label">Bekleyen</div></div>
- <div class="dash-card"><div class="dash-card-glow" style="background:#a78bfa;"></div><div class="dash-card-icon"></div><div class="dash-card-val" id="u-total-amount">₺0</div><div class="dash-card-label">Toplam Tahsilat</div></div>
+ <div class="dash-card"><div class="dash-card-glow" style="background:#22c55e;"></div><div class="dash-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="dash-card-val" id="u-total-s">0</div><div class="dash-card-label">Toplam Öğrenci</div></div>
+ <div class="dash-card"><div class="dash-card-glow" style="background:#60a5fa;"></div><div class="dash-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="dash-card-val" id="u-paid-count">0</div><div class="dash-card-label">Güncel Ödemeler</div></div>
+ <div class="dash-card"><div class="dash-card-glow" style="background:#f59e0b;"></div><div class="dash-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="dash-card-val" id="u-unpaid-count">0</div><div class="dash-card-label">Bekleyen</div></div>
+ <div class="dash-card"><div class="dash-card-glow" style="background:#a78bfa;"></div><div class="dash-card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="dash-card-val" id="u-total-amount">₺0</div><div class="dash-card-label">Toplam Tahsilat</div></div>
  </div>
 
  <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:20px;" id="u-school-cards"></div>
@@ -2145,7 +2178,14 @@ if(document.readyState === 'loading'){
  <div class="modal" style="width:660px;">
  <h2 id="pm-title">Öğrenci Ödemeleri</h2>
  <div style="font-size:12px;color:var(--muted2);margin-bottom:20px;" id="pm-sub"></div>
- <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;" id="pm-months"></div>
+ <div style="margin-bottom:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);">Güz Dönemi</div>
+ <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;" id="pm-months-guz"></div>
+ <div style="height:1px;background:var(--border);margin-bottom:10px;"></div>
+ <div style="margin-bottom:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);">Kış Dönemi</div>
+ <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;" id="pm-months-kis"></div>
+ <div style="height:1px;background:var(--border);margin-bottom:10px;"></div>
+ <div style="margin-bottom:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);">Bahar Dönemi</div>
+ <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;" id="pm-months-bahar"></div>
  <div style="background:var(--card2);border-radius:10px;padding:14px 16px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
  <div><div style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.5px;text-transform:uppercase;">Toplam Ödenen</div><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green);" id="pm-total">₺0</div></div>
  <div><div style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.5px;text-transform:uppercase;">Ödenen Ay</div><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#60a5fa;" id="pm-paid-months">0/10</div></div>
@@ -3684,10 +3724,11 @@ function addStudent(){
  const no=document.getElementById('s-no').value.trim()||'–';
  const cls=document.getElementById('s-class').value;
  const ph=document.getElementById('s-phone').value.trim();
- if(!name)return toast(' Ad girin','error');
- if(!ilce)return toast(' İlçe seçin','error');
- if(!mah)return toast(' Mahalle seçin','error');
- if(!sok)return toast(' Sokak seçin','error');
+ function _hilite(id){ const el=document.getElementById(id); if(el){el.style.borderColor='var(--red)';el.style.boxShadow='0 0 0 3px rgba(239,68,68,.12)';setTimeout(()=>{el.style.borderColor='';el.style.boxShadow='';},2000);} }
+ if(!name){_hilite('s-name');return toast(' Ad girin','error');}
+ if(!ilce){_hilite('s-ilce');return toast(' İlçe seçin','error');}
+ if(!mah){_hilite('s-mahalle');return toast(' Mahalle seçin','error');}
+ if(!sok){_hilite('s-sokak');return toast(' Sokak seçin','error');}
  const c=getCoord(ilce,mah);
  students.push({id:nSid++,name,school:+sch,ilce,mah,sok,no,cls,ph,...c});
  ['s-name','s-no','s-phone'].forEach(id=>document.getElementById(id).value='');
@@ -3919,12 +3960,12 @@ function renderDrivers(){
  if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="5"/><path d="M3 21v-1a9 9 0 0 1 18 0v1"/></svg></div><div>Henüz şoför eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden şoför ekleyin</div></div>';return;}
  w.innerHTML=L.map(d=>{
  const tipBadge = d.tip==='taseron'
-   ? `<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--amber);margin-left:6px;vertical-align:middle;">Taşeron</span>`
+   ? `<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--amber);margin-left:6px;vertical-align:middle;">Taşeron</span>`
    : d.tip==='kadro'
-   ? `<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);color:#a78bfa;margin-left:6px;vertical-align:middle;">Kadro</span>`
+   ? `<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);color:#a78bfa;margin-left:6px;vertical-align:middle;">Kadro</span>`
    : '';
  return `<div class="driver-row ${d.assignedRoute!==null?'assigned':''}">
- <div style="font-size:24px"></div>
+ <div style="width:40px;height:40px;border-radius:50%;background:${d.assignedRoute!==null?'rgba(34,197,94,.15)':'rgba(100,116,139,.12)'};border:1px solid ${d.assignedRoute!==null?'rgba(34,197,94,.3)':'rgba(255,255,255,.08)'};display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${d.assignedRoute!==null?'var(--green)':'var(--muted2)'};flex-shrink:0;">${d.name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()}</div>
  <div style="flex:1">
  <div style="font-size:13px;font-weight:700">${escHtml(d.name)}${tipBadge}</div>
  <div style="font-size:11px;color:var(--muted2)">${escHtml(d.ilce)} / ${escHtml(d.mah)}${d.sok?' – '+escHtml(d.sok):''}</div>
@@ -5109,7 +5150,7 @@ function renderRoutes(){
  <div style="color:var(--muted);font-size:10px;margin-top:1px">&#x1F4CD; ${s.mah} &middot; ${s.sok}</div>
  </div>
  <div style="text-align:right;flex-shrink:0;margin-left:8px">
- <div style="font-size:9px;color:#f87171;font-weight:600">${rsns}</div>
+ <div style="font-size:10px;color:#f87171;font-weight:600">${rsns}</div>
  </div>
  </div>`;
  }).join('');
@@ -5153,12 +5194,12 @@ function renderRoutes(){
  <div class="stop-name">${s.name}${s.cls?` <span style="font-size:10px;color:var(--muted)">&middot; ${s.cls}</span>`:''}<span style="font-size:10px;background:${SC[s.school]}22;color:${SC[s.school]};padding:1px 5px;border-radius:4px;margin-left:4px">${SCHOOLS[s.school].short}</span>${isOut?`<span class="outlier-badge">&#x26A0; AYKIRI</span>`:''}</div>
  <div class="stop-addr">&#x1F4CD; ${s.ilce} / ${s.mah} &middot; ${s.sok} No:${s.no}</div>
  ${leg.pickupTime?`<div style="font-size:10px;color:#34d399;font-weight:600;margin-top:2px">&#x1F552; Bini&#x15F;: ${leg.pickupTime}</div>`:''}
- ${isOut?`<div style="font-size:9px;color:#f87171;margin-top:1px">${outRsns}</div>`:''}
+ ${isOut?`<div style="font-size:10px;color:#f87171;margin-top:1px">${outRsns}</div>`:''}
  </div>
  <div style="text-align:right;flex-shrink:0">
  <div style="font-size:10px;color:var(--amber)">+${leg.legKm.toFixed(1)} km</div>
  <div style="font-size:10px;color:${timeColor};font-weight:${r.overTime&&leg.cumMin>maxMin?700:400}">${fmtMin(leg.cumMin)}</div>
- ${routes.length>1?'<button onclick="event.stopPropagation();startMoveStudent('+s.id+','+r.id+')" style="font-size:9px;padding:3px 7px;border-radius:4px;border:1px solid rgba(59,130,246,.25);background:rgba(59,130,246,.08);color:#60a5fa;cursor:pointer;font-family:Outfit,sans-serif;margin-top:2px;">↔ Taşı</button>':''}
+ ${routes.length>1?'<button onclick="event.stopPropagation();startMoveStudent('+s.id+','+r.id+')" style="font-size:10px;padding:3px 7px;border-radius:4px;border:1px solid rgba(59,130,246,.25);background:rgba(59,130,246,.08);color:#60a5fa;cursor:pointer;font-family:Outfit,sans-serif;margin-top:2px;">↔ Taşı</button>':''}
  </div>
  </div>`;
  }).join('');
@@ -5249,7 +5290,7 @@ function updateDash(){
  if(_dSchCard){
  const _dIn=document.createElement('div');
  _dIn.innerHTML=`<div style="background:var(--card);border:1px solid ${_dCol}33;border-top:3px solid ${_dCol};border-radius:var(--radius);padding:16px;display:inline-block;min-width:180px;">
- <div style="font-size:9px;color:var(--muted2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">${_dSch.short}</div>
+ <div style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">${_dSch.short}</div>
  <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:${_dCol};">${students.length}</div>
  <div style="font-size:10px;color:var(--muted2);margin-top:5px;">${_dSch.ilce} · ${_dSch.girisStr||''}</div>
  </div>`;
@@ -5456,7 +5497,7 @@ function renderUcretOgrenci(){
  const pct=Math.round(t.paidMonths/AYLAR.length*100);
  const barCol=pct===100?'var(--green)':pct>50?'var(--amber)':'var(--red)';
  const statusCol=pct===100?'var(--green)':t.paidMonths>0?'var(--amber)':'var(--red)';
- return`<div class="pay-row" style="position:relative;">
+ return`<div class="pay-row" style="position:relative;cursor:default;">
  <div onclick="openPaymentModal(${s.id})" style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;min-width:0;">
  <div class="pay-avatar" style="background:${SC[s.school]}18;border:1.5px solid ${SC[s.school]}44;color:${SC[s.school]};">${s.name.charAt(0).toUpperCase()}</div>
  <div style="flex:1;min-width:0;">
@@ -5499,7 +5540,7 @@ function renderUcretGenel(){
  const _ugSl=students.filter(x=>x.school===_ugSchIdx);
  let _ugAmt=0; _ugSl.forEach(x=>_ugAmt+=calcStudentTotals(x.id).totalAmount);
  if(sc) sc.innerHTML=`<div style="background:var(--card);border:1px solid ${_ugCol}22;border-top:3px solid ${_ugCol};border-radius:var(--radius);padding:16px;display:inline-block;min-width:200px;">
- <div style="font-size:9px;color:var(--muted2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">${_ugSch.short}</div>
+ <div style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">${_ugSch.short}</div>
  <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${_ugCol};">₺${_ugAmt.toLocaleString('tr-TR')}</div>
  <div style="font-size:10px;color:var(--muted2);margin-top:4px;">${_ugSl.length} öğrenci</div>
  </div>`;
@@ -5519,7 +5560,7 @@ function renderUcretGenel(){
  <div class="ay-bar-label">${a.label}</div>
  <div class="ay-bar-track">
  <div class="ay-bar-fill" style="width:${pct}%;">
- ${monthAmt>0?`<span style="font-size:9px;font-weight:700;color:white;white-space:nowrap;">₺${monthAmt.toLocaleString('tr-TR')}</span>`:''}
+ ${monthAmt>0?`<span style="font-size:10px;font-weight:700;color:white;white-space:nowrap;">₺${monthAmt.toLocaleString('tr-TR')}</span>`:''}
  </div>
  </div>
  ${monthAmt===0?`<span style="font-size:10px;color:var(--muted);width:60px;">₺0</span>`:''}
@@ -5535,9 +5576,17 @@ function openPaymentModal(sid){
  const p=getStudentPayment(sid);
  _setText('pm-title', s.name);
  _setText('pm-sub', SCHOOLS[s.school].name+' · '+s.ilce+' / '+s.mah);
- document.getElementById('pm-months').innerHTML=AYLAR.map(a=>{
- const mp=p[a.key]||{paid:false,amount:''};
- return`<div class="month-cell ${mp.paid?'paid':''}" id="mc-${a.key}">
+ // Ay grupları: Güz / Kış / Bahar
+ const AY_GRUPLARI = {
+  guz:   ['eylul','ekim','kasim','aralik'],
+  kis:   ['ocak','subat','mart'],
+  bahar: ['nisan','mayis','haziran'],
+ };
+ function renderAyGrubu(keyler){
+  return keyler.map(key=>{
+   const a=AYLAR.find(x=>x.key===key)||{key,label:key};
+   const mp=p[a.key]||{paid:false,amount:''};
+   return`<div class="month-cell ${mp.paid?'paid':''}" id="mc-${a.key}">
  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
  <span style="font-weight:700;font-size:13px;">${a.label}</span>
  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;">
@@ -5548,7 +5597,17 @@ function openPaymentModal(sid){
  <input type="number" id="pm-amt-${a.key}" value="${mp.amount||''}" placeholder="₺ Tutar" min="0"
  oninput="updatePmSummary()" style="${mp.paid?'':'opacity:.5'}">
  </div>`;
- }).join('');
+  }).join('');
+ }
+ const guzEl=document.getElementById('pm-months-guz');
+ const kisEl=document.getElementById('pm-months-kis');
+ const baharEl=document.getElementById('pm-months-bahar');
+ if(guzEl) guzEl.innerHTML=renderAyGrubu(AY_GRUPLARI.guz);
+ if(kisEl) kisEl.innerHTML=renderAyGrubu(AY_GRUPLARI.kis);
+ if(baharEl) baharEl.innerHTML=renderAyGrubu(AY_GRUPLARI.bahar);
+ // Eski pm-months varsa temizle (backward compat)
+ const legacyEl=document.getElementById('pm-months');
+ if(legacyEl) legacyEl.innerHTML='';
  updatePmSummary();
  document.getElementById('payment-modal').classList.add('open');
 }
@@ -6103,7 +6162,7 @@ function exportRotalarPDF(){
  .s-cell{padding:10px;text-align:center;border-right:1px solid #e5e7eb;}
  .s-cell:last-child{border-right:none;}
  .s-val{font-size:20px;font-weight:800;color:${schoolColor};}
- .s-lbl{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+ .s-lbl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
  tbody tr:nth-child(even){background:#f9fafb;}
  .footer{margin-top:28px;padding-top:12px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:10px;color:#aaa;}
  @media print{
@@ -6230,7 +6289,7 @@ function printUcretGenel(){
  </tr>`;
  }).join('');
 
- const ayHeaders = AYLAR.map(ay=>`<th style="font-size:9px;padding:2px 4px;">${ay.label.slice(0,3)}</th>`).join('');
+ const ayHeaders = AYLAR.map(ay=>`<th style="font-size:10px;padding:2px 4px;">${ay.label.slice(0,3)}</th>`).join('');
 
  const printWin = window.open('','_blank','width=900,height=700');
  printWin.document.write(`<!DOCTYPE html><html><head>
@@ -6875,7 +6934,7 @@ function printDriverSheet(){
  .s-cell{padding:10px;text-align:center;border-right:1px solid #e5e7eb;}
  .s-cell:last-child{border-right:none;}
  .s-val{font-size:18px;font-weight:800;color:${schoolColor};}
- .s-lbl{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+ .s-lbl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
  /* TABLO */
  table{width:100%;border-collapse:collapse;margin-bottom:20px;}
  thead tr{background:${schoolColor};color:white;}
@@ -7801,7 +7860,7 @@ function saveImportSofor(){
 }
 .pmi-body { padding: 24px 28px 28px; }
 .pmi-section-label {
-  font-size: 9px; font-weight: 800; letter-spacing: 2.5px;
+  font-size: 10px; font-weight: 800; letter-spacing: 2.5px;
   text-transform: uppercase; color: rgba(255,255,255,.2);
   margin-bottom: 10px; margin-top: 20px;
   display: flex; align-items: center; gap: 8px;
@@ -7876,7 +7935,7 @@ function saveImportSofor(){
   margin-bottom: 4px;
 }
 .sd-stat-lbl {
-  font-size: 9px; color: rgba(255,255,255,.28);
+  font-size: 10px; color: rgba(255,255,255,.28);
   font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
 }
 </style>
@@ -7992,7 +8051,7 @@ function renderSoforListe(){
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:900;color:${kalanCol};">${fmt(kalan2)}</div>
-          <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:1px;letter-spacing:.3px;">KALAN</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:1px;letter-spacing:.3px;">KALAN</div>
         </div>
       </div>
       <!-- Progress bar -->
@@ -8129,7 +8188,7 @@ function renderSoforDetay(id){
         <div class="ay-shimmer"></div>
         <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;margin-bottom:6px;">${a.label}</div>
         <div style="font-size:18px;font-weight:900;color:${durCol};font-family:'Syne',sans-serif;line-height:1;">${durIcon}</div>
-        <div style="font-size:9px;color:rgba(255,255,255,.28);margin-top:4px;">${odenen2>0?fmt(odenen2):fmt(alacak2)}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.28);margin-top:4px;">${odenen2>0?fmt(odenen2):fmt(alacak2)}</div>
         ${hasEkstra?`<div style="position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:#60a5fa;box-shadow:0 0 6px #60a5fa88;"></div>`:''}
       </div>`;
     }).join('')}
@@ -8159,7 +8218,7 @@ function renderSoforDetay(id){
     const kismiAy = SOFOR_AYLAR.filter(a=>soforAyDurumu(s,soforAyKey(a.key))==='kismi').length;
     yilEl.style.cssText='background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px 20px;margin-bottom:20px;';
     yilEl.innerHTML = `
-      <div style="font-size:9px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:14px;">
+      <div style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-bottom:14px;">
         ${soforAkademikYil()}–${soforAkademikYil()+1} Yıl Özeti
       </div>
       <div style="display:flex;gap:20px;flex-wrap:wrap;">
@@ -8203,15 +8262,15 @@ function openSoforPayModal(soforId, ayKey, ayLabel, beklenen){
     ozet.innerHTML = `
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:0;">
         <div style="padding:10px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:10px;text-align:center;">
-          <div style="font-size:9px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Beklenen</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Beklenen</div>
           <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--amber);">${fmt(alacak2)}</div>
         </div>
         <div style="padding:10px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:10px;text-align:center;">
-          <div style="font-size:9px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Ödenen</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Ödenen</div>
           <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#4ade80;">${fmt(odenen2)}</div>
         </div>
         <div style="padding:10px;background:${kalan2>0?'rgba(239,68,68,.06)':'rgba(34,197,94,.06)'};border:1px solid ${kalan2>0?'rgba(239,68,68,.15)':'rgba(34,197,94,.15)'};border-radius:10px;text-align:center;">
-          <div style="font-size:9px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Kalan</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Kalan</div>
           <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:${col};">${fmt(kalan2)}</div>
         </div>
       </div>
@@ -8519,7 +8578,7 @@ function _setPayBtnEditMode(editing){
       <div id="spm-islem-listesi" style="margin-bottom:4px;"></div>
 
       <!-- Ekstra işler -->
-      <div class="pmi-section-label">Ekstra İş Gelirleri <span style="color:#60a5fa;font-size:9px;font-weight:600;background:rgba(96,165,250,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(96,165,250,.2);margin-left:4px;">💼 Bu Ay</span></div>
+      <div class="pmi-section-label">Ekstra İş Gelirleri <span style="color:#60a5fa;font-size:10px;font-weight:600;background:rgba(96,165,250,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(96,165,250,.2);margin-left:4px;">💼 Bu Ay</span></div>
       <div id="spm-ekstra-listesi" style="margin-bottom:4px;"></div>
 
       <!-- Yeni işlem formu -->
@@ -8566,7 +8625,7 @@ function _setPayBtnEditMode(editing){
 
       <!-- Kaydet butonu -->
       <button id="spm-kaydet-btn" onclick="saveSoforPayModal()"
-        style="width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.5px;box-shadow:0 6px 20px rgba(139,92,246,.35);transition:all .2s;"
+        style="width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.5px;box-shadow:0 6px 20px rgba(139,92,246,.35);transition:all var(--t-slow);"
         onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(139,92,246,.5)'"
         onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 20px rgba(139,92,246,.35)'">
         İşlemi Kaydet
