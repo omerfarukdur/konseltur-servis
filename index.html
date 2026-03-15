@@ -11,6 +11,8 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Konseltur — Servis Yönetimi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -128,7 +130,7 @@ nav::before {
  opacity:.7;
 }
 .nav-tab.active.rota-tab{ color:var(--brand); border-color:rgba(232,85,60,.2); }
-.nav-tab.active.rota-tab::after{ background:#e8553c; }
+.nav-tab.active.rota-tab::after{ background:var(--brand); }
 .nav-tab.active.ucret-tab{ color:#4ade80; border-color:rgba(74,222,128,.2); }
 .nav-tab.active.ucret-tab::after{ background:#4ade80; }
 .nav-tab.active.sofor-tab{ color:#a78bfa; border-color:rgba(167,139,250,.2); }
@@ -261,6 +263,8 @@ body.light .field select{
 .btn-full{width:100%;}
 .btn-brand{background:linear-gradient(135deg,var(--brand),var(--brand2));color:white;box-shadow:0 2px 16px var(--brand-glow);letter-spacing:.3px;font-weight:700;}
 .btn-brand:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 6px 24px rgba(200,55,26,.25);}
+.btn:active{transform:scale(.97) translateY(0) !important;filter:brightness(.95);transition:transform .08s,filter .08s;}
+.btn-brand:active{box-shadow:0 2px 8px rgba(200,55,26,.2) !important;}
 .btn-green{background:linear-gradient(135deg,var(--green),var(--green2));color:white;box-shadow:0 2px 10px rgba(34,197,94,.2);}
 .btn-green:hover{filter:brightness(1.1);transform:translateY(-1px);}
 .btn-blue{background:var(--blue);color:white;}
@@ -317,7 +321,7 @@ body.light .field select{
 .route-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:all var(--t-slow);box-shadow:var(--shadow-sm);}
 .route-card:hover{border-color:rgba(255,255,255,.06);box-shadow:var(--shadow-md);}
 .route-header{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;}
-.route-header:hover{background:rgba(255,255,255,.015);}
+.route-header:hover{background:rgba(255,255,255,.04);}
 .route-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
 .route-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;flex:1;}
 .route-meta{font-size:11px;color:var(--muted2);}
@@ -325,8 +329,7 @@ body.light .field select{
 .route-card.open .route-chev{transform:rotate(180deg);}
 .route-body{display:none;padding:0 14px 14px;}
 .route-card.open .route-body{display:block;}
-.stop-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
-.stop-row:last-child{border-bottom:none;}
+/* .stop-row ana tanım aşağıdaki style bloğunda */
 .stop-num{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;}
 .stop-info{flex:1;}
 .stop-name{font-weight:500;}
@@ -425,13 +428,13 @@ body.light .field select{
  cursor:pointer;transition:background .15s;
 }
 .pay-row:last-child{border-bottom:none;}
-.pay-row:hover{background:rgba(255,255,255,.03);}
+.pay-row:hover{background:rgba(255,255,255,.05);cursor:pointer;}
 .pay-avatar{
  width:36px;height:36px;border-radius:50%;
  display:flex;align-items:center;justify-content:center;
  font-size:13px;font-weight:800;flex-shrink:0;
 }
-.pay-progress-bar{height:3px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:4px;}
+.pay-progress-bar{height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:5px;}
 .pay-progress-fill{height:100%;border-radius:2px;transition:width .4s;}
 
 /* month grid in modal */
@@ -440,6 +443,8 @@ body.light .field select{
  border-radius:12px;padding:12px;transition:all var(--t-slow);
 }
 .month-cell.paid{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.25);}
+.month-cell:hover{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.05);cursor:pointer;}
+.month-cell.paid:hover{border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.1);}
 .month-cell input[type=checkbox]{accent-color:var(--green);width:15px;height:15px;cursor:pointer;}
 .month-cell input[type=number]{
  width:100%;margin-top:8px;padding:7px 10px;
@@ -576,8 +581,7 @@ body.light .field select{
 .health-warn{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2);}
 .health-bad{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);}
 .health-info{background:rgba(59,130,246,.1);color:#60a5fa;border:1px solid rgba(59,130,246,.2);}
-.route-progress{height:4px;border-radius:2px;background:rgba(255,255,255,.06);margin:4px 0 9px;overflow:hidden;}
-.route-progress-fill{height:100%;border-radius:2px;transition:width .4s;}
+/* route-progress: ana tanım yukarıda */
 .outlier-badge{font-size:10px;font-weight:700;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);border-radius:4px;padding:1px 5px;margin-left:4px;}
 .stop-row.outlier{background:rgba(239,68,68,.04);border-left:3px solid #ef4444;padding-left:8px;border-radius:5px;margin:2px 0;}
 
@@ -656,7 +660,7 @@ body.light .field select{
   #page-map .page-inner{height:auto!important;display:flex;flex-direction:column;}
   #leaflet-map{height:65vh!important;min-height:320px!important;flex:none!important;}
 }
-.map-toggle{padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--card2);color:var(--muted2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;}
+.map-toggle{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--muted2);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all var(--t-fast);min-height:32px;}
 .map-toggle.active{background:rgba(200,55,26,.12);border-color:rgba(200,55,26,.4);color:var(--brand);}
 /* Leaflet dark overrides */
 .leaflet-tile-pane{filter:brightness(.85) saturate(.7) hue-rotate(180deg) invert(1);}
@@ -799,7 +803,13 @@ body.light nav::before{opacity:.4;}
 body.light .sidebar{background:#fff;border-right-color:#e2e5ea;}
 body.light .modal{background:#fff;border-color:#d0d4db;box-shadow:0 16px 48px rgba(0,0,0,.12);}
 body.light .modal::before{opacity:.3;}
-body.light .dash-card,body.light .card,body.light .route-card,body.light .driver-row,body.light .stat-box{background:#fff;border-color:#e2e5ea;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+
+body.light .route-header:hover{background:rgba(0,0,0,.025);}
+body.light .month-cell{background:#f8f9fb;border-color:#e2e5ea;}
+body.light .pay-row:hover{background:rgba(0,0,0,.025);}
+body.light .month-cell{background:rgba(0,0,0,.02);border-color:rgba(0,0,0,.08);}
+body.light .month-cell.paid{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.3);}
+body.light .month-cell:hover{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.15);}
 body.light .pay-card,body.light .pay-row{background:#fff;border-color:#e2e5ea;}
 body.light .sc-card{background:#fff;border-color:#e2e5ea;}
 body.light .tbl th{background:#f5f6f8;color:#64748b;}
@@ -821,6 +831,7 @@ body.light .nav-tab:hover{background:#f5f6f8;color:#374151;}
 body.light .nav-tab.active{background:#f5f6f8;color:#111827;border-color:#d0d4db;}
 body.light .nav-tab.active::after{opacity:.5;}
 body.light .nav-pill-count{background:rgba(200,55,26,.08);border-color:rgba(200,55,26,.15);}
+body.light .save-dot{background:rgba(34,197,94,.6);}
 body.light .leaflet-tile-pane{filter:none;}
 body.light #leaflet-map{background:#e8eaed;}
 body.light .ay-bar-wrap{background:#fff;border-color:#e2e5ea;}
@@ -960,6 +971,9 @@ body.light .sd-ay-card{background:#f5f6f8;border-color:#e2e5ea;}
 .sofor-badge.taseron { background: rgba(245,158,11,.1); color: var(--amber); border: 1px solid rgba(245,158,11,.25); }
 
 body.light .sc-card { background: #fff; border-color: #e2e5ea; }
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}
+}
 </style>
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
@@ -1066,7 +1080,7 @@ try{
 </head>
 <body>
 <!-- ŞİFRE EKRANI -->
-<div id="password-screen" style="display:flex;position:fixed;inset:0;z-index:9999;background:#050810;align-items:center;justify-content:center;overflow:hidden;">
+<div id="password-screen" style="display:flex;position:fixed;inset:0;z-index:9999;background:var(--bg);align-items:center;justify-content:center;overflow:hidden;">
   <!-- arka plan -->
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(200,55,26,.07) 0%,transparent 65%);pointer-events:none;"></div>
   <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 15%,rgba(200,55,26,.8) 50%,transparent 85%);"></div>
@@ -1270,14 +1284,14 @@ if(document.readyState === 'loading'){
  <div>
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">OKUL TAM ADI *</label>
  <input id="asc-name" type="text" placeholder="Özel Örnek Anadolu Lisesi" maxlength="80"
- style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;"
+ style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;"
  oninput="this.style.borderColor='#C8371A44'">
  </div>
  <!-- Kısa ad (tam genişlik) -->
  <div>
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">KISA AD * <span style="font-size:10px;color:rgba(255,255,255,.3);font-weight:400;">(nav çubuğunda görünür)</span></label>
  <input id="asc-short" type="text" placeholder="Örnek Lisesi" maxlength="20"
- style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+ style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
  <!-- Sistem anahtarı gizli — kısa addan otomatik üretilir -->
  <input id="asc-key" type="hidden">
  </div>
@@ -1286,31 +1300,31 @@ if(document.readyState === 'loading'){
  <div>
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">İLÇE *</label>
  <input id="asc-ilce" type="text" placeholder="Selçuklu" maxlength="40"
- style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+ style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
  </div>
  <div>
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">MAHALLE</label>
  <input id="asc-mah" type="text" placeholder="Sanayi Mah." maxlength="60"
- style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+ style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
  </div>
  </div>
  <!-- Adres -->
  <div>
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">ADRES *</label>
  <input id="asc-adres" type="text" placeholder="Cadde, Sokak, No, İlçe/Konya" maxlength="120"
- style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+ style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
  </div>
  <!-- Koordinat -->
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
  <div>
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">ENLEM (LAT)</label>
  <input id="asc-lat" type="number" step="0.00001" placeholder="37.87000"
- style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+ style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
  </div>
  <div>
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">BOYLAM (LNG)</label>
  <input id="asc-lng" type="number" step="0.00001" placeholder="32.49000"
- style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
+ style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;">
  </div>
  </div>
  <!-- Giriş / Çıkış saatleri -->
@@ -1318,12 +1332,12 @@ if(document.readyState === 'loading'){
  <div>
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">GİRİŞ SAATİ</label>
  <input id="asc-giris" type="time" value="08:00"
- style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;color-scheme:dark;">
+ style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;color-scheme:dark;">
  </div>
  <div>
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">ÇIKIŞ SAATİ</label>
  <input id="asc-cikis" type="time" value="15:30"
- style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;color-scheme:dark;">
+ style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;color-scheme:dark;">
  </div>
  </div>
  <!-- Renk + İkon -->
@@ -1332,16 +1346,16 @@ if(document.readyState === 'loading'){
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">RENK</label>
  <div style="display:flex;gap:8px;align-items:center;">
  <input id="asc-color" type="color" value="#3b82f6"
- style="width:44px;height:36px;border:1px solid #1a2540;border-radius:8px;background:#060911;cursor:pointer;padding:3px;">
+ style="width:44px;height:36px;border:1px solid #1a2540;border-radius:8px;background:var(--bg);cursor:pointer;padding:3px;">
  <input id="asc-color-hex" type="text" maxlength="7" placeholder="#3b82f6"
- style="flex:1;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;"
+ style="flex:1;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;"
  oninput="syncColorFromHex(this.value)">
  </div>
  </div>
  <div>
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">İKON (emoji)</label>
  <input id="asc-icon" type="text" value="" maxlength="4"
- style="width:100%;background:#060911;border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:20px;font-family:'Outfit',sans-serif;outline:none;text-align:center;">
+ style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:20px;font-family:'Outfit',sans-serif;outline:none;text-align:center;">
  </div>
  </div>
 
@@ -1399,7 +1413,7 @@ if(document.readyState === 'loading'){
  </div>
 </div>
 
-<div id="login-screen" style="display:flex;height:100vh;background:#060810;position:relative;" class="login-screen-root">
+<div id="login-screen" style="display:flex;height:100vh;background:var(--bg);position:relative;" class="login-screen-root">
 
   <!-- Üst kırmızı çizgi -->
   <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,rgba(200,55,26,.9) 0%,rgba(200,55,26,.5) 60%,transparent 100%);z-index:10;"></div>
@@ -1457,7 +1471,7 @@ if(document.readyState === 'loading'){
   <div style="width:1px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.08) 15%,rgba(255,255,255,.08) 85%,transparent);flex-shrink:0;"></div>
 
   <!-- ══ SAĞ — OKUL SEÇİMİ %40 ══ -->
-  <div style="width:400px;flex-shrink:0;background:#060810;display:flex;flex-direction:column;padding:44px 38px;position:relative;" id="login-right-panel">
+  <div style="width:400px;flex-shrink:0;background:var(--bg);display:flex;flex-direction:column;padding:44px 38px;position:relative;" id="login-right-panel">
     <!-- Üst kırmızı çizgi -->
     <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(200,55,26,.7),transparent);"></div>
 
@@ -1546,7 +1560,7 @@ if(document.readyState === 'loading'){
   </div>
 </div>
 <!-- MODÜL SEÇİM EKRANI -->
-<div id="module-select-screen" style="display:none;height:100vh;background:#04060e;position:relative;overflow:hidden;">
+<div id="module-select-screen" style="display:none;height:100vh;background:var(--bg);position:relative;overflow:hidden;">
 
   <!-- Arka plan -->
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(200,55,26,.06) 0%,transparent 60%);pointer-events:none;"></div>
@@ -1750,10 +1764,10 @@ if(document.readyState === 'loading'){
  <div id="dash-backup-reminder" style="display:none;margin-bottom:16px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:14px;padding:14px 18px;align-items:center;gap:14px;">
   <div style="font-size:20px;flex-shrink:0;">&#x1F4BE;</div>
   <div style="flex:1;min-width:0;">
-   <div style="font-size:13px;font-weight:700;color:#f59e0b;margin-bottom:2px;" id="backup-reminder-title">Yedek almay&#x131; unutmay&#x131;n</div>
+   <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:2px;" id="backup-reminder-title">Yedek almay&#x131; unutmay&#x131;n</div>
    <div style="font-size:11px;color:var(--muted2);" id="backup-reminder-sub">Son yedeklemenizden bu yana veri de&#x11F;i&#x15F;mi&#x15F; olabilir.</div>
   </div>
-  <button onclick="exportData();document.getElementById('dash-backup-reminder').style.display='none';" style="padding:8px 16px;border-radius:9px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.12);color:#f59e0b;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;">&#x15E;imdi Yedekle</button>
+  <button onclick="exportData();document.getElementById('dash-backup-reminder').style.display='none';" style="padding:8px 16px;border-radius:9px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.12);color:var(--amber);font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;">&#x15E;imdi Yedekle</button>
   <button onclick="document.getElementById('dash-backup-reminder').style.display='none';" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;color:var(--muted2);font-size:16px;cursor:pointer;flex-shrink:0;">&times;</button>
  </div>
 
@@ -1978,7 +1992,7 @@ if(document.readyState === 'loading'){
  <div class="filter-chip" onclick="filterUcret('unpaid',this)" style="border-color:rgba(245,158,11,.3);color:var(--amber);">Bekleyenler</div>
  </div>
  <div class="search-wrap"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" placeholder="Öğrenci ara..." oninput="searchUcret(this.value)"></div>
- <div id="u-student-list"><div class="empty"><div class="empty-icon"></div>Öğrenci bulunamadı.</div></div>
+ <div id="u-student-list"><div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>Öğrenci bulunamadı.</div></div>
 </div>
 </div>
 
@@ -1987,7 +2001,7 @@ if(document.readyState === 'loading'){
 <div class="page-inner">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <div>
-      <h2 style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;">Şoför Cüzdanı</h2>
+      <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;">Şoför Cüzdanı</h2>
       <div style="font-size:12px;color:var(--muted2);margin-top:3px;">Tüm şoförlerin ücret ve ödeme takibi</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1999,7 +2013,7 @@ if(document.readyState === 'loading'){
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Manuel Ekle
       </button>
-      <button class="btn btn-sm btn-ghost" onclick="exportSoforExcel()">
+      <button class="btn btn-ghost btn-sm" onclick="exportSoforExcel()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Excel
       </button>
@@ -2095,7 +2109,7 @@ if(document.readyState === 'loading'){
  <div style="max-width:480px;margin:0 auto;padding:16px;">
  <!-- Başlık -->
  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);">
- <div style="font-size:32px;"></div>
+ <div style="width:42px;height:42px;border-radius:50%;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
  <div style="flex:1;">
  <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;" id="dm-driver-name">Şoför Adı</div>
  <div style="font-size:12px;color:var(--muted2);" id="dm-route-label">Rota</div>
@@ -2175,16 +2189,16 @@ if(document.readyState === 'loading'){
 
 <!-- Ödeme Modal -->
 <div class="modal-bg" id="payment-modal">
- <div class="modal" style="width:660px;">
+ <div class="modal" style="width:660px;max-width:96vw;">
  <h2 id="pm-title">Öğrenci Ödemeleri</h2>
  <div style="font-size:12px;color:var(--muted2);margin-bottom:20px;" id="pm-sub"></div>
- <div style="margin-bottom:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);">Güz Dönemi</div>
+ <div class="pm-group-label">Güz Dönemi</div>
  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;" id="pm-months-guz"></div>
  <div style="height:1px;background:var(--border);margin-bottom:10px;"></div>
- <div style="margin-bottom:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);">Kış Dönemi</div>
+ <div class="pm-group-label">Kış Dönemi</div>
  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;" id="pm-months-kis"></div>
  <div style="height:1px;background:var(--border);margin-bottom:10px;"></div>
- <div style="margin-bottom:6px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);">Bahar Dönemi</div>
+ <div class="pm-group-label">Bahar Dönemi</div>
  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;" id="pm-months-bahar"></div>
  <div style="background:var(--card2);border-radius:10px;padding:14px 16px;margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
  <div><div style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.5px;text-transform:uppercase;">Toplam Ödenen</div><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green);" id="pm-total">₺0</div></div>
@@ -2200,7 +2214,7 @@ if(document.readyState === 'loading'){
 
 <!-- Excel Modal -->
 <div class="modal-bg" id="excel-modal">
- <div class="modal" style="width:620px;">
+ <div class="modal" style="width:620px;max-width:96vw;">
  <h2>Excel'den Toplu Öğrenci Yükle</h2>
  <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Excel dosyanızı yükleyin, sistem otomatik olarak öğrencileri kaydeder.</div>
  <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
@@ -2236,7 +2250,7 @@ if(document.readyState === 'loading'){
 
 <!-- Rotaya Manuel Öğrenci Ekle/Çıkar Modal -->
 <div class="modal-bg" id="route-edit-modal">
- <div class="modal" style="width:620px;">
+ <div class="modal" style="width:620px;max-width:96vw;">
  <h2 id="rem-title">Rotayı Düzenle</h2>
  <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;" id="rem-sub"></div>
 
@@ -2269,7 +2283,7 @@ if(document.readyState === 'loading'){
 
 <!-- Ücret Sayfası Manuel Öğrenci Ekle Modal -->
 <div class="modal-bg" id="ucret-add-modal">
- <div class="modal" style="width:480px;">
+ <div class="modal" style="width:480px;max-width:96vw;">
  <h2>Manuel Öğrenci Ekle</h2>
  <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Sisteme kayıtlı öğrencilerden ücret listesine ekleyin</div>
  <div class="search-wrap" style="margin-bottom:10px;"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" placeholder="Öğrenci adı ara..." oninput="filterUcretAddList(this.value)" style="width:100%;padding:8px 10px 8px 32px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
@@ -2283,7 +2297,7 @@ if(document.readyState === 'loading'){
 
 <!-- Öğrenci Taşıma Modal -->
 <div class="modal-bg" id="move-student-modal">
- <div class="modal" style="width:480px;">
+ <div class="modal" style="width:480px;max-width:96vw;">
  <h2>↔ Öğrenciyi Taşı</h2>
  <div style="font-size:12px;color:var(--muted2);margin-bottom:6px;">
  <strong id="ms-student-name">—</strong>öğrencisini <strong id="ms-from-route">—</strong>rotasından taşıyorsunuz
@@ -2298,7 +2312,7 @@ if(document.readyState === 'loading'){
 
 <!-- Öğrenci Düzenleme Modal -->
 <div class="modal-bg" id="student-edit-modal">
- <div class="modal" style="width:520px;">
+ <div class="modal" style="width:520px;max-width:96vw;">
  <h2>Öğrenci Düzenle</h2>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
  <div class="field" style="grid-column:1/-1"><label>Ad Soyad</label><input type="text" id="se-name" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
@@ -2318,7 +2332,7 @@ if(document.readyState === 'loading'){
 
 <!-- Şoför Düzenleme Modal -->
  <div class="modal-bg" id="driver-edit-modal">
- <div class="modal" style="width:520px;">
+ <div class="modal" style="width:520px;max-width:96vw;">
  <h2>Şoför Düzenle</h2>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
  <div class="field" style="grid-column:1/-1"><label>Ad Soyad</label><input type="text" id="de-name" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
@@ -2614,7 +2628,7 @@ function forceUpdate(){
  caches.keys().then(function(names){
  return Promise.all(names.map(function(n){ return caches.delete(n); }));
  }).then(function(){
- console.log('Cache temizlendi');
+ /* cache cleared */;
  });
  }
  
@@ -2759,6 +2773,8 @@ let _lastLocalSaveAt = 0;
 function _markPendingMain(){
  try{ localStorage.setItem(LS_PENDING_MAIN(), '1'); }catch(e){}
 }
+function _markPendingSofor(){ try{localStorage.setItem('_ksPendingSofor','1');}catch(e){} }
+function _clearPendingSofor(){ try{localStorage.removeItem('_ksPendingSofor');}catch(e){} }
 function _markPendingPay(){
  try{ localStorage.setItem(LS_PENDING_PAY(), '1'); }catch(e){}
 }
@@ -3037,7 +3053,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
    const rightPanel = document.getElementById('login-right-panel');
    const divider = ls ? ls.children[1] : null;
    if(ls){
-     ls.style.cssText = 'display:flex;flex-direction:column;height:auto;min-height:100vh;background:#060810;position:relative;overflow:visible;';
+     ls.style.cssText = 'display:flex;flex-direction:column;height:auto;min-height:100vh;background:var(--bg);position:relative;overflow:visible;';
    }
    if(leftPanel){
      leftPanel.style.cssText = 'display:none;';
@@ -3046,7 +3062,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
      divider.style.cssText = 'display:none;';
    }
    if(rightPanel){
-     rightPanel.style.cssText = 'width:100%;flex:1;background:#060810;display:flex;flex-direction:column;padding:40px 20px;position:relative;min-height:100vh;';
+     rightPanel.style.cssText = 'width:100%;flex:1;background:var(--bg);display:flex;flex-direction:column;padding:40px 20px;position:relative;min-height:100vh;';
    }
  }
 });
@@ -3884,9 +3900,10 @@ function addDriver(){
  const sok=document.getElementById('d-sokak').value;
  const no=document.getElementById('d-no').value.trim()||'–';
  const note=document.getElementById('d-note').value.trim();
- if(!name)return toast(' Ad girin','error');
- if(!ilce)return toast(' İlçe seçin','error');
- if(!mah)return toast(' Mahalle seçin','error');
+ function _hd(id){ const el=document.getElementById(id); if(el){el.style.borderColor='var(--red)';el.style.boxShadow='0 0 0 3px rgba(239,68,68,.12)';setTimeout(()=>{el.style.borderColor='';el.style.boxShadow='';},2000);} }
+ if(!name){_hd('d-name');return toast(' Ad girin','error');}
+ if(!ilce){_hd('d-ilce');return toast(' İlçe seçin','error');}
+ if(!mah){_hd('d-mahalle');return toast(' Mahalle seçin','error');}
  const c=getCoord(ilce,mah);
  drivers.push({id:nDid++,name,ph,lic,veh,tip,plaka,ilce,mah,sok,no,note,...c,assignedRoute:null});
  ['d-name','d-phone','d-no','d-note','d-plaka'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -4674,16 +4691,19 @@ function startOptimize(){
  btn.disabled = true;
 
  // UI'nın güncellenmesine izin ver, sonra hesapla
+ requestAnimationFrame(()=>{
+ // İkinci rAF: tarayıcının spinner'ı render etmesine zaman tanı
  requestAnimationFrame(()=>setTimeout(()=>{
- try {
- doOpt();
- } catch(err) {
- console.error('Optimizasyon hatası:', err);
- btn.innerHTML = ' Rotaları Optimize Et';
- btn.disabled = false;
- toast(' Optimizasyon hatası: ' + (err.message||'Bilinmeyen hata'), 'error');
- }
- }, 80));
+  try {
+   doOpt();
+  } catch(err) {
+   console.error('Optimizasyon hatası:', err);
+   btn.innerHTML = '🧠 Rotaları Optimize Et';
+   btn.disabled = false;
+   toast(' Optimizasyon hatası: ' + (err.message||'Bilinmeyen hata'), 'error');
+  }
+ }, 50));
+});
 }
 
 function doOpt(){
@@ -5050,7 +5070,7 @@ function renderRoutes(){
  const maxMin = parseInt(_rmaxmin?.value)||60;
  // r-filter: ileride kullanılabilir filtre alanı için yer tutucu
  if(!routes.length){
- w.innerHTML='<div class="empty"><div class="empty-icon"></div><div>Rotalar henüz oluşturulmadı</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Öğrenci ve şoför ekledikten sonra Optimize Et butonuna basın</div></div>';
+ w.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 6 2v5h-6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div>Rotalar henüz oluşturulmadı</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Öğrenci ve şoför ekledikten sonra Optimize Et butonuna basın</div></div>';
  st.style.display='none';
  _setHtml('r-lbl', '&ndash;');
  return;
@@ -5074,7 +5094,7 @@ function renderRoutes(){
  <div class="stop-row" style="background:${bg};border-radius:6px;padding:8px 10px;margin-bottom:4px;">
  <div class="stop-num" style="background:rgba(239,68,68,.15);color:var(--red);font-size:13px">${isSureAsimi?'⏱':''}</div>
  <div class="stop-info">
- <div class="stop-name">${s.name}${s.cls?` <span style="font-size:10px;color:var(--muted)">· ${s.cls}</span>`:''}<span style="font-size:10px;background:${SC[s.school]}22;color:${SC[s.school]};padding:1px 5px;border-radius:4px;margin-left:4px">${SCHOOLS[s.school].short}</span></div>
+ <div class="stop-name">${escHtml(s.name)}${s.cls?` <span style="font-size:10px;color:var(--muted)">· ${escHtml(s.cls)}</span>`:''}<span style="font-size:10px;background:${SC[s.school]}22;color:${SC[s.school]};padding:1px 5px;border-radius:4px;margin-left:4px">${SCHOOLS[s.school].short}</span></div>
  <div class="stop-addr"> ${s.ilce} / ${s.mah}${s.sok?' · '+s.sok:''}</div>
  <div class="warn-inline" style="${isSureAsimi?'background:rgba(239,68,68,.07);border-color:rgba(239,68,68,.2);color:#f87171;':''}">${msg}</div>
  </div>
@@ -5116,7 +5136,7 @@ function renderRoutes(){
  w.innerHTML=incCard+L.map(r=>{
  const ad=r.driverId?drivers.find(d=>d.id===r.driverId):null;
  const sch=SCHOOLS[r.school];
- const opts=drivers.map(d=>`<option value="${d.id}" ${r.driverId===d.id?'selected':''}>${d.name} &middot; ${d.ilce}/${d.mah}</option>`).join('');
+ const opts=drivers.map(d=>`<option value="${d.id}" ${r.driverId===d.id?'selected':''}>${escHtml(d.name)} &middot; ${escHtml(d.ilce)}/${escHtml(d.mah)}</option>`).join('');
  const capColor=r.students.length>maxP?'var(--red)':r.students.length<MIN_STUDENTS?'var(--amber)':'var(--green)';
  const capWarning=r.students.length>maxP
  ?`<span style="font-size:10px;color:var(--red);margin-left:4px">&#x26A0;&#xFE0F; Kapasite a&#x15F;&#x131;ld&#x131;</span>`
@@ -5146,7 +5166,7 @@ function renderRoutes(){
  return`<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid rgba(239,68,68,.12);font-size:11px">
  <div>
  <span style="font-weight:600;color:var(--text)">${s.name}</span>
- ${s.cls?`<span style="color:var(--muted);margin-left:4px">${s.cls}</span>`:''}
+ ${s.cls?`<span style="color:var(--muted);margin-left:4px">${escHtml(s.cls)}</span>`:''}
  <div style="color:var(--muted);font-size:10px;margin-top:1px">&#x1F4CD; ${s.mah} &middot; ${s.sok}</div>
  </div>
  <div style="text-align:right;flex-shrink:0;margin-left:8px">
@@ -5191,7 +5211,7 @@ function renderRoutes(){
  return`<div class="stop-row${isOut?' outlier':''}">
  <div class="stop-num" style="background:${isOut?'rgba(239,68,68,.2)':r.color+'22'};color:${isOut?'#ef4444':r.color}">${stopN}</div>
  <div class="stop-info">
- <div class="stop-name">${s.name}${s.cls?` <span style="font-size:10px;color:var(--muted)">&middot; ${s.cls}</span>`:''}<span style="font-size:10px;background:${SC[s.school]}22;color:${SC[s.school]};padding:1px 5px;border-radius:4px;margin-left:4px">${SCHOOLS[s.school].short}</span>${isOut?`<span class="outlier-badge">&#x26A0; AYKIRI</span>`:''}</div>
+ <div class="stop-name">${escHtml(s.name)}${s.cls?` <span style="font-size:10px;color:var(--muted)">&middot; ${escHtml(s.cls)}</span>`:''}<span style="font-size:10px;background:${SC[s.school]}22;color:${SC[s.school]};padding:1px 5px;border-radius:4px;margin-left:4px">${SCHOOLS[s.school].short}</span>${isOut?`<span class="outlier-badge">&#x26A0; AYKIRI</span>`:''}</div>
  <div class="stop-addr">&#x1F4CD; ${s.ilce} / ${s.mah} &middot; ${s.sok} No:${s.no}</div>
  ${leg.pickupTime?`<div style="font-size:10px;color:#34d399;font-weight:600;margin-top:2px">&#x1F552; Bini&#x15F;: ${leg.pickupTime}</div>`:''}
  ${isOut?`<div style="font-size:10px;color:#f87171;margin-top:1px">${outRsns}</div>`:''}
@@ -5361,7 +5381,7 @@ function _renderOverduePanel(){
  if(!gecikenler.length){
   panel.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:12px;margin-bottom:4px;">
    <div style="font-size:18px;">✅</div>
-   <div style="font-size:13px;color:#22c55e;font-weight:600;">Tüm ödemeler güncel — geciken öğrenci yok</div>
+   <div style="font-size:13px;color:var(--green);font-weight:600;">Tüm ödemeler güncel — geciken öğrenci yok</div>
   </div>`;
   return;
  }
@@ -5466,6 +5486,7 @@ function calcStudentTotals(sid){
  const p=getStudentPayment(sid);
  let paidMonths=0, totalAmount=0;
  AYLAR.forEach(a=>{ if(p[a.key]&&p[a.key].paid){ paidMonths++; totalAmount+=Number(p[a.key].amount||0); } });
+ totalAmount=Math.round(totalAmount*100)/100;
  return {paidMonths, totalAmount};
 }
 
@@ -5488,7 +5509,7 @@ function renderUcretOgrenci(){
  if(uSearch) list=list.filter(s=>s.name.toLowerCase().includes(uSearch));
 
  if(!list.length){
- wrap.innerHTML='<div class="empty"><div class="empty-icon"></div>Öğrenci bulunamadı.</div>';
+ wrap.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>Öğrenci bulunamadı.</div>';
  return;
  }
 
@@ -5499,10 +5520,10 @@ function renderUcretOgrenci(){
  const statusCol=pct===100?'var(--green)':t.paidMonths>0?'var(--amber)':'var(--red)';
  return`<div class="pay-row" style="position:relative;cursor:default;">
  <div onclick="openPaymentModal(${s.id})" style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;min-width:0;">
- <div class="pay-avatar" style="background:${SC[s.school]}18;border:1.5px solid ${SC[s.school]}44;color:${SC[s.school]};">${s.name.charAt(0).toUpperCase()}</div>
+ <div class="pay-avatar" style="background:${SC[s.school]}18;border:1.5px solid ${SC[s.school]}44;color:${SC[s.school]};">${escHtml(s.name.charAt(0).toUpperCase())}</div>
  <div style="flex:1;min-width:0;">
- <div style="font-weight:600;font-size:13px;">${s.name}</div>
- <div style="font-size:10px;color:var(--muted2);margin-top:1px;">${s.ilce} · ${s.mah}${s.cls?' · '+s.cls:''}</div>
+ <div style="font-weight:600;font-size:13px;">${escHtml(s.name)}</div>
+ <div style="font-size:10px;color:var(--muted2);margin-top:1px;">${escHtml(s.ilce||'')} · ${escHtml(s.mah||'')}${s.cls?' · '+escHtml(s.cls):''}</div>
  <div class="pay-progress-bar" style="margin-top:5px;">
  <div class="pay-progress-fill" style="width:${pct}%;background:${barCol};"></div>
  </div>
@@ -5594,7 +5615,7 @@ function openPaymentModal(sid){
  <span id="pm-lbl-${a.key}" style="color:${mp.paid?'var(--green)':'var(--muted2)'};font-weight:600;">${mp.paid?'Ödendi':'Bekliyor'}</span>
  </label>
  </div>
- <input type="number" id="pm-amt-${a.key}" value="${mp.amount||''}" placeholder="₺ Tutar" min="0"
+ <input type="number" id="pm-amt-${a.key}" value="${mp.amount||''}" placeholder="Tutar ₺" min="0" step="1" max="999999"
  oninput="updatePmSummary()" style="${mp.paid?'':'opacity:.5'}">
  </div>`;
   }).join('');
@@ -5632,6 +5653,7 @@ function updatePmSummary(){
  const amt=document.getElementById('pm-amt-'+a.key);
  if(chk&&chk.checked){ paidCount++; total+=Number(amt?.value||0); }
  });
+ total=Math.round(total*100)/100;
  _setText('pm-total', '₺'+total.toLocaleString('tr-TR'));
  _setText('pm-paid-months', paidCount+'/'+AYLAR.length);
  _setText('pm-remaining', AYLAR.length-paidCount);
@@ -5639,6 +5661,13 @@ function updatePmSummary(){
 
 function savePayments(){
  if(!_editingStudentId)return;
+ // Tutar doğrulama — negatif veya aşırı büyük değer engelle
+ let _tutatHata = false;
+ AYLAR.forEach(a=>{
+  const el=document.getElementById('pm-amt-'+a.key);
+  if(el&&el.value!==''){ const v=Number(el.value); if(v<0||v>999999){ el.style.borderColor='var(--red)'; setTimeout(()=>{el.style.borderColor='';},2000); _tutatHata=true; } }
+ });
+ if(_tutatHata){ toast('Tutar 0-999.999 arasında olmalı','error'); return; }
  if(!payments[_editingStudentId]) payments[_editingStudentId]={};
  AYLAR.forEach(a=>{
  const chk=document.getElementById('pm-chk-'+a.key);
@@ -6128,7 +6157,7 @@ function exportRotalarPDF(){
  <span><strong>${r.students.length}</strong>öğrenci</span>
  <span>⏱ <strong>${Math.round(r.min)} dk</strong></span>
  <span><strong>${r.km.toFixed(1)} km</strong></span>
- ${drv?`<span><strong>${drv.name}</strong></span>`:'<span style="color:#ef4444;">Şoför atanmadı</span>'}
+ ${drv?`<span><strong>${drv.name}</strong></span>`:'<span style="color:var(--red);">Şoför atanmadı</span>'}
  </div>
  </div>
  <!-- Öğrenci tablosu -->
@@ -6334,8 +6363,9 @@ function exportUcretExcel(){
 
  // Sayfa 1: Aylık özet tablosu
  const header1 = ['Ad Soyad', ...AYLAR_LABEL, 'Ödenen Ay', 'Kalan Ay', 'Durum'];
+ const _expSchIdx = getSchoolIdx(_activeSchoolKey);
  const rows1 = students
- .filter(s =>payments[s.id] !== undefined)
+ .filter(s =>payments[s.id] !== undefined && s.school===_expSchIdx)
  .map(s => {
  const p = payments[s.id] || {};
  const aylik = AYLAR_LIST.map(ay =>p[ay]?.paid ? '' : '–');
@@ -6683,7 +6713,7 @@ function renderMapLayers(){
  html:`<div style="width:22px;height:22px;border-radius:50%;background:#6b7280;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:10px;"></div>`,
  iconSize:[22,22],iconAnchor:[11,11]
  });
- L.marker([s.lat,s.lng],{icon}).bindPopup(`<strong>${s.name}</strong><br><span style="color:#f87171">Servis yok</span>`).addTo(studGroup);
+ L.marker([s.lat,s.lng],{icon}).bindPopup(`<strong>${escHtml(s.name)}</strong><br><span style="color:var(--red)">Servis yok</span>`).addTo(studGroup);
  });
  }
  _mapLayers.students = studGroup;
@@ -6700,7 +6730,7 @@ function renderMapLayers(){
  html:`<div style="width:30px;height:30px;border-radius:8px;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:15px;"></div>`,
  iconSize:[30,30],iconAnchor:[15,15]
  });
- const pop = `<strong>${d.name}</strong><br>
+ const pop = `<strong>${escHtml(d.name)}</strong><br>
  ${d.veh?` ${d.veh}<br>`:''}
  ${d.ph?` ${d.ph}<br>`:''}
  ${r?`<span style="color:${r.color};">${r.label}</span>`:'<span style="color:#9ca3af;">Atanmamış</span>'}`;
@@ -6719,7 +6749,7 @@ function renderMapLayers(){
  iconSize:[null,null],iconAnchor:[0,10], popupAnchor:[40,0]
  });
  const cnt = routes.filter(r=>r.school===i).reduce((a,r)=>a+r.students.length,0);
- const pop = `<strong>${s.name}</strong><br>
+ const pop = `<strong>${escHtml(s.name)}</strong><br>
  ${s.adres}<br>
  ${cnt} öğrenci · ${routes.filter(r=>r.school===i).length} rota<br>
  ⏰ Giriş: ${s.girisH}:${String(s.girisM).padStart(2,'0')}`;
@@ -6831,7 +6861,7 @@ function openDriverSheet(driverId){
  <div style="font-size:12px;font-weight:700;color:var(--green);">${time}</div>
  </div>
  <div style="font-size:11px;color:var(--muted2);">${s.ilce} / ${s.mah}${s.sok?' · '+s.sok:''}</div>
- ${s.cls?`<div style="font-size:10px;color:var(--muted2);">${s.cls}</div>`:''}
+ ${s.cls?`<div style="font-size:10px;color:var(--muted2);">${escHtml(s.cls)}</div>`:''}
  </div>
  </div>
  ${idx<r.students.length-1?'<div style="margin-left:16px;border-left:2px dashed var(--border);height:12px;"></div>':''}`;
@@ -7426,8 +7456,8 @@ function saveSoforData(){
   if(window._fbReady && _isOnline){
     const path = 'konseltur/GLOBAL/sofor';
     window._fbSet(window._fbRef(window._fbDb, path), payload)
-      .then(()=>flashSaveDot())
-      .catch(e=>console.warn('Şoför Firebase kayıt hatası:',e));
+      .then(()=>{ _clearPendingSofor&&_clearPendingSofor(); flashSaveDot(); })
+      .catch(e=>{ console.warn('Şoför Firebase kayıt hatası:',e); _markPendingSofor&&_markPendingSofor(); toast('⚠️ Şoför verisi yerel olarak kaydedildi. Bağlantı gelince senkronize edilecek.','info'); });
   }
 }
 
@@ -7446,7 +7476,7 @@ function soforAyKey(ayKod){ // "09" → "2024-09"
 
 // Bir şoförün bir ay için TEMEL beklenen ücreti (ekstra hariç)
 function soforAyUcret(s, ayKod){
-  if(s.tip==='kadro') return 25000;
+  if(s.tip==='kadro') return (parseFloat(s.maas)||25000);
   const list = Array.isArray(s.okulYovmiye)?s.okulYovmiye:[];
   return list.reduce((sum,x)=>sum+(parseFloat(x.yovmiye)||0)*20,0);
 }
@@ -7490,6 +7520,7 @@ function openEditSoforModal(id){
 function _soforModalFill(s){
   document.getElementById('sam-name').value = s?s.name:'';
   document.getElementById('sam-ph').value = s?s.ph:'';
+  const maasEl2 = document.getElementById('sam-maas'); if(maasEl2) maasEl2.value = s?(s.maas||25000):25000;
   document.getElementById('sam-plaka').value = s?s.plaka:'';
   document.getElementById('sam-tip').value = s?s.tip:'kadro';
   document.getElementById('sam-color').value = s?s.color:'#8b5cf6';
@@ -7500,8 +7531,10 @@ function _soforModalFill(s){
 
 function _toggleSamTip(){
   const tip = document.getElementById('sam-tip').value;
-  const section = document.getElementById('sam-taseron-section');
-  if(section) section.style.display = tip==='taseron'?'block':'none';
+  const ts = document.getElementById('sam-taseron-section');
+  const ks = document.getElementById('sam-kadro-section');
+  if(ts) ts.style.display = tip==='taseron'?'block':'none';
+  if(ks) ks.style.display = tip==='kadro'?'block':'none';
 }
 
 function _buildOkulYovmiyeRows(list){
@@ -7544,6 +7577,7 @@ function saveSoforModal(){
   const ph    = document.getElementById('sam-ph').value.trim();
   const plaka = document.getElementById('sam-plaka').value.trim().toUpperCase();
   const color = document.getElementById('sam-color').value;
+  const maas  = tip==='kadro' ? (parseInt(document.getElementById('sam-maas')?.value)||25000) : 0;
 
   // Taşeron: okul-yövmiye satırlarını topla
   let okulYovmiye = [];
@@ -7560,9 +7594,9 @@ function saveSoforModal(){
   const editId = window._editSoforId;
   if(editId){
     const idx = soforler.findIndex(x=>x.id===editId);
-    if(idx>=0) soforler[idx]={...soforler[idx], name, tip, ph, plaka, color, okulYovmiye};
+    if(idx>=0) soforler[idx]={...soforler[idx], name, tip, ph, plaka, color, maas, okulYovmiye};
   } else {
-    soforler.push({id:nSid2++, name, tip, ph, plaka, color, okulYovmiye});
+    soforler.push({id:nSid2++, name, tip, ph, plaka, color, maas, okulYovmiye});
   }
   saveSoforData();
   document.getElementById('sofor-add-modal').classList.remove('open');
@@ -7669,7 +7703,7 @@ function openImportSoforModal(){
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;">
       <!-- Şoför bilgisi + seçim -->
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-        <input type="checkbox" id="sim-chk-${d.id}" checked style="width:16px;height:16px;cursor:pointer;accent-color:#8b5cf6;flex-shrink:0;">
+        <input type="checkbox" id="sim-chk-${d.id}" checked style="width:16px;height:16px;cursor:pointer;accent-color:var(--purple);flex-shrink:0;">
         <div style="flex:1;min-width:0;">
           <div style="font-weight:700;font-size:14px;">${escHtml(d.name)}</div>
           <div style="font-size:11px;color:var(--muted2);">${d.ph?'📞 '+escHtml(d.ph)+' · ':''}${d.veh?'🚌 '+escHtml(d.veh):'—'}</div>
@@ -7992,7 +8026,7 @@ function renderSoforListe(){
     const odRatio = toplamAlacak>0?Math.round(toplamOdenen/toplamAlacak*100):0;
     sumEl.innerHTML = `
       <div class="sc-stat">
-        <div style="font-size:28px;margin-bottom:4px;">🧑‍✈️</div>
+        <div style="width:44px;height:44px;border-radius:50%;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#a78bfa;margin:0 auto 6px;">${s.name?s.name.split(' ').map(w=>w[0]||'?').join('').slice(0,2).toUpperCase():'?'}</div>
         <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:900;color:var(--text);">${total}</div>
         <div style="font-size:10px;color:rgba(255,255,255,.28);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Şoför</div>
       </div>
@@ -8325,8 +8359,8 @@ function _renderIslemGecmisi(soforId, ayKey){
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
         <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#4ade80;">+${fmt(parseFloat(ix.tutar)||0)}</div>
-        <button onclick="editIslem(${soforId},'${ayKey}',${i})" title="Düzenle" style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(245,158,11,.2);background:rgba(245,158,11,.06);color:#fbbf24;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" onmouseover="this.style.background='rgba(245,158,11,.2)'" onmouseout="this.style.background='rgba(245,158,11,.06)'">✏️</button>
-        <button onclick="deleteIslem(${soforId},'${ayKey}',${i})" title="Sil" style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#f87171;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">×</button>
+        <button onclick="editIslem(${soforId},'${ayKey}',${i})" title="Düzenle" style="width:36px;height:36px;border-radius:8px;border:1px solid rgba(245,158,11,.2);background:rgba(245,158,11,.06);color:#fbbf24;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" onmouseover="this.style.background='rgba(245,158,11,.2)'" onmouseout="this.style.background='rgba(245,158,11,.06)'">✏️</button>
+        <button onclick="deleteIslem(${soforId},'${ayKey}',${i})" title="Sil" style="width:36px;height:36px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#f87171;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">×</button>
       </div>
     </div>`;
   }).join('');
@@ -8349,7 +8383,7 @@ function _renderEkstraIsler(soforId, ayKey){
         <div style="font-size:10px;color:rgba(255,255,255,.3);">${ex.tarih?new Date(ex.tarih).toLocaleDateString('tr-TR',{day:'2-digit',month:'short'}):'—'}</div>
       </div>
       <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#60a5fa;">${fmt(parseFloat(ex.tutar)||0)}</div>
-      <button onclick="editEkstra(${soforId},'${ayKey}',${i})" title="Düzenle" style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(245,158,11,.2);background:rgba(245,158,11,.06);color:#fbbf24;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(245,158,11,.2)'" onmouseout="this.style.background='rgba(245,158,11,.06)'">✏️</button>
+      <button onclick="editEkstra(${soforId},'${ayKey}',${i})" title="Düzenle" style="width:36px;height:36px;border-radius:8px;border:1px solid rgba(245,158,11,.2);background:rgba(245,158,11,.06);color:#fbbf24;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(245,158,11,.2)'" onmouseout="this.style.background='rgba(245,158,11,.06)'">✏️</button>
       <button onclick="deleteEkstra(${soforId},'${ayKey}',${i})" style="width:24px;height:24px;border-radius:6px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#f87171;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">×</button>
     </div>`).join('');
 }
@@ -8358,6 +8392,10 @@ function deleteIslem(soforId, ayKey, idx){
   if(!soforPayments[soforId]) return;
   if(!soforPayments[soforId][ayKey]) return;
   const islemler = soforPayments[soforId][ayKey].islemler||[];
+  const ix = islemler[idx];
+  if(!ix) return;
+  const tipLabel = {avans:'Avans',odeme:'Ödeme',ekstra:'Ekstra Gelir',duzeltme:'Düzeltme'}[ix.tip]||ix.tip;
+  if(!confirm('Bu işlem kalıcı olarak silinecek:\n'+tipLabel+' — '+fmt(ix.tutar||0)+'\nDevam etmek istiyor musunuz?')) return;
   islemler.splice(idx,1);
   soforPayments[soforId][ayKey].islemler = islemler;
   saveSoforData();
@@ -8373,11 +8411,12 @@ function deleteEkstra(soforId, ayKey, idx){
   const ekstralar = soforPayments[soforId][ayKey].ekstra||[];
   const ex = ekstralar[idx];
   if(!ex) return;
+  if(!confirm('Bu ekstra iş kaydı silinecek:\n'+(ex.aciklama||'Ekstra iş')+' — '+fmt(ex.tutar||0)+'\nDevam etmek istiyor musunuz?')) return;
   ekstralar.splice(idx,1);
   soforPayments[soforId][ayKey].ekstra = ekstralar;
   // islemler'deki eşleşeni de sil (aynı tutar+tarih)
   const islemler = soforPayments[soforId][ayKey].islemler||[];
-  const iIdx = islemler.findIndex(x=>x.tip==='ekstra'&&x.tutar==ex.tutar&&x.tarih===ex.tarih);
+  const iIdx = ex.id ? islemler.findIndex(x=>x.id===ex.id) : islemler.findIndex(x=>x.tip==='ekstra'&&x.tutar==ex.tutar&&x.tarih===ex.tarih);
   if(iIdx>=0) islemler.splice(iIdx,1);
   soforPayments[soforId][ayKey].islemler = islemler;
   saveSoforData();
@@ -8419,7 +8458,7 @@ function saveSoforPayModal(){
       if(oldEx){
         // islemler'deki eşleşeni de güncelle
         const islemler = soforPayments[id][ay].islemler||[];
-        const iIdx = islemler.findIndex(x=>x.tip==='ekstra'&&x.tutar==oldEx.tutar&&x.tarih===oldEx.tarih);
+        const iIdx = oldEx.id ? islemler.findIndex(x=>x.id===oldEx.id) : islemler.findIndex(x=>x.tip==='ekstra'&&x.tutar==oldEx.tutar&&x.tarih===oldEx.tarih);
         const newTarih = oldEx.tarih||new Date().toISOString();
         ekstralar[editIslemIdx] = {aciklama:not2||'Ekstra iş',tutar,tarih:newTarih};
         if(iIdx>=0) islemler[iIdx] = {tip:'ekstra',tutar,not:not2||'Ekstra iş',tarih:newTarih};
@@ -8437,10 +8476,11 @@ function saveSoforPayModal(){
     // Yeni kayıt
     if(tip==='ekstra'){
       if(!soforPayments[id][ay].ekstra) soforPayments[id][ay].ekstra=[];
-      soforPayments[id][ay].ekstra.push({aciklama:not2||'Ekstra iş',tutar,tarih:new Date().toISOString()});
+      const _eid='e'+Date.now();
+      soforPayments[id][ay].ekstra.push({id:_eid,aciklama:not2||'Ekstra iş',tutar,tarih:new Date().toISOString()});
       // Ekstra ödeme islemler'e de yansıtılır (ödenen tutara sayılsın)
       if(!soforPayments[id][ay].islemler) soforPayments[id][ay].islemler=[];
-      soforPayments[id][ay].islemler.push({tip:'ekstra',tutar,not:not2||'Ekstra iş',tarih:new Date().toISOString()});
+      soforPayments[id][ay].islemler.push({id:_eid,tip:'ekstra',tutar,not:not2||'Ekstra iş',tarih:new Date().toISOString()});
     } else {
       if(!soforPayments[id][ay].islemler) soforPayments[id][ay].islemler=[];
       soforPayments[id][ay].islemler.push({tip,tutar,not:not2,tarih:new Date().toISOString()});
@@ -8531,7 +8571,7 @@ function _setPayBtnEditMode(editing){
       <div>
         <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Şoför Tipi</div>
         <select id="sam-tip" onchange="_toggleSamTip()" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s;" onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.09)'">
-          <option value="kadro">Kadro (Sabit 25.000₺)</option>
+          <option value="kadro">Kadro (Sabit Maaşlı)</option>
           <option value="taseron">Taşeron (Yövmiyeli)</option>
         </select>
       </div>
@@ -8539,6 +8579,10 @@ function _setPayBtnEditMode(editing){
         <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Renk</div>
         <input id="sam-color" type="color" value="#8b5cf6" style="width:100%;height:36px;padding:2px;background:var(--card2);border:1px solid var(--border);border-radius:9px;cursor:pointer;">
       </div>
+    </div>
+    <div id="sam-kadro-section" style="display:none;margin-bottom:10px;">
+      <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Aylık Maaş (₺) *</div>
+      <input id="sam-maas" type="number" min="0" step="1" max="9999999" placeholder="25000" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s;" onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.09)'">
     </div>
     <div id="sam-taseron-section" style="display:none;margin-bottom:12px;">
       <div style="font-size:11px;color:var(--muted2);margin-bottom:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;">Okul Bazlı Yövmiye</div>
@@ -8614,7 +8658,7 @@ function _setPayBtnEditMode(editing){
       <!-- Tutar -->
       <div style="margin-bottom:10px;">
         <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">Tutar (₺)</div>
-        <input id="spm-tutar" type="number" placeholder="0" class="pmi-input" style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif;color:#4ade80;">
+        <input id="spm-tutar" type="number" placeholder="0" min="1" step="1" max="9999999" class="pmi-input" style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif;color:#4ade80;">
       </div>
 
       <!-- Not -->
