@@ -8026,7 +8026,7 @@ function renderSoforListe(){
     const odRatio = toplamAlacak>0?Math.round(toplamOdenen/toplamAlacak*100):0;
     sumEl.innerHTML = `
       <div class="sc-stat">
-        <div style="width:44px;height:44px;border-radius:50%;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#a78bfa;margin:0 auto 6px;">${s.name?s.name.split(' ').map(w=>w[0]||'?').join('').slice(0,2).toUpperCase():'?'}</div>
+        <div style="width:44px;height:44px;border-radius:50%;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin:0 auto 6px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
         <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:900;color:var(--text);">${total}</div>
         <div style="font-size:10px;color:rgba(255,255,255,.28);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-top:2px;">Şoför</div>
       </div>
