@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#C8371A">
+<meta name="theme-color" content="var(--brand)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Konseltur">
@@ -23,7 +23,7 @@
  --card2:#141c30;
  --border:#1a2540;
  --border2:#243050;
- --brand:#C8371A;
+ --brand:#c8371a;
  --brand2:#a82d15;
  --brand-glow:rgba(200,55,26,.15);
  --navy:#1B2B5E;
@@ -823,7 +823,7 @@ body.light .btn-ghost{background:#f5f6f8;border-color:#e2e5ea;color:#111827;}
 body.light .btn-ghost:hover{background:#eaecef;}
 body.light .search-wrap input{background:#f5f6f8;border-color:#e2e5ea;color:#111827;}
 body.light .filter-chip{background:#f5f6f8;border-color:#e2e5ea;color:#64748b;}
-body.light .filter-chip.active{background:rgba(200,55,26,.08);border-color:rgba(200,55,26,.3);color:#c8371a;}
+body.light .filter-chip.active{background:rgba(200,55,26,.08);border-color:rgba(200,55,26,.3);color:var(--brand);}
 body.light .month-cell{background:#f5f6f8;border-color:#e2e5ea;}
 body.light .month-cell.paid{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.3);}
 body.light .nav-tab{color:var(--muted2);}
@@ -1125,7 +1125,7 @@ try{
         <div style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.22);pointer-events:none;line-height:0;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
-        <input type="password" id="pw-input" placeholder="Şifre" maxlength="64" autofocus
+        <input type="password" id="pw-input" placeholder="Şifre" maxlength="64" autocomplete="current-password" autofocus
           style="width:100%;box-sizing:border-box;padding:15px 16px 15px 46px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:13px;color:#fff;font-size:15px;font-family:'Outfit',sans-serif;outline:none;letter-spacing:3px;transition:border-color .2s,box-shadow .2s;"
           onfocus="this.style.borderColor='rgba(200,55,26,.6)';this.style.boxShadow='0 0 0 3px rgba(200,55,26,.1)'"
           onblur="this.style.borderColor='rgba(255,255,255,.08)';this.style.boxShadow='none'"
@@ -1288,7 +1288,7 @@ if(document.readyState === 'loading'){
  <label style="font-size:11px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.5px;display:block;margin-bottom:5px;">OKUL TAM ADI *</label>
  <input id="asc-name" type="text" placeholder="Özel Örnek Anadolu Lisesi" maxlength="80"
  style="width:100%;background:var(--bg);border:1px solid #1a2540;border-radius:10px;padding:10px 12px;color:#e8eaf2;font-size:13px;font-family:'Outfit',sans-serif;outline:none;"
- oninput="this.style.borderColor='#C8371A44'">
+ oninput="this.style.borderColor='var(--brand)44'">
  </div>
  <!-- Kısa ad (tam genişlik) -->
  <div>
@@ -1372,7 +1372,7 @@ if(document.readyState === 'loading'){
  İptal
  </button>
  <button id="asc-save-btn" onclick="saveNewSchool()"
- style="flex:2;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#C8371A,#a82d15);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px rgba(200,55,26,.3);">
+ style="flex:2;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--brand),#a82d15);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 16px rgba(200,55,26,.3);">
  Kaydet
  </button>
  </div>
@@ -1785,7 +1785,7 @@ if(document.readyState === 'loading'){
  <div class="sidebar-sub">İlçe → Mahalle → Sokak seçin</div>
  </div>
  <div class="sidebar-body">
- <div class="field"><label>Ad Soyad</label><input type="text" id="s-name" placeholder="Öğrenci adı soyadı"></div>
+ <div class="field"><label>Ad Soyad</label><input type="text" id="s-name" maxlength="80" placeholder="Öğrenci adı soyadı"></div>
  <input type="hidden" id="s-school" value="">
  <div class="field"><label>Sınıf</label>
  <select id="s-class"><option value="">–</option>
@@ -1793,7 +1793,7 @@ if(document.readyState === 'loading'){
  <option>9. Sınıf</option><option>10. Sınıf</option><option>11. Sınıf</option><option>12. Sınıf</option>
  </select>
  </div>
- <div class="field"><label>Veli Telefonu</label><input type="text" id="s-phone" placeholder="05XX XXX XX XX"></div>
+ <div class="field"><label>Veli Telefonu</label><input type="text" id="s-phone" maxlength="20" placeholder="05XX XXX XX XX"></div>
  <div class="sec-label">Adres</div>
  <div class="field"><label>İlçe</label>
  <select id="s-ilce" onchange="cascadeIlce('s')">
@@ -1803,7 +1803,7 @@ if(document.readyState === 'loading'){
  </div>
  <div class="field"><label>Mahalle</label><select id="s-mahalle" onchange="cascadeMahalle('s')"><option value="">-- Önce İlçe --</option></select></div>
  <div class="field"><label>Cadde / Sokak</label><select id="s-sokak"><option value="">-- Önce Mahalle --</option></select></div>
- <div class="field"><label>Kapı No</label><input type="text" id="s-no" placeholder="Örn: 12"></div>
+ <div class="field"><label>Kapı No</label><input type="text" id="s-no" maxlength="10" placeholder="Örn: 12"></div>
  </div>
  <div class="sidebar-footer">
  <button class="btn btn-brand btn-full" onclick="addStudent()">Öğrenci Ekle</button>
@@ -1833,7 +1833,7 @@ if(document.readyState === 'loading'){
  <option value="">Tüm Rotalar</option><option value="none">Rotasız</option>
  </select>
  </div>
- <div class="search-wrap"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" id="sf-search" placeholder="Öğrenci adı, mahalle veya sokak ara..." oninput="searchS(this.value)"></div>
+ <div class="search-wrap"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" id="sf-search" maxlength="80" placeholder="Öğrenci adı, mahalle veya sokak ara..." oninput="searchS(this.value)"></div>
  <div id="s-wrap"><div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div>Henüz öğrenci eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden öğrenci ekleyin veya Excel'den toplu yükleyin</div></div></div>
  </div>
 </div>
@@ -1843,15 +1843,15 @@ if(document.readyState === 'loading'){
  <div class="sidebar">
  <div class="sidebar-header"><div class="sidebar-title">Şoför Ekle</div><div class="sidebar-sub">Şoför ve adres bilgilerini girin</div></div>
  <div class="sidebar-body">
- <div class="field"><label>Ad Soyad</label><input type="text" id="d-name" placeholder="Şoför adı soyadı"></div>
- <div class="field"><label>Telefon</label><input type="text" id="d-phone" placeholder="05XX XXX XX XX"></div>
+ <div class="field"><label>Ad Soyad</label><input type="text" id="d-name" maxlength="80" placeholder="Şoför adı soyadı"></div>
+ <div class="field"><label>Telefon</label><input type="text" id="d-phone" maxlength="20" placeholder="05XX XXX XX XX"></div>
  <div class="field"><label>Şoför Tipi</label>
  <select id="d-tip">
    <option value="kadro">Kadro (Sabit Maaş)</option>
    <option value="taseron">Taşeron (Yövmiyeli)</option>
  </select>
  </div>
- <div class="field"><label>Araç Plakası</label><input type="text" id="d-plaka" placeholder="42 ABC 123" oninput="this.value=this.value.toUpperCase()"></div>
+ <div class="field"><label>Araç Plakası</label><input type="text" id="d-plaka" maxlength="12" placeholder="42 ABC 123" oninput="this.value=this.value.toUpperCase()"></div>
  <div class="field"><label>Ehliyet</label>
  <select id="d-lic"><option>D Sınıfı (Minibüs/Otobüs)</option><option>C Sınıfı</option><option>B Sınıfı</option></select>
  </div>
@@ -1867,8 +1867,8 @@ if(document.readyState === 'loading'){
  </div>
  <div class="field"><label>Mahalle</label><select id="d-mahalle" onchange="cascadeMahalle('d')"><option>-- Önce İlçe --</option></select></div>
  <div class="field"><label>Sokak</label><select id="d-sokak"><option>-- Önce Mahalle --</option></select></div>
- <div class="field"><label>Kapı No</label><input type="text" id="d-no" placeholder="–"></div>
- <div class="field"><label>Not</label><input type="text" id="d-note" placeholder="Opsiyonel not"></div>
+ <div class="field"><label>Kapı No</label><input type="text" id="d-no" maxlength="10" placeholder="–"></div>
+ <div class="field"><label>Not</label><input type="text" id="d-note" maxlength="200" placeholder="Opsiyonel not"></div>
  </div>
  <div class="sidebar-footer">
  <button class="btn btn-brand btn-full" onclick="addDriver()">Şoför Ekle</button>
@@ -2318,13 +2318,13 @@ if(document.readyState === 'loading'){
  <div class="modal" style="width:520px;max-width:96vw;">
  <h2>Öğrenci Düzenle</h2>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
- <div class="field" style="grid-column:1/-1"><label>Ad Soyad</label><input type="text" id="se-name" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>Sınıf</label><input type="text" id="se-cls" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>Telefon</label><input type="text" id="se-ph" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>İlçe</label><input type="text" id="se-ilce" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>Mahalle</label><input type="text" id="se-mah" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>Sokak</label><input type="text" id="se-sok" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>Kapı No</label><input type="text" id="se-no" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field" style="grid-column:1/-1"><label>Ad Soyad</label><input type="text" id="se-name" maxlength="80" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Sınıf</label><input type="text" id="se-cls" maxlength="30" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Telefon</label><input type="text" id="se-ph" maxlength="20" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>İlçe</label><input type="text" id="se-ilce" maxlength="50" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Mahalle</label><input type="text" id="se-mah" maxlength="80" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Sokak</label><input type="text" id="se-sok" maxlength="100" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Kapı No</label><input type="text" id="se-no" maxlength="10" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  </div>
  <div style="display:flex;gap:8px;margin-top:18px;">
  <button class="btn btn-brand" style="flex:1;" onclick="saveStudentEdit()">Kaydet</button>
@@ -2338,20 +2338,20 @@ if(document.readyState === 'loading'){
  <div class="modal" style="width:520px;max-width:96vw;">
  <h2>Şoför Düzenle</h2>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
- <div class="field" style="grid-column:1/-1"><label>Ad Soyad</label><input type="text" id="de-name" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>Telefon</label><input type="text" id="de-ph" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field" style="grid-column:1/-1"><label>Ad Soyad</label><input type="text" id="de-name" maxlength="80" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Telefon</label><input type="text" id="de-ph" maxlength="20" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  <div class="field"><label>Şoför Tipi</label>
    <select id="de-tip" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;">
      <option value="kadro">Kadro (Sabit Maaş)</option>
      <option value="taseron">Taşeron (Yövmiyeli)</option>
    </select>
  </div>
- <div class="field"><label>Araç Plakası</label><input type="text" id="de-plaka" placeholder="42 ABC 123" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>Ehliyet Sınıfı</label><input type="text" id="de-lic" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>Araç Tipi</label><input type="text" id="de-veh" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>İlçe</label><input type="text" id="de-ilce" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field"><label>Mahalle</label><input type="text" id="de-mah" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
- <div class="field" style="grid-column:1/-1"><label>Not</label><input type="text" id="de-note" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Araç Plakası</label><input type="text" id="de-plaka" maxlength="12" placeholder="42 ABC 123" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Ehliyet Sınıfı</label><input type="text" id="de-lic" maxlength="30" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Araç Tipi</label><input type="text" id="de-veh" maxlength="50" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>İlçe</label><input type="text" id="de-ilce" maxlength="50" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Mahalle</label><input type="text" id="de-mah" maxlength="80" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field" style="grid-column:1/-1"><label>Not</label><input type="text" id="de-note" maxlength="200" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  </div>
  <div style="display:flex;gap:8px;margin-top:18px;">
  <button class="btn btn-brand" style="flex:1;" onclick="saveDriverEdit()">Kaydet</button>
@@ -2686,7 +2686,7 @@ const SCHOOLS=[
  adres:"Kayacık Araplar Mah. Ataç Sk. No:1, 42050 Karatay/Konya",lat:37.88442,lng:32.50365,
  mapsAddr:"Keçeciler,+Ataç+Sk.+No:1,+42050+Karatay/Konya",
  girisH:8,girisM:15, cikisH:15,cikisM:30,
- color:"#C8371A", icon:""},
+ color:"var(--brand)", icon:""},
  // index 1 — Gençlik | Giriş 09:30 | Çıkış 16:20
  {key:"genclik",name:"Özel Gençlik İlkokulu / Ortaokulu",short:"Gençlik",ilce:"Meram",mah:"Durunday Mah.",
  adres:"Durunday Mah. Büyükçiçek Sk. No:11, 42090 Meram/Konya",lat:37.83619,lng:32.41770,
@@ -3860,9 +3860,11 @@ function _updateRotaFilterDropdown(){
 }
 
 function filterS(f,el){sF=f;document.querySelectorAll('#page-students .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderSTable();}
-function searchS(q){sSr=q.toLowerCase();renderSTable();}
+function searchS(q){sSr=q.toLocaleLowerCase('tr-TR');renderSTable();}
 
 function renderSTable(){
+ try {
+
  const w=document.getElementById('s-wrap');
  if(!w) return;
  const _activeIdx=getSchoolIdx(_activeSchoolKey);
@@ -3872,7 +3874,7 @@ function renderSTable(){
  if(_sfSinif) L=L.filter(s=>s.cls===_sfSinif);
  if(_sfRota==='none') L=L.filter(s=>!routes.some(r=>r.students.some(rs=>rs.id===s.id)));
  else if(_sfRota) L=L.filter(s=>routes.find(r=>r.id===+_sfRota)?.students.some(rs=>rs.id===s.id));
- if(sSr)L=L.filter(s=>s.name.toLowerCase().includes(sSr)||(s.mah||'').toLowerCase().includes(sSr)||(s.ilce||'').toLowerCase().includes(sSr)||(s.sok||'').toLowerCase().includes(sSr));
+ if(sSr)L=L.filter(s=>s.name.toLocaleLowerCase('tr-TR').includes(sSr)||(s.mah||'').toLocaleLowerCase('tr-TR').includes(sSr)||(s.ilce||'').toLocaleLowerCase('tr-TR').includes(sSr)||(s.sok||'').toLocaleLowerCase('tr-TR').includes(sSr));
  _setText('s-lbl', L.length+' öğrenci'+(sSr?' (arama sonucu)':''));
  if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>Arama sonucu bulunamadı.</div>';return;}
  w.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Ad Soyad</th><th>İlçe</th><th>Mahalle</th><th>Cadde/Sokak</th><th>Sınıf</th><th>Telefon</th><th></th><th></th></tr></thead><tbody>`+
@@ -3888,6 +3890,8 @@ function renderSTable(){
  <td><button class="btn btn-red btn-sm" onclick="removeStudent(${s.id})" style="padding:4px 10px;font-size:13px;" title="Sil">🗑</button></td>
  <td><button class="btn btn-ghost btn-sm" onclick="openStudentEdit(${s.id})" style="padding:4px 10px;font-size:13px;" title="Düzenle">✏️</button></td>
  </tr>`).join('')+`</tbody></table>`;
+
+ } catch(e){ console.error("renderSTable hata:", e); }
 }
 
 // 
@@ -3974,13 +3978,15 @@ function clearDrivers(){
  }
  );
 }
-function searchD(q){dSr=q.toLowerCase();renderDrivers();}
+function searchD(q){dSr=q.toLocaleLowerCase('tr-TR');renderDrivers();}
 
 function renderDrivers(){
+ try {
+
  const w=document.getElementById('d-wrap');
  if(!w) return;
  let L=drivers;
- if(dSr)L=L.filter(d=>d.name.toLowerCase().includes(dSr)||(d.ilce||'').toLowerCase().includes(dSr));
+ if(dSr)L=L.filter(d=>d.name.toLocaleLowerCase('tr-TR').includes(dSr)||(d.ilce||'').toLocaleLowerCase('tr-TR').includes(dSr));
  _setText('d-lbl', drivers.length+' şoför kayıtlı');
  if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="5"/><path d="M3 21v-1a9 9 0 0 1 18 0v1"/></svg></div><div>Henüz şoför eklenmedi</div><div style="font-size:11px;color:var(--muted2);margin-top:6px;">Sol panelden şoför ekleyin</div></div>';return;}
  w.innerHTML=L.map(d=>{
@@ -4005,18 +4011,23 @@ function renderDrivers(){
  </div>
  </div>`;
  }).join('');
+
+ } catch(e){ console.error("renderDrivers hata:", e); }
 }
 
 // 
 // GENEL HELPERS
 // 
 function updateAll(){renderSTable();renderDrivers();renderRoutes();updateDash();updateRPanel();}
+let _toastTimer=null;
 function toast(m,t='success'){
  const e=document.getElementById('toast');
+ if(!e) return;
+ if(_toastTimer) clearTimeout(_toastTimer);
  e.textContent=m;e.className='toast '+t+' show';
  if(t==='success') playSuccessSound();
  else if(t==='error') playNotifSound();
- setTimeout(()=>e.classList.remove('show'),2800);
+ _toastTimer=setTimeout(()=>{ e.classList.remove('show'); _toastTimer=null; },2800);
 }
 function updateRPanel(){
  if(!document.getElementById('rp-s')) return;
@@ -5068,6 +5079,8 @@ function routeHealthScore(r,maxP,maxMin){
 function healthColor(score){return score>=80?'var(--green)':score>=55?'var(--amber)':'var(--red)';}
 
 function renderRoutes(){
+ try {
+
  const _rmax = document.getElementById('r-max');
  const _rmaxmin = document.getElementById('r-maxmin');
  const w = document.getElementById('r-wrap');
@@ -5283,6 +5296,8 @@ function renderRoutes(){
  // Şoför mobil butonlarını inject et
  setTimeout(injectDriverSheetButtons, 60);
  _updateRotaFilterDropdown();
+
+ } catch(e){ console.error("renderRoutes hata:", e); }
 }
 
 function clearRoutes(){
@@ -5506,6 +5521,8 @@ function filterUcret(f,el){
 function searchUcret(q){ uSearch=q.toLowerCase(); renderUcretOgrenci(); }
 
 function renderUcretOgrenci(){
+ try {
+
  const wrap=document.getElementById('u-student-list');
  if(!wrap) return;
  // Sadece ücret listesine eklenmiş öğrenciler (payments kaydı olanlar)
@@ -5545,9 +5562,13 @@ function renderUcretOgrenci(){
  style="flex-shrink:0;margin-left:8px;padding:4px 8px;border-radius:6px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.07);color:#f87171;font-size:11px;cursor:pointer;opacity:0.7;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7"></button>
  </div>`;
  }).join('');
+
+ } catch(e){ console.error("renderUcretOgrenci hata:", e); }
 }
 
 function renderUcretGenel(){
+ try {
+
  const el=id=>document.getElementById(id);
  const totalS=students.length;
  let paidCount=0, totalAmount=0, unpaidCount=0;
@@ -5595,6 +5616,8 @@ function renderUcretGenel(){
  </div>`;
  }).join('');
  }
+
+ } catch(e){ console.error("renderUcretGenel hata:", e); }
 }
 
 function openPaymentModal(sid){
@@ -6135,7 +6158,7 @@ function exportRotalarPDF(){
 
  const today = new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
  const schoolName = SCHOOL_NAMES[_activeSchoolKey] || '';
- const schoolColor = SCHOOL_COLORS[_activeSchoolKey] || '#C8371A';
+ const schoolColor = SCHOOL_COLORS[_activeSchoolKey] || 'var(--brand)';
 
  let rotaHTML = '';
  routes.forEach((r, ri) => {
@@ -6352,7 +6375,7 @@ function printUcretGenel(){
  <div class="stats">
  <div class="stat"><div class="stat-val" style="color:var(--green)">${paidC}</div><div class="stat-lbl">Güncel Ödeme</div></div>
  <div class="stat"><div class="stat-val" style="color:var(--red)">${unpaidC}</div><div class="stat-lbl">Bekleyen</div></div>
- <div class="stat"><div class="stat-val" style="color:#7c3aed">${totalA}</div><div class="stat-lbl">Toplam Tahsilat</div></div>
+ <div class="stat"><div class="stat-val" style="color:#8b5cf6">${totalA}</div><div class="stat-lbl">Toplam Tahsilat</div></div>
  </div>
  <table>
  <thead><tr><th>Öğrenci</th>${ayHeaders}<th style="text-align:right">Ödenen</th><th style="text-align:center">%</th></tr></thead>
@@ -6923,7 +6946,7 @@ function printDriverSheet(){
  const duration = _g('dm-duration');
  const km = _g('dm-km');
  const today = new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
- const schoolColor= SCHOOL_COLORS[_activeSchoolKey]||'#C8371A';
+ const schoolColor= SCHOOL_COLORS[_activeSchoolKey]||'var(--brand)';
 
  // Öğrenci satırları: adı + adresi + telefon
  const rid = routes.findIndex(r=>{ const d=drivers.find(d=>d.id===r.driverId); return d && d.name===driverName; });
@@ -6997,7 +7020,7 @@ function printDriverSheet(){
  <div>
  <img class="header-logo" src="https://www.konseltur.com.tr/konseltur_logo.png"
  onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
- <div style="display:none;font-size:22px;font-weight:900;color:#C8371A;letter-spacing:2px;">KONSELTUR</div>
+ <div style="display:none;font-size:22px;font-weight:900;color:var(--brand);letter-spacing:2px;">KONSELTUR</div>
  <div style="font-size:10px;color:#888;margin-top:4px;">Nişantaş, Demiryolu Cad. No:48/c · Selçuklu/Konya</div>
  <div style="font-size:10px;color:#888;">Tel: +90 332 235 55 30 · info@konseltur.com.tr</div>
  </div>
@@ -8026,6 +8049,8 @@ function soforAyDurumu(s, ayKey){
 
 // ─── RENDER: LİSTE ───
 function renderSoforListe(){
+ try {
+
   const sumEl = document.getElementById('sofor-summary-row');
   if(sumEl){
     const total = soforler.length;
@@ -8115,10 +8140,14 @@ function renderSoforListe(){
       </div>
     </div>`;
   }).join('');
+
+ } catch(e){ console.error("renderSoforListe hata:", e); }
 }
 
 // ─── RENDER: DETAY ───
 function renderSoforDetay(id){
+ try {
+
   const s = soforler.find(x=>x.id===id);
   if(!s) return;
   const col = s.color||'#8b5cf6';
@@ -8272,6 +8301,8 @@ function renderSoforDetay(id){
         <div><div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:3px;">Kalan Borç</div><div style="font-weight:800;font-size:18px;color:${yK>0?'#f87171':'#4ade80'};">${fmt(yK)}</div></div>
       </div>`;
   }
+
+ } catch(e){ console.error("renderSoforDetay hata:", e); }
 }
 
 // ─── ÖDEME MODAL (YENİ) ───
@@ -8567,15 +8598,15 @@ function _setPayBtnEditMode(editing){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
       <div>
         <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Ad Soyad *</div>
-        <input id="sam-name" type="text" placeholder="Şoför adı" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s;" onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.09)'">
+        <input id="sam-name" maxlength="80" type="text" placeholder="Şoför adı" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s;" onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.09)'">
       </div>
       <div>
         <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Telefon</div>
-        <input id="sam-ph" type="tel" placeholder="0532 000 0000" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s;" onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.09)'">
+        <input id="sam-ph" maxlength="20" type="tel" placeholder="0532 000 0000" style="width:100%;padding:9px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;transition:border-color .2s;" onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.09)'">
       </div>
       <div>
         <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Araç Plakası</div>
-        <input id="sam-plaka" type="text" placeholder="42 ABC 123" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;text-transform:uppercase;">
+        <input id="sam-plaka" maxlength="12" type="text" placeholder="42 ABC 123" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;text-transform:uppercase;">
       </div>
       <div>
         <div style="font-size:11px;color:var(--muted2);margin-bottom:5px;font-weight:600;">Şoför Tipi</div>
@@ -8661,7 +8692,7 @@ function _setPayBtnEditMode(editing){
       <!-- Ekstra iş açıklama alanı (sadece ekstra tipinde görünür) -->
       <div id="spm-ekstra-aciklama-wrap" style="display:none;margin-bottom:10px;">
         <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">İş Açıklaması</div>
-        <input id="spm-ekstra-aciklama" type="text" placeholder="Örn: Kayseri seferi, Özel transfer..." class="pmi-input" style="font-size:13px;">
+        <input id="spm-ekstra-aciklama" maxlength="100" type="text" placeholder="Örn: Kayseri seferi, Özel transfer..." class="pmi-input" style="font-size:13px;">
       </div>
 
       <!-- Tutar -->
@@ -8673,7 +8704,7 @@ function _setPayBtnEditMode(editing){
       <!-- Not -->
       <div style="margin-bottom:20px;">
         <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">Not (opsiyonel)</div>
-        <input id="spm-not" type="text" placeholder="Avans detayı, açıklama..." class="pmi-input" style="font-size:13px;">
+        <input id="spm-not" maxlength="100" type="text" placeholder="Avans detayı, açıklama..." class="pmi-input" style="font-size:13px;">
       </div>
 
       <!-- Kaydet butonu -->
