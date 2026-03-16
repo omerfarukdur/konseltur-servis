@@ -29,7 +29,7 @@
  --navy:#1B2B5E;
  --navy2:#243070;
  --green:#22c55e;
- --green2:#16a34a;
+ --green2:var(--green);
  --blue:#3b82f6;
  --amber:#f59e0b;
  --red:#ef4444;
@@ -826,7 +826,7 @@ body.light .filter-chip{background:#f5f6f8;border-color:#e2e5ea;color:#64748b;}
 body.light .filter-chip.active{background:rgba(200,55,26,.08);border-color:rgba(200,55,26,.3);color:#c8371a;}
 body.light .month-cell{background:#f5f6f8;border-color:#e2e5ea;}
 body.light .month-cell.paid{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.3);}
-body.light .nav-tab{color:#64748b;}
+body.light .nav-tab{color:var(--muted2);}
 body.light .nav-tab:hover{background:#f5f6f8;color:#374151;}
 body.light .nav-tab.active{background:#f5f6f8;color:#111827;border-color:#d0d4db;}
 body.light .nav-tab.active::after{opacity:.5;}
@@ -1050,6 +1050,9 @@ document.addEventListener('keydown', function(e){
  if(excelModal && excelModal.classList.contains('open')){
  excelModal.classList.remove('open'); return;
  }
+ // Diğer tüm .modal-bg.open modalları ESC ile kapat
+ const _openBgs = document.querySelectorAll('.modal-bg.open');
+ if(_openBgs.length > 0){ _openBgs[_openBgs.length-1].classList.remove('open'); return; }
  }
  // Ctrl+S → kaydet (feedback)
  if((e.ctrlKey || e.metaKey) && e.key === 's'){
@@ -1388,7 +1391,7 @@ if(document.readyState === 'loading'){
  <div id="dsm-body" style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.7;"></div>
  </div>
  <!-- İndirme durumu -->
- <div id="dsm-download-status" style="display:none;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#34d399;text-align:center;"></div>
+ <div id="dsm-download-status" style="display:none;background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--green);text-align:center;"></div>
  <!-- Butonlar -->
  <div id="dsm-btns-step1" style="display:flex;gap:10px;">
  <button onclick="closeDeleteSchoolModal()"
@@ -1520,7 +1523,7 @@ if(document.readyState === 'loading'){
     <div id="manage-actions" style="display:none;margin-bottom:14px;flex-shrink:0;">
       <div style="display:flex;gap:8px;align-items:center;padding:12px 14px;background:rgba(200,55,26,.06);border:1px solid rgba(200,55,26,.18);border-radius:12px;">
         <button onclick="openAddSchoolModal()"
-          style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:9px;border:1px solid rgba(52,211,153,.35);background:rgba(52,211,153,.1);color:#34d399;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;"
+          style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:9px;border:1px solid rgba(52,211,153,.35);background:rgba(52,211,153,.1);color:var(--green);font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;"
           onmouseover="this.style.background='rgba(52,211,153,.2)'" onmouseout="this.style.background='rgba(52,211,153,.1)'">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Yeni Okul
@@ -1542,7 +1545,7 @@ if(document.readyState === 'loading'){
     <div style="padding-top:20px;border-top:1px solid rgba(255,255,255,.05);flex-shrink:0;animation:loginFadeUp .4s .2s ease both;opacity:0;">
       <div style="font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.16);margin-bottom:12px;">Sistem</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
-        <button onclick="exportDataFromLogin()" style="display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:8px;border:1px solid rgba(52,211,153,.18);background:rgba(52,211,153,.04);color:rgba(52,211,153,.75);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(52,211,153,.12)';this.style.color='#34d399'" onmouseout="this.style.background='rgba(52,211,153,.04)';this.style.color='rgba(52,211,153,.75)'">
+        <button onclick="exportDataFromLogin()" style="display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:8px;border:1px solid rgba(52,211,153,.18);background:rgba(52,211,153,.04);color:rgba(52,211,153,.75);font-size:11px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(52,211,153,.12)';this.style.color='var(--green)'" onmouseout="this.style.background='rgba(52,211,153,.04)';this.style.color='rgba(52,211,153,.75)'">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Yedekle
         </button>
@@ -2159,7 +2162,7 @@ if(document.readyState === 'loading'){
  <a id="dm-maps-link" href="#" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);border-radius:10px;color:#60a5fa;font-size:13px;font-weight:600;text-decoration:none;">
  Google Maps'te Aç
  </a>
- <button onclick="printDriverSheet()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:10px;color:#34d399;font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">
+ <button onclick="printDriverSheet()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:10px;color:var(--green);font-size:13px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;">
  Yazdır / PDF
  </button>
  </div>
@@ -2409,7 +2412,7 @@ function exportDataFromLogin(){
  try { localStorage.setItem('konseltur_last_backup', now.toISOString()); } catch(e){}
 
  var info = document.getElementById('login-backup-info');
- if(info) info.innerHTML = '<span style="color:#34d399;">Yedek alındı — '
+ if(info) info.innerHTML = '<span style="color:var(--green);">Yedek alındı — '
  + now.toLocaleString('tr-TR')
  + ' (' + totalStudents + ' öğrenci, ' + totalDrivers + ' sürücü)</span>';
  playSuccessSound();
@@ -2532,7 +2535,7 @@ function importDataFromLogin(event){
  restoredSchools.push(schoolMeta.name + ' (' + n + ' öğrenci) — tam bilgi ile geri eklendi');
  } else {
  // v1 yedek veya meta yoksa: minimum bilgiyle ekle
- var palette = ['#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
+ var palette = ['#3b82f6','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16','#f97316','#14b8a6','#d946ef','#0ea5e9','#a3e635','#fb923c'];
  var usedColors = SCHOOLS.map(function(s){ return s.color; });
  var newColor = '#60a5fa';
  for(var pi=0; pi<palette.length; pi++){ if(usedColors.indexOf(palette[pi])===-1){ newColor=palette[pi]; break; } }
@@ -2554,7 +2557,7 @@ function importDataFromLogin(event){
  if(restoredSchools.length > 0){
  msg += '<br><span style="color:#fbbf24;">Geri eklendi: ' + restoredSchools.join(' | ') + '</span>';
  }
- setInfo(msg, '#34d399');
+ setInfo(msg, 'var(--green)');
  try { playSuccessSound(); } catch(e){}
  event.target.value = '';
  };
@@ -2699,7 +2702,7 @@ const SCHOOLS=[
 ];
 // SC: SCHOOLS array'inden otomatik türetilir — yeni okul eklenince otomatik genişler
 const SC = SCHOOLS.map(s =>s.color);
-const RC=["#60a5fa","#f59e0b","#34d399","#f87171","#a78bfa","#fb923c","#e879f9","#4ade80","#38bdf8","#f472b6","#facc15","#86efac","#c4b5fd","#fecaca","#67e8f9","#fed7aa","#d9f99d","#bbf7d0","#e9d5ff","#fca5a5","#a5f3fc","#ddd6fe","#fde68a"];
+const RC=["#60a5fa","#f59e0b","var(--green)","#f87171","#a78bfa","#fb923c","#e879f9","#4ade80","#38bdf8","#f472b6","#facc15","#86efac","#c4b5fd","#fecaca","#67e8f9","#fed7aa","#d9f99d","#bbf7d0","#e9d5ff","#fca5a5","#a5f3fc","#ddd6fe","#fde68a"];
 
 // 
 // TAM MAHALLE VERİTABANI — Selçuklu (72) + Meram (69) + Karatay (63)
@@ -3395,6 +3398,7 @@ function _updateStudentFilterChips(){
 
 function loadData(){
  // Önce localStorage'dan hızlı yükle (offline fallback)
+ try {
  const raw = localStorage.getItem(LS_MAIN());
  if(raw){
  const d = _parse(raw);
@@ -3406,6 +3410,7 @@ function loadData(){
  nDid = Number(d.nDid) || drivers.length + 1;
  }
  }
+ } catch(e){ console.warn('loadData localStorage hatası:', e); }
  // Firebase'den güncel veriyi çek
  if(window._fbReady){
  _loadFromFirebase();
@@ -3913,7 +3918,9 @@ function addDriver(){
  renderDrivers(); updateDash(); updateRPanel(); saveData(); toast(' '+name+' eklendi');
 }
 
-const DISIMLER=['Mehmet Yılmaz','Ali Kaya','Hasan Çelik','Mustafa Arslan','İbrahim Doğan','Ahmet Şahin','Ömer Aydın','Murat Bulut','Serkan Yıldız','Emre Güneş','Taner Koç','Cengiz Kurt','Burak Erdoğan','Oğuz Demir','Kemal Acar'];
+const _DI_ADLAR=['Serkan','Emre','Taner','Cengiz','Burak','Oğuz','Kemal','Fatih','Ufuk','Selim','Erkan','Hakan','Volkan','Tarık','Cenk','Alper','Berk','Onur','Mert','Ege','Erdem','Tolga','Uğur','Deniz','Sinan'];
+const _DI_SOYLAR=['Yıldız','Çelik','Arslan','Doğan','Şahin','Aydın','Bulut','Güneş','Koç','Kurt','Erdoğan','Demir','Acar','Öztürk','Çetin','Şimşek','Kılıç','Polat','Aslan','Yıldırım','Özcan','Karaca','Güler','Kaplan','Turan'];
+const DISIMLER=_DI_ADLAR.map((ad,i)=>ad+' '+_DI_SOYLAR[i%_DI_SOYLAR.length]);
 
 function addBulkDrivers(n){
  const SEHIRLER=['Selçuklu','Meram','Karatay'];
@@ -3926,7 +3933,8 @@ function addBulkDrivers(n){
  const soklar=_ensureMAHALLES()[ilce][mah].sokak;
  const sok=soklar[Math.floor(Math.random()*soklar.length)];
  const c=getCoord(ilce,mah);
- const name=DISIMLER[i%DISIMLER.length]+(i>=DISIMLER.length?' '+(Math.floor(i/DISIMLER.length)+2):'');
+ const _ai=i%_DI_ADLAR.length; const _si=(i*7+3)%_DI_SOYLAR.length;
+    const name=_DI_ADLAR[_ai]+' '+_DI_SOYLAR[_si];
  drivers.push({id:nDid++,name,ph:'0532 '+String(Math.floor(Math.random()*9000000)+1000000).replace(/(\d{3})(\d{4})/,'$1 $2'),lic:EHLIYET[Math.floor(Math.random()*3)],veh:ARACLAR[Math.floor(Math.random()*3)],ilce,mah,sok,no:(Math.floor(Math.random()*80)+1)+'',note:'',...c,assignedRoute:null});
  }
  renderDrivers(); updateDash(); updateRPanel(); saveData(); toast(' '+n+' demo şoför eklendi');
@@ -4981,8 +4989,7 @@ function doOpt(){
  (overtime.length?'<div class="srow" style="background:rgba(239,68,68,.07);border-radius:7px;padding:6px 8px;"><span style="font-size:12px;color:var(--red)">&#x23F1;&#xFE0F; S&uuml;re limiti ('+hardTimeLimit+'dk) a&#x15F;an rota</span><span style="font-size:14px;font-weight:700;color:var(--red)">'+overtime.length+'</span></div>':'')+
  (nInc?'<div class="srow" style="background:rgba(239,68,68,.07);border-radius:7px;padding:6px 8px;"><span style="font-size:13px;color:var(--red)">Servise uyumsuz &ouml;&#x11F;renci</span><span style="font-size:14px;font-weight:700;color:var(--red)">'+nInc+' ki&#x15F;i</span></div>':'');
 
- document.getElementById('opt-btn').innerHTML = '&#x1F9E0; Rotalar&#x131; Optimize Et';
- document.getElementById('opt-btn').disabled = false;
+ const _optBtn=document.getElementById('opt-btn'); if(_optBtn){_optBtn.innerHTML='&#x1F9E0; Rotaları Optimize Et'; _optBtn.disabled=false;}
  renderRoutes(); renderDrivers(); updateDash(); saveData();
  if(typeof renderMapLayers==='function') renderMapLayers();
  document.getElementById('modal').classList.add('open');
@@ -5213,7 +5220,7 @@ function renderRoutes(){
  <div class="stop-info">
  <div class="stop-name">${escHtml(s.name)}${s.cls?` <span style="font-size:10px;color:var(--muted)">&middot; ${escHtml(s.cls)}</span>`:''}<span style="font-size:10px;background:${SC[s.school]}22;color:${SC[s.school]};padding:1px 5px;border-radius:4px;margin-left:4px">${SCHOOLS[s.school].short}</span>${isOut?`<span class="outlier-badge">&#x26A0; AYKIRI</span>`:''}</div>
  <div class="stop-addr">&#x1F4CD; ${s.ilce} / ${s.mah} &middot; ${s.sok} No:${s.no}</div>
- ${leg.pickupTime?`<div style="font-size:10px;color:#34d399;font-weight:600;margin-top:2px">&#x1F552; Bini&#x15F;: ${leg.pickupTime}</div>`:''}
+ ${leg.pickupTime?`<div style="font-size:10px;color:var(--green);font-weight:600;margin-top:2px">&#x1F552; Bini&#x15F;: ${leg.pickupTime}</div>`:''}
  ${isOut?`<div style="font-size:10px;color:#f87171;margin-top:1px">${outRsns}</div>`:''}
  </div>
  <div style="text-align:right;flex-shrink:0">
@@ -5246,17 +5253,17 @@ function renderRoutes(){
  ${outlierPanel}
  ${r.schedule && r.pickupStartMin != null ? `
  <div style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:11px;line-height:1.9;">
- <div style="font-weight:700;color:#34d399;margin-bottom:3px;">${r.schedule.icon} ${r.schedule.label} Zamanlama Tablosu</div>
+ <div style="font-weight:700;color:var(--green);margin-bottom:3px;">${r.schedule.icon} ${r.schedule.label} Zamanlama Tablosu</div>
  ${r.direction==='pickup' ? `
  <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted2)">&#x1F3EB; Okul giri&#x15F; saati</span><span style="font-weight:600">${minToHHMM(SCHOOLS[r.school].girisH*60+SCHOOLS[r.school].girisM)}</span></div>
  <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted2)">&#x1F6F1; Okul var&#x131;&#x15F; hedefi (&#x2212;${parseInt(document.getElementById('r-safety').value)||10}dk)</span><span style="font-weight:600;color:#fbbf24">${minToHHMM(r.schedule.arrivalTarget)}</span></div>
- <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted2)">&#x1F552; &#x130;lk &ouml;&#x11F;renci al&#x131;m&#x131;</span><span style="font-weight:600;color:#34d399">${minToHHMM(r.pickupStartMin)}</span></div>
+ <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted2)">&#x1F552; &#x130;lk &ouml;&#x11F;renci al&#x131;m&#x131;</span><span style="font-weight:600;color:var(--green)">${minToHHMM(r.pickupStartMin)}</span></div>
  ` : `
  <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted2)">&#x1F3EB; Okul &#x00E7;&#x131;k&#x131;&#x15F; saati</span><span style="font-weight:600">${minToHHMM(SCHOOLS[r.school].cikisH*60+SCHOOLS[r.school].cikisM)}</span></div>
  <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted2)">&#x1F697; Okul ayr&#x131;l&#x131;&#x15F; (+${parseInt(document.getElementById('r-safety').value)||10}dk)</span><span style="font-weight:600;color:#fbbf24">${minToHHMM(r.schedule.departureTarget)}</span></div>
- <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted2)">&#x1F3E0; Son teslim</span><span style="font-weight:600;color:#34d399">${minToHHMM(r.schedule.lastDropoff)}</span></div>
+ <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted2)">&#x1F3E0; Son teslim</span><span style="font-weight:600;color:var(--green)">${minToHHMM(r.schedule.lastDropoff)}</span></div>
  `}
- <div style="display:flex;justify-content:space-between;margin-top:2px;padding-top:4px;border-top:1px solid rgba(52,211,153,.15);"><span style="color:var(--muted2)">&#x23F1; Rota s&uuml;resi</span><span style="font-weight:600;color:${r.overTime?'#ef4444':'#34d399'}">${fmtMin(r.min)}</span></div>
+ <div style="display:flex;justify-content:space-between;margin-top:2px;padding-top:4px;border-top:1px solid rgba(52,211,153,.15);"><span style="color:var(--muted2)">&#x23F1; Rota s&uuml;resi</span><span style="font-weight:600;color:${r.overTime?'#ef4444':'var(--green)'}">${fmtMin(r.min)}</span></div>
  </div>` : ''}
  <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700;letter-spacing:1px;display:flex;justify-content:space-between;"><span>ROTA SIRASI &amp; B&#x130;N&#x130;&#x15E; SAATLER&#x130;</span><span>${fmtKm(r.km)} &middot; ${fmtMin(r.min)}</span></div>
  ${driverRow}${driverKmNote}${stops}
@@ -6141,7 +6148,7 @@ function exportRotalarPDF(){
  <td style="padding:6px 10px;font-weight:600;">${i+1}. ${s.name}</td>
  <td style="padding:6px 10px;font-size:11px;color:#555;">${s.ilce||''} / ${s.mah||''}${s.sok?' · '+s.sok:''}</td>
  <td style="padding:6px 10px;font-size:11px;">${s.ph||'–'}</td>
- <td style="padding:6px 10px;font-weight:700;color:#059669;text-align:center;">${time}</td>
+ <td style="padding:6px 10px;font-weight:700;color:var(--green);text-align:center;">${time}</td>
  </tr>`;
  }).join('');
 
@@ -6244,6 +6251,7 @@ function exportRotalarPDF(){
 
 function exportOgrenciExcel(){
  if(!students.length){ toast('Öğrenci bulunamadı','error'); return; }
+ toast('Excel hazırlanıyor...','info');
 
  const schoolName = SCHOOL_NAMES[_activeSchoolKey] || 'Okul';
 
@@ -6308,12 +6316,12 @@ function printUcretGenel(){
  const bar = AYLAR.map(ay=>{
  const p = payments[s.id]?.[ay.key];
  const paid = p?.paid;
- return `<td style="text-align:center;font-size:10px;color:${paid?'#16a34a':'#dc2626'}">${paid?'':''}</td>`;
+ return `<td style="text-align:center;font-size:10px;color:${paid?'var(--green)':'var(--red)'}">${paid?'':''}</td>`;
  }).join('');
  return `<tr>
  <td style="padding:4px 8px;font-weight:600;font-size:11px;">${s.name}</td>
  ${bar}
- <td style="text-align:right;font-size:11px;font-weight:700;color:#16a34a;">${tots.totalAmount.toLocaleString('tr-TR')}₺</td>
+ <td style="text-align:right;font-size:11px;font-weight:700;color:var(--green);">${tots.totalAmount.toLocaleString('tr-TR')}₺</td>
  <td style="text-align:center;font-size:10px;">${pct}%</td>
  </tr>`;
  }).join('');
@@ -6342,8 +6350,8 @@ function printUcretGenel(){
  <h1>Ücret Raporu</h1>
  <div class="meta">${sName} · ${today} · ${totalS} öğrenci</div>
  <div class="stats">
- <div class="stat"><div class="stat-val" style="color:#16a34a">${paidC}</div><div class="stat-lbl">Güncel Ödeme</div></div>
- <div class="stat"><div class="stat-val" style="color:#dc2626">${unpaidC}</div><div class="stat-lbl">Bekleyen</div></div>
+ <div class="stat"><div class="stat-val" style="color:var(--green)">${paidC}</div><div class="stat-lbl">Güncel Ödeme</div></div>
+ <div class="stat"><div class="stat-val" style="color:var(--red)">${unpaidC}</div><div class="stat-lbl">Bekleyen</div></div>
  <div class="stat"><div class="stat-val" style="color:#7c3aed">${totalA}</div><div class="stat-lbl">Toplam Tahsilat</div></div>
  </div>
  <table>
@@ -6357,6 +6365,7 @@ function printUcretGenel(){
 
 function exportUcretExcel(){
  if(!students.length){ toast('Öğrenci bulunamadı','error'); return; }
+ toast('Excel hazırlanıyor...','info');
 
  const AYLAR_LIST = ['eylul','ekim','kasim','aralik','ocak','subat','mart','nisan','mayis','haziran'];
  const AYLAR_LABEL = ['Eylül','Ekim','Kasım','Aralık','Ocak','Şubat','Mart','Nisan','Mayıs','Haziran'];
@@ -6742,7 +6751,7 @@ function renderMapLayers(){
  // Okul pinleri 
  const schGroup = L.layerGroup();
  SCHOOLS.forEach((s,i)=>{
- const color = ['#60a5fa','#34d399','#f59e0b'][i]||'#a78bfa';
+ const color = ['#60a5fa','var(--green)','#f59e0b'][i]||'#a78bfa';
  const icon = L.divIcon({
  className:'',
  html:`<div style="padding:4px 8px;border-radius:8px;background:${color};color:#111;font-size:10px;font-weight:800;white-space:nowrap;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.4);"> ${s.short}</div>`,
@@ -6869,9 +6878,9 @@ function openDriverSheet(driverId){
  // Okul
  stopsHtml += `<div style="margin-left:16px;border-left:2px dashed var(--border);height:12px;"></div>
  <div style="display:flex;gap:12px;align-items:flex-start;">
- <div style="width:32px;height:32px;border-radius:50%;background:rgba(52,211,153,.15);border:2px solid #34d399;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;"></div>
+ <div style="width:32px;height:32px;border-radius:50%;background:rgba(52,211,153,.15);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;"></div>
  <div style="flex:1;padding-top:4px;">
- <div style="font-size:13px;font-weight:700;color:#34d399;">${sch.short} — Varış</div>
+ <div style="font-size:13px;font-weight:700;color:var(--green);">${sch.short} — Varış</div>
  <div style="font-size:11px;color:var(--muted2);">${sch.adres}</div>
  <div style="font-size:12px;font-weight:700;color:var(--amber);">Hedef: ${arrivalTime}</div>
  </div>
@@ -6887,7 +6896,7 @@ function openDriverSheet(driverId){
  <div style="font-size:12px;font-weight:600;">${s.name}</div>
  <div style="font-size:10px;color:var(--muted2);">${s.mah||''}</div>
  </div>
- ${s.ph?`<a href="tel:${s.ph}" style="padding:5px 10px;border-radius:6px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:#34d399;font-size:11px;font-weight:600;text-decoration:none;">Ara</a>`:'<span style="font-size:10px;color:var(--muted2);">Tel yok</span>'}
+ ${s.ph?`<a href="tel:${s.ph}" style="padding:5px 10px;border-radius:6px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:var(--green);font-size:11px;font-weight:600;text-decoration:none;">Ara</a>`:'<span style="font-size:10px;color:var(--muted2);">Tel yok</span>'}
  </div>`).join('');
 
  // Maps linki
@@ -6929,7 +6938,7 @@ function printDriverSheet(){
  <td style="padding:8px 10px;font-weight:700;font-size:13px;">${i+1}. ${s.name}</td>
  <td style="padding:8px 10px;font-size:11px;color:#555;">${s.ilce||''} / ${s.mah||''}${s.sok?' · '+s.sok:''}</td>
  <td style="padding:8px 10px;font-size:12px;">${s.ph||'–'}</td>
- <td style="padding:8px 10px;font-size:12px;font-weight:700;color:#059669;text-align:center;">${time}</td>
+ <td style="padding:8px 10px;font-size:12px;font-weight:700;color:var(--green);text-align:center;">${time}</td>
  </tr>`;
  });
  } else {
@@ -7094,7 +7103,7 @@ function startMoveStudent(studentId, fromRouteId){
  var modal = document.getElementById('move-student-modal');
  if(!modal) return;
  
- document.getElementById('ms-student-name').textContent = s.name;
+ const _msn=document.getElementById('ms-student-name'); if(_msn) _msn.textContent = escHtml(s.name);
  document.getElementById('ms-from-route').textContent = routes.find(function(r){return r.id===fromRouteId;})?.label || '?';
  
  // Hedef rotaları listele
@@ -7239,7 +7248,7 @@ function renderRemModal(filterQ=''){
  <div style="font-size:10px;color:var(--muted2);">${s.ilce||''} / ${s.mah||''}</div>
  </div>
  <button onclick="remAddStudent(${s.id})" title="Rotaya ekle"
- style="flex-shrink:0;padding:3px 8px;border-radius:6px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.08);color:#34d399;font-size:11px;cursor:pointer;"></button>
+ style="flex-shrink:0;padding:3px 8px;border-radius:6px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.08);color:var(--green);font-size:11px;cursor:pointer;"></button>
  </div>`).join('')
  : `<div style="font-size:12px;color:var(--muted2);padding:10px;">${q?'Eşleşme yok':'Eklenecek öğrenci yok'}</div>`;
 
@@ -7331,7 +7340,7 @@ function filterUcretAddList(q){
  <div style="font-size:11px;color:var(--muted2);">${SCHOOLS[s.school]?.short||''} · ${s.ilce||''} / ${s.mah||''}</div>
  </div>
  <button onclick="ucretManualAdd(${s.id})"
- style="flex-shrink:0;padding:5px 12px;border-radius:7px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.1);color:#34d399;font-size:12px;font-weight:600;cursor:pointer;">Ekle</button>
+ style="flex-shrink:0;padding:5px 12px;border-radius:7px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.1);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;">Ekle</button>
  </div>`).join('');
 }
 
@@ -8034,7 +8043,7 @@ function renderSoforListe(){
         <div style="font-size:10px;color:rgba(255,255,255,.28);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;">Toplam Alacak</div>
         <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:900;color:var(--amber);">${fmt(toplamAlacak)}</div>
         <div style="margin-top:8px;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;">
-          <div style="height:100%;width:${odRatio}%;background:linear-gradient(90deg,var(--green),#16a34a);border-radius:2px;transition:width .5s;"></div>
+          <div style="height:100%;width:${odRatio}%;background:linear-gradient(90deg,var(--green),var(--green));border-radius:2px;transition:width .5s;"></div>
         </div>
         <div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:4px;">${odRatio}% tahsil edildi</div>
       </div>
