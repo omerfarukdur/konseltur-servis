@@ -7795,8 +7795,19 @@ function openImportSoforModal(){
   const el = document.getElementById('sim-list');
   if(!el) return;
 
-  // drivers boşsa (direkt Cüzdan girişi) önce veri yükle
+  // drivers boşsa (direkt Cüzdan girişi) önce localStorage'dan senkron yükle
   if(!drivers.length && _activeSchoolKey) {
+    try {
+      const raw = localStorage.getItem('konseltur_main_v2_' + _activeSchoolKey);
+      if(raw){
+        const d = JSON.parse(raw);
+        if(d && Array.isArray(d.drivers)) drivers = d.drivers;
+        if(d && Array.isArray(d.students)) students = d.students;
+        if(d && Array.isArray(d.routes)) routes = d.routes;
+        nDid = Number(d.nDid) || drivers.length + 1;
+      }
+    } catch(e){ console.warn('openImportSoforModal localStorage yükleme hatası:', e); }
+    // Firebase async yüklemeyi de başlat (arka planda)
     loadData();
   }
 
@@ -7864,8 +7875,11 @@ function openImportSoforModal(){
       </div>
     </div>`).join('');
 
-  // Candidates'i data olarak sakla (id erişimi için)
+  // Candidates'i data olarak sakla — tüm objeyi kaydet, async yüklemede kaybolmaya karşı
   el.dataset.candidateIds = JSON.stringify(candidates.map(d=>d.id));
+  el.dataset.candidateData = JSON.stringify(candidates.map(d=>({
+    id: d.id, name: d.name, ph: d.ph||'', veh: d.veh||'', plaka: d.plaka||''
+  })));
   document.getElementById('sofor-import-modal').classList.add('open');
 }
 
@@ -7873,6 +7887,14 @@ function saveImportSofor(){
   const el = document.getElementById('sim-list');
   if(!el || !el.dataset.candidateIds) return;
   const ids = JSON.parse(el.dataset.candidateIds);
+
+  // candidateData: modal açıldığındaki anlık snapshot — async yüklemeden etkilenmez
+  let candidateMap = {};
+  try {
+    const dataArr = JSON.parse(el.dataset.candidateData || '[]');
+    dataArr.forEach(d => { candidateMap[d.id] = d; });
+  } catch(e) {}
+
   let added = 0;
 
   // Kaydetmeden önce güncel listeyi tekrar kontrol et (race condition koruması)
@@ -7883,7 +7905,8 @@ function saveImportSofor(){
     const chk = document.getElementById('sim-chk-'+did);
     if(!chk || !chk.checked) return;
 
-    const d = drivers.find(x=>x.id===did);
+    // Önce güncel drivers'ta ara, yoksa modal snapshot'ından al
+    const d = drivers.find(x=>x.id===did) || candidateMap[did];
     if(!d) return;
 
     // Zaten eklenmiş mi? (modal açıkken başka sekmede eklenmiş olabilir)
