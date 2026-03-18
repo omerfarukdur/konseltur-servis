@@ -3829,17 +3829,34 @@ const DN=['Ahmet Yılmaz','Zeynep Kaya','Burak Demir','Elif Şahin','Mert Arslan
 function addBulk(n){
  const ilceler=['Selçuklu','Meram','Karatay'];
  const siniflar=['5. Sınıf','6. Sınıf','7. Sınıf','8. Sınıf','9. Sınıf','10. Sınıf','11. Sınıf','12. Sınıf'];
- // Aktif okul index'ini bul
  const fixedSchool = getSchoolIdx(_activeSchoolKey);
+
+ // Mevcut öğrenci isimlerini topla — tekrar çıkmasın
+ const existingNames = new Set(students.map(s=>(s.name||'').trim().toLowerCase()));
+
+ // DN listesini karıştırarak benzersiz isimler seç
+ const shuffled = DN.slice().sort(()=>Math.random()-.5);
+ const adaylar = shuffled.filter(nm=>!existingNames.has(nm.toLowerCase()));
+ // Yetmezse numara ekle
+ let adayIdx = 0;
+
  for(let i=0;i<n;i++){
- const ilce=ilceler[Math.floor(Math.random()*3)];
- const school=fixedSchool;
- const mahs=Object.keys(_ensureMAHALLES()[ilce]);
- const mah=mahs[Math.floor(Math.random()*mahs.length)];
- const soklar=_ensureMAHALLES()[ilce][mah].sokak;
- const sok=soklar[Math.floor(Math.random()*soklar.length)];
- const c=getCoord(ilce,mah);
- students.push({id:nSid++,name:DN[i%DN.length]+(i>=DN.length?' '+(Math.floor(i/DN.length)+2):''),school,ilce,mah,sok,no:(Math.floor(Math.random()*120)+1)+'',cls:siniflar[Math.floor(Math.random()*siniflar.length)],ph:'',...c});
+   const ilce=ilceler[Math.floor(Math.random()*3)];
+   const school=fixedSchool;
+   const mahs=Object.keys(_ensureMAHALLES()[ilce]);
+   const mah=mahs[Math.floor(Math.random()*mahs.length)];
+   const soklar=_ensureMAHALLES()[ilce][mah].sokak;
+   const sok=soklar[Math.floor(Math.random()*soklar.length)];
+   const c=getCoord(ilce,mah);
+   let name;
+   if(adayIdx < adaylar.length){
+     name = adaylar[adayIdx++];
+   } else {
+     // Tüm isimler bitti — sonuna sıra no ekle
+     const base = DN[Math.floor(Math.random()*DN.length)];
+     name = base + ' ' + (nSid + i);
+   }
+   students.push({id:nSid++,name,school,ilce,mah,sok,no:(Math.floor(Math.random()*120)+1)+'',cls:siniflar[Math.floor(Math.random()*siniflar.length)],ph:'',...c});
  }
  updateAll(); saveData(); toast(' '+n+' demo öğrenci eklendi');
 }
@@ -3995,16 +4012,32 @@ function addBulkDrivers(n){
  const SEHIRLER=['Selçuklu','Meram','Karatay'];
  const EHLIYET=['B Sınıfı','D Sınıfı','DE Sınıfı'];
  const ARACLAR=['Minibüs (14 kişi)','Midibüs (18 kişi)','Otobüs (25 kişi)'];
+
+ // Mevcut şoför isimlerini topla — tekrar çıkmasın
+ const existingNames = new Set(drivers.map(d=>(d.name||'').trim().toLowerCase()));
+
+ // Rastgele karıştırılmış aday isim listesi üret
+ const adlar   = _DI_ADLAR.slice().sort(()=>Math.random()-.5);
+ const soylar  = _DI_SOYLAR.slice().sort(()=>Math.random()-.5);
+ const adaylar = [];
+ for(let a=0; a<adlar.length; a++){
+   for(let s=0; s<soylar.length; s++){
+     const n2 = adlar[a]+' '+soylar[s];
+     if(!existingNames.has(n2.toLowerCase())) adaylar.push(n2);
+   }
+ }
+ // Karıştır
+ adaylar.sort(()=>Math.random()-.5);
+
  for(let i=0;i<n;i++){
- const ilce=SEHIRLER[Math.floor(Math.random()*3)];
- const mahs=Object.keys(_ensureMAHALLES()[ilce]);
- const mah=mahs[Math.floor(Math.random()*mahs.length)];
- const soklar=_ensureMAHALLES()[ilce][mah].sokak;
- const sok=soklar[Math.floor(Math.random()*soklar.length)];
- const c=getCoord(ilce,mah);
- const _ai=i%_DI_ADLAR.length; const _si=(i*7+3)%_DI_SOYLAR.length;
-    const name=_DI_ADLAR[_ai]+' '+_DI_SOYLAR[_si];
- drivers.push({id:nDid++,name,ph:'0532 '+String(Math.floor(Math.random()*9000000)+1000000).replace(/(\d{3})(\d{4})/,'$1 $2'),lic:EHLIYET[Math.floor(Math.random()*3)],veh:ARACLAR[Math.floor(Math.random()*3)],ilce,mah,sok,no:(Math.floor(Math.random()*80)+1)+'',note:'',...c,assignedRoute:null});
+   const ilce=SEHIRLER[Math.floor(Math.random()*3)];
+   const mahs=Object.keys(_ensureMAHALLES()[ilce]);
+   const mah=mahs[Math.floor(Math.random()*mahs.length)];
+   const soklar=_ensureMAHALLES()[ilce][mah].sokak;
+   const sok=soklar[Math.floor(Math.random()*soklar.length)];
+   const c=getCoord(ilce,mah);
+   const name = adaylar[i % adaylar.length] || (_DI_ADLAR[Math.floor(Math.random()*_DI_ADLAR.length)]+' '+_DI_SOYLAR[Math.floor(Math.random()*_DI_SOYLAR.length)]+' '+(nDid));
+   drivers.push({id:nDid++,name,ph:'0532 '+String(Math.floor(Math.random()*9000000)+1000000).replace(/(\d{3})(\d{4})/,'$1 $2'),lic:EHLIYET[Math.floor(Math.random()*3)],veh:ARACLAR[Math.floor(Math.random()*3)],ilce,mah,sok,no:(Math.floor(Math.random()*80)+1)+'',note:'',...c,assignedRoute:null});
  }
  renderDrivers(); updateDash(); updateRPanel(); saveData(); toast(' '+n+' demo şoför eklendi');
 }
@@ -7811,18 +7844,16 @@ function openImportSoforModal(){
     loadData();
   }
 
-  // Cüzdanda zaten kayıtlı şoförleri bul:
-  // 1. driverRef eşleşmesi (sayısal id ile)
-  // 2. İsim bazlı eşleşme (driverRef yoksa manuel eklenmiş demektir)
-  const alreadyByRef  = new Set(soforler.map(s=>s.driverRef).filter(x=>x!=null));
-  const alreadyByName = new Set(soforler.map(s=>(s.name||'').trim().toLowerCase()).filter(Boolean));
-
-  // Tüm okulların şoförlerini topla (multi-school sistemi)
-  // drivers dizisi aktif okula aittir; bu yeterli
-  const candidates = drivers.filter(d=>
-    !alreadyByRef.has(d.id) &&
-    !alreadyByName.has((d.name||'').trim().toLowerCase())
+  // Cüzdanda zaten kayıtlı şoförleri bul — sadece driverRef ID ile eşleştir
+  // String/number tip farkı olabileceğinden her ikisini de normalize et
+  const alreadyByRef = new Set(
+    soforler
+      .map(s => s.driverRef != null ? String(s.driverRef) : null)
+      .filter(Boolean)
   );
+
+  // Sadece driverRef'i olmayan (yani hiç aktarılmamış) sürücüleri göster
+  const candidates = drivers.filter(d => !alreadyByRef.has(String(d.id)));
 
   // Aktif okul bilgisini göster
   const schoolLabel = SCHOOL_NAMES[_activeSchoolKey] || _activeSchoolKey || 'Seçili Okul';
@@ -7900,12 +7931,9 @@ function saveImportSofor(){
       .forEach(d => { candidateMap[String(d.id)] = d; });
   } catch(e) {}
 
-  // alreadyByRef: hem string hem number karşılaştırması için string'e çevir
-  const alreadyByRef  = new Set(
+  // alreadyByRef: string normalize ile tip farkı sorununu önle
+  const alreadyByRef = new Set(
     soforler.map(s => s.driverRef != null ? String(s.driverRef) : null).filter(Boolean)
-  );
-  const alreadyByName = new Set(
-    soforler.map(s => (s.name||'').trim().toLowerCase()).filter(Boolean)
   );
 
   let added = 0;
@@ -7914,21 +7942,17 @@ function saveImportSofor(){
     const chk = document.getElementById('sim-chk-' + didStr);
     if(!chk || !chk.checked) return;
 
-    // Güncel drivers'ta ara (string/number uyumsuzluğuna karşı her ikisini dene)
     const didNum = Number(didStr);
+
+    // Güncel drivers veya snapshot'tan al
     const d = drivers.find(x => String(x.id) === didStr)
            || drivers.find(x => x.id === didNum)
            || candidateMap[didStr];
     if(!d) return;
 
-    // Zaten eklenmiş mi?
-    if(alreadyByRef.has(String(d.id))){
+    // Sadece driverRef kontrolü — isim bazlı engel yok
+    if(alreadyByRef.has(didStr)){
       toast(`"${d.name}" zaten Cüzdan'da mevcut`, 'info');
-      return;
-    }
-    // İsim kontrolü sadece tam eşleşme, büyük/küçük harf yoksay
-    if(alreadyByName.has((d.name||'').trim().toLowerCase())){
-      toast(`"${d.name}" isimli şoför zaten Cüzdan'da var`, 'info');
       return;
     }
 
