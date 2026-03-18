@@ -3378,6 +3378,8 @@ function enterSoforDirect(){
  _setText('school-indicator','🚗 Şoför Cüzdanı');
  const _si = document.getElementById('school-indicator');
  if(_si){ _si.style.color='#a78bfa'; _si.style.background='rgba(139,92,246,.12)'; }
+ // "Şoförlerden Aktar" için rota verisini de yükle
+ loadData(); loadPayments();
  loadSoforData();
  document.getElementById('login-screen').style.display = 'none';
  document.getElementById('module-select-screen').style.display = 'none';
@@ -3415,6 +3417,9 @@ function enterModule(mod){
    // Şoför modülü okul bağımsız — indicator güncelle
    const _si = document.getElementById('school-indicator');
    if(_si){ _si.textContent='🚗 Şoför Cüzdanı'; _si.style.color='#a78bfa'; _si.style.background='rgba(139,92,246,.12)'; }
+   // "Şoförlerden Aktar" için rota verisini de yükle
+   if(!drivers.length) { loadData(); loadPayments(); }
+   loadSoforData();
    switchApp('sofor'); gotoS('sofor-liste');
  }
 }
@@ -7790,26 +7795,46 @@ function openImportSoforModal(){
   const el = document.getElementById('sim-list');
   if(!el) return;
 
-  // Cüzdanda zaten kayıtlı driver id'lerini bul (driverRef alanı ile eşleştir)
-  const already = new Set(soforler.map(s=>s.driverRef).filter(Boolean));
+  // drivers boşsa (direkt Cüzdan girişi) önce veri yükle
+  if(!drivers.length && _activeSchoolKey) {
+    loadData();
+  }
+
+  // Cüzdanda zaten kayıtlı şoförleri bul:
+  // 1. driverRef eşleşmesi (sayısal id ile)
+  // 2. İsim bazlı eşleşme (driverRef yoksa manuel eklenmiş demektir)
+  const alreadyByRef  = new Set(soforler.map(s=>s.driverRef).filter(x=>x!=null));
+  const alreadyByName = new Set(soforler.map(s=>(s.name||'').trim().toLowerCase()).filter(Boolean));
 
   // Tüm okulların şoförlerini topla (multi-school sistemi)
   // drivers dizisi aktif okula aittir; bu yeterli
-  const candidates = drivers.filter(d=>!already.has(d.id));
+  const candidates = drivers.filter(d=>
+    !alreadyByRef.has(d.id) &&
+    !alreadyByName.has((d.name||'').trim().toLowerCase())
+  );
+
+  // Aktif okul bilgisini göster
+  const schoolLabel = SCHOOL_NAMES[_activeSchoolKey] || _activeSchoolKey || 'Seçili Okul';
 
   if(!candidates.length){
-    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--muted2);font-size:13px;">
-      ${drivers.length===0
-        ? '⚠️ Bu okulda henüz şoför eklenmemiş.<br><span style="font-size:11px;">Rota → Şoförler sayfasından önce şoför ekleyin.</span>'
-        : '✅ Tüm şoförler zaten Cüzdan\'a eklenmiş.'}
-    </div>`;
+    el.innerHTML = `
+      <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid var(--border);">
+        📍 Aktif Okul: <b style="color:var(--text);">${escHtml(schoolLabel)}</b> — ${drivers.length} şoför
+      </div>
+      <div style="padding:20px;text-align:center;color:var(--muted2);font-size:13px;">
+        ${drivers.length===0
+          ? '⚠️ Bu okulda henüz şoför eklenmemiş.<br><span style="font-size:11px;">Rota → Şoförler sayfasından önce şoför ekleyin.</span>'
+          : '✅ Tüm şoförler zaten Cüzdan\'a eklenmiş.'}
+      </div>`;
     document.getElementById('sofor-import-modal').classList.add('open');
     return;
   }
 
   const COLORS = ['#8b5cf6','#3b82f6','#f59e0b','#22c55e','#ef4444','#ec4899','#06b6d4','#f97316'];
 
-  el.innerHTML = candidates.map((d,i)=>`
+  el.innerHTML = `<div style="font-size:11px;color:var(--muted2);margin-bottom:10px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid var(--border);">
+    📍 Aktif Okul: <b style="color:var(--text);">${escHtml(schoolLabel)}</b> — ${candidates.length} yeni şoför
+  </div>` + candidates.map((d,i)=>`
     <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px;">
       <!-- Şoför bilgisi + seçim -->
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
@@ -7850,12 +7875,22 @@ function saveImportSofor(){
   const ids = JSON.parse(el.dataset.candidateIds);
   let added = 0;
 
+  // Kaydetmeden önce güncel listeyi tekrar kontrol et (race condition koruması)
+  const alreadyByRef  = new Set(soforler.map(s=>s.driverRef).filter(x=>x!=null));
+  const alreadyByName = new Set(soforler.map(s=>(s.name||'').trim().toLowerCase()).filter(Boolean));
+
   ids.forEach(did=>{
     const chk = document.getElementById('sim-chk-'+did);
     if(!chk || !chk.checked) return;
 
     const d = drivers.find(x=>x.id===did);
     if(!d) return;
+
+    // Zaten eklenmiş mi? (modal açıkken başka sekmede eklenmiş olabilir)
+    if(alreadyByRef.has(d.id) || alreadyByName.has((d.name||'').trim().toLowerCase())){
+      toast(`"${d.name}" zaten Cüzdan'da mevcut`, 'info');
+      return;
+    }
 
     const tip   = document.getElementById('sim-tip-'+did)?.value || 'kadro';
     const plaka = (document.getElementById('sim-plaka-'+did)?.value||'').toUpperCase().trim();
