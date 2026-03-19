@@ -1021,6 +1021,18 @@ body.light .pm-group-label { color: rgba(0,0,0,.3); border-bottom-color: rgba(0,
 /* Ödeme uyarı detay bloğu (collapse) */
 .uyari-detay { display: none; padding: 12px 18px; }
 
+
+/* ── Toplu ödeme seçimi ── */
+.pay-row-checkbox { width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0; }
+.pay-row.selected { background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.25); }
+.toplu-bar { display:none;position:sticky;bottom:12px;z-index:50;margin:10px 0 0;
+  background:var(--card2);border:1px solid var(--border2);border-radius:12px;
+  padding:10px 16px;align-items:center;gap:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);animation:fadeUp .2s ease; }
+.toplu-bar.visible { display:flex; }
+.toplu-bar-txt { font-size:13px;font-weight:600;color:var(--text);flex:1; }
+.toplu-bar-txt span { color:var(--green); }
+
 /* ── Utility sınıfları (inline style'dan taşındı) ── */
 .modal-close-btn{width:32px;height:32px;border-radius:9px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
 .modal-close-btn:hover{background:rgba(255,255,255,.1);}
@@ -1298,6 +1310,7 @@ function checkPassword(){
 
 function doLogout(){
   _pwVerified = false;
+  try{ localStorage.removeItem('_ks_lastPage'); }catch(e){}
   // Firebase oturumunu kapat
   if(window._fbSignOut){
     window._fbSignOut().catch(function(e){ console.warn('Çıkış hatası:', e); });
@@ -2093,6 +2106,25 @@ function _addManagedListener(target, event, handler, options) {
  <div class="filter-chip" onclick="filterUcret('unpaid',this)" style="border-color:rgba(245,158,11,.3);color:var(--amber);">Bekleyenler</div>
  </div>
  <div class="search-wrap"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" placeholder="Öğrenci ara..." maxlength="100" oninput="searchUcret(this.value)"></div>
+ <!-- Toplu ödeme araç çubuğu -->
+ <div class="toplu-bar" id="toplu-bar">
+   <input type="checkbox" id="toplu-select-all" class="pay-row-checkbox"
+     onchange="topluToggleAll(this.checked)" title="Tümünü seç/kaldır">
+   <div class="toplu-bar-txt"><span id="toplu-count">0</span> öğrenci seçildi</div>
+   <button class="btn btn-sm btn-green" onclick="topluOdeModal()" style="font-size:12px;">
+     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+     Seçilenleri Öde
+   </button>
+   <button class="btn btn-sm btn-ghost" onclick="topluIptal()" style="font-size:12px;">İptal</button>
+ </div>
+ <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+   <div id="u-list-count" style="font-size:11px;color:var(--muted2);font-weight:600;"></div>
+   <button id="toplu-mode-btn" class="btn btn-sm btn-ghost" onclick="topluModeToggle()"
+     style="font-size:11px;padding:5px 10px;">
+     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1"/><rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1"/></svg>
+     Toplu Seç
+   </button>
+ </div>
  <div id="u-student-list"><div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>Öğrenci bulunamadı.</div></div>
 </div>
 </div>
@@ -3441,12 +3473,26 @@ function enterModule(mod){
    if(tRota) tRota.style.display='flex';
    if(tUcret) tUcret.style.display='none';
    if(tSofor) tSofor.style.display='none';
-   goto('dashboard');
+   // Son sekmeyi hatırla
+   try{
+     const _lp=JSON.parse(localStorage.getItem('_ks_lastPage')||'null');
+     const _validR=['dashboard','students','drivers','routes','map'];
+     if(_lp&&_lp.app==='rota'&&_lp.school===_activeSchoolKey&&_validR.includes(_lp.page)){
+       goto(_lp.page);
+     } else { goto('dashboard'); }
+   }catch(e){ goto('dashboard'); }
  } else if(mod==='ucret'){
    if(tRota) tRota.style.display='none';
    if(tUcret) tUcret.style.display='flex';
    if(tSofor) tSofor.style.display='none';
-   switchApp('ucret'); gotoU('ucret-genel');
+   // Son sekmeyi hatırla
+   try{
+     const _lp2=JSON.parse(localStorage.getItem('_ks_lastPage')||'null');
+     const _validU=['ucret-genel','ucret-ogrenci'];
+     if(_lp2&&_lp2.app==='ucret'&&_lp2.school===_activeSchoolKey&&_validU.includes(_lp2.page)){
+       switchApp('ucret'); gotoU(_lp2.page);
+     } else { switchApp('ucret'); gotoU('ucret-genel'); }
+   }catch(e){ switchApp('ucret'); gotoU('ucret-genel'); }
  } else if(mod==='sofor'){
    if(tRota) tRota.style.display='none';
    if(tUcret) tUcret.style.display='none';
@@ -3700,6 +3746,8 @@ function _updateRotaTabs(p){
 
 function _gotoNoHistory(p){
  _currentPage = p;
+ // Son sekmeyi hatırla
+ try{ localStorage.setItem('_ks_lastPage', JSON.stringify({page:p, app:currentApp, school:_activeSchoolKey})); }catch(e){}
  ALL_PAGES.forEach(n=>{
  const el = document.getElementById('page-'+n);
  if(el) el.classList.remove('active');
@@ -3720,6 +3768,7 @@ function _gotoNoHistory(p){
 
 function _gotoUNoHistory(p){
  _currentPage = p;
+ try{ localStorage.setItem('_ks_lastPage', JSON.stringify({page:p, app:currentApp, school:_activeSchoolKey})); }catch(e){}
  ALL_PAGES.forEach(n=>{ const el=document.getElementById('page-'+n); if(el) el.classList.remove('active'); });
  const target = document.getElementById('page-'+p);
  if(target) target.classList.add('active');
@@ -3745,6 +3794,7 @@ function gotoU(p){
 
 function _gotoSNoHistory(p){
  _currentPage = p;
+ try{ localStorage.setItem('_ks_lastPage', JSON.stringify({page:p, app:currentApp, school:_activeSchoolKey})); }catch(e){}
  ALL_PAGES.forEach(n=>{ const el=document.getElementById('page-'+n); if(el) el.classList.remove('active'); });
  const target = document.getElementById('page-'+p);
  if(target) target.classList.add('active');
@@ -5677,7 +5727,9 @@ function renderUcretOgrenci(){
  const pct=Math.round(t.paidMonths/AYLAR.length*100);
  const barCol=pct===100?'var(--green)':pct>50?'var(--amber)':'var(--red)';
  const statusCol=pct===100?'var(--green)':t.paidMonths>0?'var(--amber)':'var(--red)';
- return`<div class="pay-row" style="position:relative;cursor:default;">
+ return`<div class="pay-row" id="pay-row-${s.id}" style="position:relative;cursor:default;">
+ <input type="checkbox" class="pay-row-checkbox toplu-chk" data-sid="${s.id}"
+   style="display:none;margin-right:2px;" onchange="topluCheckChange()">
  <div onclick="openPaymentModal(${s.id})" style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;min-width:0;">
  <div class="pay-avatar" style="background:${SC[s.school]}18;border:1.5px solid ${SC[s.school]}44;color:${SC[s.school]};">${escHtml(s.name.charAt(0).toUpperCase())}</div>
  <div style="flex:1;min-width:0;">
@@ -5699,6 +5751,16 @@ function renderUcretOgrenci(){
  }).join('');
 
  } catch(e){ console.error("renderUcretOgrenci hata:", e); }
+ // u-list-count güncelle
+ try{
+   const _ulc2 = document.getElementById('u-list-count');
+   if(_ulc2){
+     const _listLen = document.querySelectorAll('#u-student-list .pay-row').length;
+     _ulc2.textContent = _listLen + ' öğrenci';
+   }
+   // Toplu mod aktifse checkbox'ları yeniden göster
+   if(typeof _topluMod !== 'undefined' && _topluMod) _topluShowCheckboxes();
+ }catch(e){}
 }
 
 function renderUcretGenel(){
@@ -7389,22 +7451,119 @@ function closeRouteEditModal(){
  _remRouteId=null; _remStudents=[]; _remSchool=null;
 }
 
+// ── SÜRÜKLE-BIRAK (Rota Düzenleme) ──────────────────────────
+let _dragSrcIdx = null;
+
+function _bindRemDrag(container){
+  const items = container.querySelectorAll('.drag-item');
+  items.forEach(item => {
+    item.addEventListener('dragstart', function(e){
+      _dragSrcIdx = parseInt(this.dataset.idx);
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', function(){
+      this.classList.remove('dragging');
+      container.querySelectorAll('.drag-item').forEach(i => i.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      container.querySelectorAll('.drag-item').forEach(i => i.classList.remove('drag-over'));
+      this.classList.add('drag-over');
+    });
+    item.addEventListener('dragleave', function(){
+      this.classList.remove('drag-over');
+    });
+    item.addEventListener('drop', function(e){
+      e.preventDefault();
+      const targetIdx = parseInt(this.dataset.idx);
+      if(_dragSrcIdx === null || _dragSrcIdx === targetIdx) return;
+      // Dizide yer değiştir
+      const moved = _remStudents.splice(_dragSrcIdx, 1)[0];
+      _remStudents.splice(targetIdx, 0, moved);
+      _dragSrcIdx = null;
+      renderRemModal();
+    });
+    // Mobil: dokunmatik destek
+    item.addEventListener('touchstart', _touchStart, {passive:true});
+    item.addEventListener('touchmove',  _touchMove,  {passive:false});
+    item.addEventListener('touchend',   _touchEnd,   {passive:true});
+  });
+}
+
+// Dokunmatik sürükleme
+let _touchDragEl = null, _touchDragIdx = null, _touchClone = null;
+function _touchStart(e){
+  _touchDragEl = this;
+  _touchDragIdx = parseInt(this.dataset.idx);
+  this.classList.add('dragging');
+  // Görsel klon oluştur
+  _touchClone = this.cloneNode(true);
+  _touchClone.style.cssText = 'position:fixed;z-index:9999;opacity:.85;pointer-events:none;width:'+this.offsetWidth+'px;box-shadow:0 8px 24px rgba(0,0,0,.4);';
+  document.body.appendChild(_touchClone);
+  const t = e.touches[0];
+  _touchClone.style.left = (t.clientX - this.offsetWidth/2) + 'px';
+  _touchClone.style.top  = (t.clientY - 20) + 'px';
+}
+function _touchMove(e){
+  if(!_touchClone) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  _touchClone.style.left = (t.clientX - _touchClone.offsetWidth/2) + 'px';
+  _touchClone.style.top  = (t.clientY - 20) + 'px';
+  // Altındaki elementi bul
+  _touchClone.style.display = 'none';
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  _touchClone.style.display = '';
+  const target = el ? el.closest('.drag-item') : null;
+  document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('drag-over'));
+  if(target && target !== _touchDragEl) target.classList.add('drag-over');
+}
+function _touchEnd(e){
+  if(_touchClone){ _touchClone.remove(); _touchClone = null; }
+  if(!_touchDragEl) return;
+  _touchDragEl.classList.remove('dragging');
+  document.querySelectorAll('.drag-item').forEach(i => i.classList.remove('drag-over'));
+  const t = e.changedTouches[0];
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  const target = el ? el.closest('.drag-item') : null;
+  if(target && target !== _touchDragEl){
+    const targetIdx = parseInt(target.dataset.idx);
+    if(_touchDragIdx !== null && _touchDragIdx !== targetIdx){
+      const moved = _remStudents.splice(_touchDragIdx, 1)[0];
+      _remStudents.splice(targetIdx, 0, moved);
+      renderRemModal();
+    }
+  }
+  _touchDragEl = null; _touchDragIdx = null;
+}
+// ── SÜRÜKLE-BIRAK SONU ───────────────────────────────────────
+
+
 function renderRemModal(filterQ=''){
  const inEl = document.getElementById('rem-in-list');
  const outEl = document.getElementById('rem-out-list');
  const sch = SCHOOLS[_remSchool];
  const inIds = new Set(_remStudents.map(s=>s.id));
 
- // Rotadaki öğrenciler 
- inEl.innerHTML = _remStudents.map(s=>`
- <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--card2);border-radius:8px;border:1px solid var(--border);">
- <div style="flex:1;min-width:0;">
- <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.name}</div>
- <div style="font-size:10px;color:var(--muted2);">${s.ilce||''} / ${s.mah||''}</div>
- </div>
- <button onclick="remRemoveStudent(${s.id})" title="Rotadan çıkar"
- style="flex-shrink:0;padding:3px 8px;border-radius:6px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:var(--red);font-size:11px;cursor:pointer;"></button>
+ // Rotadaki öğrenciler — sürükle-bırak ile sıralama destekli
+ inEl.innerHTML = _remStudents.map((s,idx)=>`
+ <div class="drag-item" draggable="true" data-idx="${idx}"
+   style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--card2);border-radius:8px;border:1px solid var(--border);">
+   <span class="drag-handle" title="Sırayı değiştir için sürükle">
+     <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><circle cx="3" cy="2.5" r="1.2" fill="currentColor"/><circle cx="9" cy="2.5" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="11.5" r="1.2" fill="currentColor"/><circle cx="9" cy="11.5" r="1.2" fill="currentColor"/></svg>
+   </span>
+   <div style="width:20px;height:20px;border-radius:50%;background:var(--brand-glow);border:1px solid rgba(200,55,26,.3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--brand);flex-shrink:0;">${idx+1}</div>
+   <div style="flex:1;min-width:0;">
+     <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.name}</div>
+     <div style="font-size:10px;color:var(--muted2);">${s.ilce||''} / ${s.mah||''}</div>
+   </div>
+   <button onclick="remRemoveStudent(${s.id})" title="Rotadan çıkar"
+   style="flex-shrink:0;padding:3px 8px;border-radius:6px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:var(--red);font-size:11px;cursor:pointer;">✕</button>
  </div>`).join('') || '<div style="font-size:12px;color:var(--muted2);padding:10px;">Rotada öğrenci yok</div>';
+ // Sürükle-bırak event'lerini bağla
+ _bindRemDrag(inEl);
 
  // Eklenebilir öğrenciler (aynı okul, rotada olmayan) 
  const q = filterQ.toLowerCase();
@@ -7644,6 +7803,150 @@ function saveSoforData(){
       .catch(e=>{ console.warn('Şoför Firebase kayıt hatası:',e); _markPendingSofor&&_markPendingSofor(); toast('⚠️ Şoför verisi yerel olarak kaydedildi. Bağlantı gelince senkronize edilecek.','info'); });
   }
 }
+
+
+// ── TOPLU ÖDEME SİSTEMİ ─────────────────────────────────────
+let _topluMod = false;
+let _topluSecili = new Set();
+
+function topluModeToggle(){
+  _topluMod = !_topluMod;
+  _topluSecili.clear();
+  const btn = document.getElementById('toplu-mode-btn');
+  if(btn){
+    btn.innerHTML = _topluMod
+      ? '✕ İptal'
+      : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1"/><rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1"/></svg> Toplu Seç';
+  }
+  if(_topluMod){ _topluShowCheckboxes(); }
+  else { _topluHideCheckboxes(); _topluBarGizle(); }
+}
+
+function _topluShowCheckboxes(){
+  document.querySelectorAll('.toplu-chk').forEach(c=>{ c.style.display='inline-block'; });
+}
+function _topluHideCheckboxes(){
+  document.querySelectorAll('.toplu-chk').forEach(c=>{ c.style.display='none'; c.checked=false; });
+}
+
+function topluToggleAll(checked){
+  _topluSecili.clear();
+  document.querySelectorAll('.toplu-chk').forEach(c=>{
+    c.checked = checked;
+    if(checked) _topluSecili.add(parseInt(c.dataset.sid));
+  });
+  _topluBarGuncelle();
+}
+
+function topluCheckChange(){
+  _topluSecili.clear();
+  document.querySelectorAll('.toplu-chk:checked').forEach(c=>{
+    _topluSecili.add(parseInt(c.dataset.sid));
+  });
+  const all = document.getElementById('toplu-select-all');
+  const total = document.querySelectorAll('.toplu-chk').length;
+  if(all) all.checked = (_topluSecili.size === total && total > 0);
+  _topluBarGuncelle();
+}
+
+function _topluBarGuncelle(){
+  const bar = document.getElementById('toplu-bar');
+  const cnt = document.getElementById('toplu-count');
+  if(!bar) return;
+  if(_topluSecili.size > 0){
+    bar.classList.add('visible');
+    if(cnt) cnt.textContent = _topluSecili.size;
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+function _topluBarGizle(){
+  const bar = document.getElementById('toplu-bar');
+  if(bar) bar.classList.remove('visible');
+  const all = document.getElementById('toplu-select-all');
+  if(all) all.checked = false;
+}
+
+function topluIptal(){
+  _topluMod = false;
+  _topluSecili.clear();
+  const btn = document.getElementById('toplu-mode-btn');
+  if(btn){ btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1"/><rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1"/></svg> Toplu Seç'; }
+  _topluHideCheckboxes();
+  _topluBarGizle();
+}
+
+function topluOdeModal(){
+  if(_topluSecili.size === 0){ toast('Önce öğrenci seçin.','error'); return; }
+  // Seçili öğrenciler için hangi aylar ödenmemiş — hepsinde ortak olanları bul
+  const ids = [..._topluSecili];
+  // Tüm aylarda ödenmemiş olanları listele
+  const odenmemisAylar = AYLAR.filter(a =>{
+    return ids.some(id =>{ const p = getStudentPayment(id); return !(p[a.key]&&p[a.key].paid); });
+  });
+  if(!odenmemisAylar.length){
+    toast('Seçili öğrencilerin tüm aylık ödemeleri tamamlanmış.','info'); return;
+  }
+  // Modal oluştur
+  const mDiv = document.createElement('div');
+  mDiv.id = 'toplu-ode-modal-dynamic';
+  mDiv.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;';
+  mDiv.onclick = function(e){ if(e.target===this) this.remove(); };
+  const aySecOptions = odenmemisAylar.map(a =>
+    `<label style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;cursor:pointer;transition:background .15s;font-size:13px;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='none'">
+      <input type="checkbox" value="${a.key}" checked style="accent-color:var(--green);width:14px;height:14px;">
+      ${a.label}
+    </label>`
+  ).join('');
+  mDiv.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:min(440px,94vw);max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.5);">
+    <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:4px;">Toplu Ödeme İşareti</div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">${ids.length} öğrenci seçildi — hangi aylar ödensin?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:16px;" id="toplu-ay-list">${aySecOptions}</div>
+    <div style="font-size:11px;color:var(--muted2);margin-bottom:16px;padding:8px 12px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:8px;">
+      Seçili aylarda daha önce ödeme girilmemişse otomatik olarak mevcut ücret tutarı kullanılır.
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-green btn-full" style="flex:2;" onclick="topluOdeKaydet()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Onayla ve Kaydet
+      </button>
+      <button class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('toplu-ode-modal-dynamic').remove()">İptal</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mDiv);
+}
+
+function topluOdeKaydet(){
+  const modal = document.getElementById('toplu-ode-modal-dynamic');
+  if(!modal) return;
+  const seciliAylar = [...modal.querySelectorAll('#toplu-ay-list input:checked')].map(c=>c.value);
+  if(!seciliAylar.length){ toast('En az bir ay seçin.','error'); return; }
+  const ids = [..._topluSecili];
+  let islem = 0;
+  ids.forEach(sid =>{
+    const s = students.find(x=>x.id===sid);
+    if(!s) return;
+    if(!payments[sid]) payments[sid] = {};
+    seciliAylar.forEach(ayKey =>{
+      const p = payments[sid];
+      if(!(p[ayKey]&&p[ayKey].paid)){
+        // Tutarı belirle: öğrencinin kayıtlı ücreti veya varsayılan
+        // Önceki kayıtlı tutar veya başka aydan al (0 ise kullanıcı sonradan düzenleyebilir)
+        const _prevAmt = AYLAR.map(a=>payments[sid][a.key]&&payments[sid][a.key].amount).filter(Boolean)[0]||0;
+        const tutar = (p[ayKey]&&p[ayKey].amount) || _prevAmt || 0;
+        p[ayKey] = { paid:true, amount:tutar, date:new Date().toISOString().slice(0,10) };
+        islem++;
+      }
+    });
+  });
+  _savePaymentsOnly();
+  renderUcretGenel(); renderUcretOgrenci();
+  modal.remove();
+  topluIptal();
+  toast(islem + ' ödeme kaydedildi.', 'success');
+}
+// ── TOPLU ÖDEME SONU ─────────────────────────────────────────
 
 // ── Yıl hesabı: Eylül'den itibaren ──
 function soforAkademikYil(){
