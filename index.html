@@ -7542,6 +7542,7 @@ function _touchEnd(e){
 
 
 function renderRemModal(filterQ=''){
+ try {
  const inEl = document.getElementById('rem-in-list');
  const outEl = document.getElementById('rem-out-list');
  const sch = SCHOOLS[_remSchool];
@@ -7589,6 +7590,7 @@ function renderRemModal(filterQ=''){
  _setText('rem-cur-count', '('+_remStudents.length+')');
  const warn = document.getElementById('rem-warn');
  if(dur >HARD_TIME){ warn.style.display=''; } else { warn.style.display='none'; }
+ } catch(e){ console.error('renderRemModal hata:',e); }
 }
 
 function remAddStudent(sid){
@@ -7918,6 +7920,7 @@ function topluOdeModal(){
 }
 
 function topluOdeKaydet(){
+  try {
   const modal = document.getElementById('toplu-ode-modal-dynamic');
   if(!modal) return;
   const seciliAylar = [...modal.querySelectorAll('#toplu-ay-list input:checked')].map(c=>c.value);
@@ -7945,6 +7948,7 @@ function topluOdeKaydet(){
   modal.remove();
   topluIptal();
   toast(islem + ' ödeme kaydedildi.', 'success');
+  } catch(e){ console.error('topluOdeKaydet hata:',e); toast('Kayıt sırasında hata oluştu.','error'); }
 }
 // ── TOPLU ÖDEME SONU ─────────────────────────────────────────
 
