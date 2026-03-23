@@ -2143,7 +2143,7 @@ function _addManagedListener(target, event, handler, options) {
     <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
       <button id="cari-sofor-aktar-btn" class="btn btn-sm" style="display:none;background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.3);color:#a78bfa;" onclick="openImportSoforModal()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Şoförlerden Aktar
+        Şoförlerden Personel Aktar
       </button>
       <button class="btn btn-sm" style="background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#60a5fa;" onclick="openCariAddModal()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2188,7 +2188,7 @@ function _addManagedListener(target, event, handler, options) {
   <div class="filter-bar" id="cari-filter-bar">
     <div class="filter-chip active" onclick="filterCari('all',this)">Tümü</div>
     <div class="filter-chip" onclick="filterCari('kasa',this)" style="border-color:rgba(245,158,11,.3);color:var(--amber);">Kasa</div>
-    <div class="filter-chip" onclick="filterCari('sofor',this)" style="border-color:rgba(139,92,246,.3);color:var(--purple);">Şoförler</div>
+    <div class="filter-chip" onclick="filterCari('sofor',this)" style="border-color:rgba(139,92,246,.3);color:var(--purple);">Personeller</div>
     <div class="filter-chip" onclick="filterCari('firma',this)" style="border-color:rgba(59,130,246,.3);color:#60a5fa;">Firmalar</div>
     <div class="filter-chip" style="border-color:rgba(255,255,255,.1);color:var(--muted2);position:relative;padding-right:22px;" onclick="toggleDigerMenu(this)">Diğer
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);"><polyline points="6 9 12 15 18 9"/></svg>
@@ -9314,12 +9314,12 @@ function _setPayBtnEditMode(editing){
   </div>
 </div>
 
-<!-- Şoförlerden Aktar Modalı -->
+<!-- Şoförlerden Personel Aktar Modalı -->
 <div class="modal-bg" id="sofor-import-modal" onclick="if(event.target===this){document.getElementById('sofor-import-modal').classList.remove('open')}">
   <div class="modal" style="width:520px;max-width:96vw;">
     <h2>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Şoförlerden Aktar
+      Şoförlerden Personel Aktar
     </h2>
     <div style="font-size:12px;color:var(--muted2);margin-bottom:14px;">Rota sistemindeki şoförler aşağıda. Her biri için <b style="color:var(--text);">tip</b> ve <b style="color:var(--text);">plaka</b> girin, seçip ekleyin.</div>
     <div id="sim-list" style="max-height:420px;overflow-y:auto;"></div>
@@ -9368,8 +9368,6 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="field"><label>Cari Türü</label>
         <select id="cm-tur">
           <option value="kasa">Kasa</option>
-          <option value="sofor">Şoför</option>
-          <option value="taseron">Taşeron</option>
           <option value="firma">Firma / Okul</option>
           <option value="personel">Personel</option>
           <option value="diger">Diğer</option>
@@ -9504,7 +9502,7 @@ function renderCariListe(){
   const countEl = document.getElementById('cari-list-count');
   if(!wrap) return;
 
-  // "Şoförlerden Aktar" butonunu sadece Şoförler filtresi aktifken göster
+  // "Şoförlerden Personel Aktar" butonunu sadece Personeller filtresi aktifken göster
   const _aktarBtn = document.getElementById('cari-sofor-aktar-btn');
   if(_aktarBtn) _aktarBtn.style.display = _cariFilter==='sofor' ? 'inline-flex' : 'none';
 
@@ -9553,9 +9551,9 @@ function renderCariListe(){
     return;
   }
 
-  const turLabel = {kasa:'Kasa',sofor:'Şoför',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
+  const turLabel = {kasa:'Kasa',sofor:'Personel',taseron:'Personel',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
   const turColor = {kasa:'#fbbf24',sofor:'#a78bfa',taseron:'#a78bfa',okul:'#60a5fa',firma:'#60a5fa',personel:'#4ade80',diger:'var(--muted2)'};
-  const turIcon = {kasa:'💰',sofor:'🚗',taseron:'🚗',okul:'🏫',firma:'🏢',personel:'👤',diger:'📋'};
+  const turIcon = {kasa:'💰',sofor:'👤',taseron:'👤',okul:'🏫',firma:'🏢',personel:'👤',diger:'📋'};
 
   let html = '';
   filtered.forEach(c=>{
@@ -9659,7 +9657,7 @@ function renderCariDetay(id){
   if(!id || !_cariData[id]) return;
   const c = _cariData[id];
   const calc = _cariCalcBakiye(c);
-  const turLabel = {kasa:'Kasa',sofor:'Şoför',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
+  const turLabel = {kasa:'Kasa',sofor:'Personel',taseron:'Personel',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
 
   _setText('cdet-name', c.isim||'İsimsiz');
   _setText('cdet-subtitle', (turLabel[c.tur]||'Diğer') + (c.plaka?' • '+c.plaka:'') + (c.servis?' • Servis: '+c.servis:''));
@@ -9734,7 +9732,7 @@ function openCariAddModal(){
   document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> Yeni Cari Hesap';
   document.getElementById('cari-edit-id').value='';
   ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>document.getElementById(x).value='');
-  document.getElementById('cm-tur').value='sofor';
+  document.getElementById('cm-tur').value='personel';
   document.getElementById('cari-add-modal').classList.add('open');
 }
 function openCariEditModal(id){
@@ -9829,7 +9827,7 @@ function deleteCari(id){
 function exportCariExcel(){
   const entries=Object.entries(_cariData);
   if(!entries.length){ showToast('Dışa aktarılacak veri yok','error'); return; }
-  const turLabel={sofor:'Şoför',taseron:'Taşeron',okul:'Okul',firma:'Firma',personel:'Personel',diger:'Diğer'};
+  const turLabel={sofor:'Personel',taseron:'Personel',okul:'Okul',firma:'Firma',personel:'Personel',diger:'Diğer'};
   const genelRows=[['SR.NO','CARİ İSMİ','CARİ TÜRÜ','SERVİS NO','PLAKA','FİRMA','CEP TEL','ALINAN','VERİLEN','BAKİYE']];
   entries.forEach(([id,c],i)=>{ const calc=_cariCalcBakiye(c); genelRows.push([i+1,c.isim||'',turLabel[c.tur]||'Diğer',c.servis||'',c.plaka||'',c.firma||'',c.tel||'',calc.borc,calc.alacak,calc.bakiye]); });
   const wb=XLSX.utils.book_new();
