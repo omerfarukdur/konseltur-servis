@@ -1618,7 +1618,7 @@ function _addManagedListener(target, event, handler, options) {
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:.2px;">Cari Hesap</div>
-          <div style="font-size:10px;color:rgba(59,130,246,.65);margin-top:2px;">Borç / Alacak takibi</div>
+          <div style="font-size:10px;color:rgba(59,130,246,.65);margin-top:2px;">Alınan / Verilen takibi</div>
         </div>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(59,130,246,.5)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
@@ -2234,7 +2234,7 @@ function _addManagedListener(target, event, handler, options) {
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <div>
       <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;">Cari Hesaplar</h2>
-      <div style="font-size:12px;color:var(--muted2);margin-top:3px;">Borç / Alacak takibi ve cari hesap yönetimi</div>
+      <div style="font-size:12px;color:var(--muted2);margin-top:3px;">Alınan / Verilen takibi ve cari hesap yönetimi</div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn btn-sm" style="background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#60a5fa;" onclick="openCariAddModal()">
@@ -2257,16 +2257,16 @@ function _addManagedListener(target, event, handler, options) {
       <div class="dash-card-label">Toplam Cari</div>
     </div>
     <div class="dash-card">
-      <div class="dash-card-glow" style="background:var(--red);"></div>
-      <div class="dash-card-icon">📤</div>
-      <div class="dash-card-val" id="cd-toplam-borc" style="color:var(--red);">₺0</div>
-      <div class="dash-card-label">Toplam Borç</div>
-    </div>
-    <div class="dash-card">
       <div class="dash-card-glow" style="background:var(--green);"></div>
       <div class="dash-card-icon">📥</div>
-      <div class="dash-card-val" id="cd-toplam-alacak" style="color:var(--green);">₺0</div>
-      <div class="dash-card-label">Toplam Alacak</div>
+      <div class="dash-card-val" id="cd-toplam-borc" style="color:var(--green);">₺0</div>
+      <div class="dash-card-label">Toplam Alınan</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-glow" style="background:var(--red);"></div>
+      <div class="dash-card-icon">📤</div>
+      <div class="dash-card-val" id="cd-toplam-alacak" style="color:var(--red);">₺0</div>
+      <div class="dash-card-label">Toplam Verilen</div>
     </div>
     <div class="dash-card">
       <div class="dash-card-glow" style="background:var(--amber);"></div>
@@ -2279,10 +2279,20 @@ function _addManagedListener(target, event, handler, options) {
   <!-- Filtre & Arama -->
   <div class="filter-bar" id="cari-filter-bar">
     <div class="filter-chip active" onclick="filterCari('all',this)">Tümü</div>
-    <div class="filter-chip" onclick="filterCari('borclu',this)" style="border-color:rgba(239,68,68,.3);color:var(--red);">Borçlular</div>
-    <div class="filter-chip" onclick="filterCari('alacakli',this)" style="border-color:rgba(34,197,94,.3);color:var(--green);">Alacaklılar</div>
+    <div class="filter-chip" onclick="filterCari('kasa',this)" style="border-color:rgba(245,158,11,.3);color:var(--amber);">Kasa</div>
     <div class="filter-chip" onclick="filterCari('sofor',this)" style="border-color:rgba(139,92,246,.3);color:var(--purple);">Şoförler</div>
-    <div class="filter-chip" onclick="filterCari('diger',this)" style="border-color:rgba(59,130,246,.3);color:#60a5fa;">Diğer</div>
+    <div class="filter-chip" onclick="filterCari('firma',this)" style="border-color:rgba(59,130,246,.3);color:#60a5fa;">Firmalar</div>
+    <div class="filter-chip" style="border-color:rgba(255,255,255,.1);color:var(--muted2);position:relative;padding-right:22px;" onclick="toggleDigerMenu(this)">Diğer
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+  <!-- Diğer alt menü -->
+  <div id="cari-diger-submenu" style="display:none;margin:-6px 0 12px;padding:6px 0 6px 8px;display:none;">
+    <div style="display:flex;gap:6px;">
+      <div class="filter-chip" onclick="filterCari('alinan',this)" style="border-color:rgba(34,197,94,.3);color:var(--green);font-size:10px;padding:5px 12px;">📥 Alınan</div>
+      <div class="filter-chip" onclick="filterCari('verilen',this)" style="border-color:rgba(239,68,68,.3);color:var(--red);font-size:10px;padding:5px 12px;">📤 Verilen</div>
+      <div class="filter-chip" onclick="filterCari('diger',this)" style="border-color:rgba(255,255,255,.08);color:var(--muted2);font-size:10px;padding:5px 12px;">Diğer Tümü</div>
+    </div>
   </div>
   <div class="search-wrap" style="margin-bottom:14px;">
     <span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
@@ -9513,10 +9523,10 @@ document.addEventListener('DOMContentLoaded',function(){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div class="field"><label>Cari Türü</label>
         <select id="cm-tur">
+          <option value="kasa">Kasa</option>
           <option value="sofor">Şoför</option>
           <option value="taseron">Taşeron</option>
-          <option value="okul">Okul</option>
-          <option value="firma">Firma</option>
+          <option value="firma">Firma / Okul</option>
           <option value="personel">Personel</option>
           <option value="diger">Diğer</option>
         </select>
@@ -9551,12 +9561,12 @@ document.addEventListener('DOMContentLoaded',function(){
     <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">İşlem Tipi</div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;" id="ch-tip-grid">
       <button onclick="_setChTip('borc',this)" data-tip="borc"
-        style="padding:12px;border-radius:10px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.1);color:var(--red);font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center;">
-        📤 Borç
+        style="padding:12px;border-radius:10px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.1);color:var(--green);font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center;">
+        📥 Alınan
       </button>
       <button onclick="_setChTip('alacak',this)" data-tip="alacak"
-        style="padding:12px;border-radius:10px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.1);color:var(--green);font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center;">
-        📥 Alacak
+        style="padding:12px;border-radius:10px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.1);color:var(--red);font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center;">
+        📤 Verilen
       </button>
     </div>
     <input type="hidden" id="ch-tip" value="borc">
@@ -9636,7 +9646,7 @@ function _cariCalcBakiye(cari){
     borc += parseFloat(h.borc||0);
     alacak += parseFloat(h.alacak||0);
   });
-  return { borc, alacak, bakiye: alacak - borc };
+  return { borc, alacak, bakiye: borc - alacak };
 }
 
 function _fmtPara(n){
@@ -9650,16 +9660,22 @@ function renderCariListe(){
   const countEl = document.getElementById('cari-list-count');
   if(!wrap) return;
 
+  // SCHOOLS'dan okulları otomatik olarak firma/okul carisi olarak dahil et
+  _ensureSchoolCaris();
+
   const entries = Object.entries(_cariData).map(([id,c])=>{
     const calc = _cariCalcBakiye(c);
     return { id, ...c, ...calc };
   });
 
+  // Filtre mantığı
   let filtered = entries;
-  if(_cariFilter==='borclu') filtered = entries.filter(c=>c.bakiye<0);
-  else if(_cariFilter==='alacakli') filtered = entries.filter(c=>c.bakiye>0);
+  if(_cariFilter==='kasa') filtered = entries.filter(c=>c.tur==='kasa');
   else if(_cariFilter==='sofor') filtered = entries.filter(c=>c.tur==='sofor'||c.tur==='taseron');
-  else if(_cariFilter==='diger') filtered = entries.filter(c=>c.tur!=='sofor'&&c.tur!=='taseron');
+  else if(_cariFilter==='firma') filtered = entries.filter(c=>c.tur==='firma'||c.tur==='okul');
+  else if(_cariFilter==='alinan') filtered = entries.filter(c=>c.bakiye>0); // bakiye pozitif = bize borçlular = alınan
+  else if(_cariFilter==='verilen') filtered = entries.filter(c=>c.bakiye<0); // bakiye negatif = biz borçluyuz = verilen
+  else if(_cariFilter==='diger') filtered = entries.filter(c=>c.tur!=='sofor'&&c.tur!=='taseron'&&c.tur!=='firma'&&c.tur!=='okul'&&c.tur!=='kasa');
 
   if(_cariSearchTerm){
     const q = _cariSearchTerm.toLowerCase();
@@ -9674,12 +9690,13 @@ function renderCariListe(){
   filtered.sort((a,b)=> (a.isim||'').localeCompare(b.isim||'','tr'));
   if(countEl) countEl.textContent = filtered.length + ' cari hesap';
 
+  // Dashboard özet - Alınan (borc=yeşil), Verilen (alacak=kırmızı)
   let topBorc=0, topAlacak=0;
   entries.forEach(c=>{ topBorc+=c.borc; topAlacak+=c.alacak; });
-  const net = topAlacak - topBorc;
+  const net = topBorc - topAlacak; // alınan - verilen
   _setText('cd-toplam-cari', entries.length);
-  _setText('cd-toplam-borc', _fmtPara(topBorc));
-  _setText('cd-toplam-alacak', _fmtPara(topAlacak));
+  _setText('cd-toplam-borc', _fmtPara(topBorc)); // Alınan = yeşil
+  _setText('cd-toplam-alacak', _fmtPara(topAlacak)); // Verilen = kırmızı
   const netEl = document.getElementById('cd-net-bakiye');
   if(netEl){ netEl.textContent = _fmtPara(net); netEl.style.color = net>=0?'var(--green)':'var(--red)'; }
 
@@ -9688,16 +9705,18 @@ function renderCariListe(){
     return;
   }
 
-  const turLabel = {sofor:'Şoför',taseron:'Taşeron',okul:'Okul',firma:'Firma',personel:'Personel',diger:'Diğer'};
-  const turColor = {sofor:'#a78bfa',taseron:'#fbbf24',okul:'#f87171',firma:'#60a5fa',personel:'#4ade80',diger:'var(--muted2)'};
+  const turLabel = {kasa:'Kasa',sofor:'Şoför',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
+  const turColor = {kasa:'#fbbf24',sofor:'#a78bfa',taseron:'#a78bfa',okul:'#60a5fa',firma:'#60a5fa',personel:'#4ade80',diger:'var(--muted2)'};
+  const turIcon = {kasa:'💰',sofor:'🚗',taseron:'🚗',okul:'🏫',firma:'🏢',personel:'👤',diger:'📋'};
 
   let html = '';
   filtered.forEach(c=>{
     const harCount = Object.keys(c.hareketler||{}).length;
     const bColor = c.bakiye>0?'var(--green)':c.bakiye<0?'var(--red)':'var(--muted2)';
-    const bdrL = c.bakiye<0?'border-left:3px solid var(--red);':'border-left:3px solid rgba(59,130,246,.3);';
+    const bdrL = c.bakiye<0?'border-left:3px solid var(--red);':c.bakiye>0?'border-left:3px solid var(--green);':'border-left:3px solid rgba(59,130,246,.3);';
+    const icon = turIcon[c.tur]||'📋';
     html += `<div onclick="openCariDetay('${c.id}')" style="display:flex;align-items:center;gap:14px;padding:15px 18px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:14px;margin-bottom:8px;cursor:pointer;transition:all var(--t-slow);${bdrL}" onmouseover="this.style.borderColor='rgba(59,130,246,.3)';this.style.boxShadow='0 6px 24px rgba(0,0,0,.18)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='rgba(255,255,255,.06)';this.style.boxShadow='none';this.style.transform='none'">
-      <div style="width:42px;height:42px;border-radius:12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#60a5fa;">${(c.isim||'?')[0].toUpperCase()}</div>
+      <div style="width:42px;height:42px;border-radius:12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">${icon}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(c.isim||'İsimsiz')}</div>
         <div style="display:flex;gap:8px;align-items:center;margin-top:3px;flex-wrap:wrap;">
@@ -9716,10 +9735,64 @@ function renderCariListe(){
   wrap.innerHTML = html;
 }
 
+// SCHOOLS'dan okulları otomatik cari olarak ekle (yoksa)
+function _ensureSchoolCaris(){
+  if(typeof SCHOOLS === 'undefined') return;
+  SCHOOLS.forEach(s=>{
+    const schoolCariId = 'school_' + s.key;
+    if(!_cariData[schoolCariId]){
+      _cariData[schoolCariId] = {
+        isim: s.short || s.name,
+        tur: 'firma',
+        servis: '',
+        plaka: '',
+        firma: s.name,
+        tel: '',
+        not: 'Ücret sisteminden otomatik eklendi',
+        hareketler: {},
+        _schoolKey: s.key
+      };
+    }
+  });
+}
+
+// Diğer alt menüsünü aç/kapat
+function toggleDigerMenu(el){
+  const sub = document.getElementById('cari-diger-submenu');
+  if(!sub) return;
+  const isOpen = sub.style.display === 'flex';
+  sub.style.display = isOpen ? 'none' : 'flex';
+  // Ana chip highlight
+  if(!isOpen){
+    document.querySelectorAll('#cari-filter-bar .filter-chip').forEach(c=>c.classList.remove('active'));
+    el.classList.add('active');
+    el.style.borderColor='rgba(255,255,255,.25)';
+    el.style.color='var(--text)';
+  } else {
+    el.style.borderColor='rgba(255,255,255,.1)';
+    el.style.color='var(--muted2)';
+  }
+}
+
 function filterCari(f,el){
   _cariFilter = f;
-  document.querySelectorAll('#cari-filter-bar .filter-chip').forEach(c=>c.classList.remove('active'));
-  if(el) el.classList.add('active');
+  // Ana filter bar chip'lerini resetle
+  document.querySelectorAll('#cari-filter-bar .filter-chip').forEach(c=>{c.classList.remove('active');c.style.borderColor='';c.style.color='';});
+  // Alt menü chip'lerini resetle
+  document.querySelectorAll('#cari-diger-submenu .filter-chip').forEach(c=>c.classList.remove('active'));
+  
+  const sub = document.getElementById('cari-diger-submenu');
+  if(f==='alinan'||f==='verilen'||f==='diger'){
+    // Alt menüden seçildi
+    if(el) el.classList.add('active');
+    // "Diğer" ana chip'i highlight
+    const digerChip = document.querySelector('#cari-filter-bar .filter-chip:last-child');
+    if(digerChip){digerChip.classList.add('active');digerChip.style.borderColor='rgba(255,255,255,.25)';digerChip.style.color='var(--text)';}
+    if(sub) sub.style.display='flex';
+  } else {
+    if(el) el.classList.add('active');
+    if(sub) sub.style.display='none';
+  }
   renderCariListe();
 }
 function searchCari(v){ _cariSearchTerm=(v||'').trim(); renderCariListe(); }
@@ -9738,7 +9811,7 @@ function renderCariDetay(id){
   if(!id || !_cariData[id]) return;
   const c = _cariData[id];
   const calc = _cariCalcBakiye(c);
-  const turLabel = {sofor:'Şoför',taseron:'Taşeron',okul:'Okul',firma:'Firma',personel:'Personel',diger:'Diğer'};
+  const turLabel = {kasa:'Kasa',sofor:'Şoför',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
 
   _setText('cdet-name', c.isim||'İsimsiz');
   _setText('cdet-subtitle', (turLabel[c.tur]||'Diğer') + (c.plaka?' • '+c.plaka:'') + (c.servis?' • Servis: '+c.servis:''));
@@ -9760,17 +9833,17 @@ function renderCariDetay(id){
   if(bOzet){
     const bColor = calc.bakiye>=0?'var(--green)':'var(--red)';
     bOzet.innerHTML = `
-      <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:12px;padding:14px;text-align:center;">
-        <div style="font-size:10px;color:var(--red);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Toplam Borç</div>
-        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--red);">${_fmtPara(calc.borc)}</div>
-      </div>
       <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px;text-align:center;">
-        <div style="font-size:10px;color:var(--green);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Toplam Alacak</div>
-        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);">${_fmtPara(calc.alacak)}</div>
+        <div style="font-size:10px;color:var(--green);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Toplam Alınan</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);">${_fmtPara(calc.borc)}</div>
+      </div>
+      <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:10px;color:var(--red);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Toplam Verilen</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--red);">${_fmtPara(calc.alacak)}</div>
       </div>
       <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:12px;padding:14px;text-align:center;">
         <div style="font-size:10px;color:#60a5fa;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Net Bakiye</div>
-        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:${bColor};">${_fmtPara(calc.bakiye)}</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:${bColor};">${_fmtPara(calc.borc - calc.alacak)}</div>
       </div>`;
   }
 
@@ -9786,20 +9859,20 @@ function renderCariDetay(id){
 
   let runBal = 0;
   const sorted = [...hareketler].sort((a,b)=>(a.tarih||'').localeCompare(b.tarih||''));
-  sorted.forEach(h=>{ runBal += (parseFloat(h.alacak||0) - parseFloat(h.borc||0)); h._rb = runBal; });
+  sorted.forEach(h=>{ runBal += (parseFloat(h.borc||0) - parseFloat(h.alacak||0)); h._rb = runBal; });
   sorted.reverse();
 
   let hh = '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;overflow-x:auto;">';
   hh += `<div style="display:grid;grid-template-columns:85px 1fr 85px 85px 95px 30px;gap:0;padding:10px 14px;background:rgba(255,255,255,.025);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);min-width:480px;">
-    <div>Tarih</div><div>Açıklama</div><div style="text-align:right;">Borç</div><div style="text-align:right;">Alacak</div><div style="text-align:right;">Bakiye</div><div></div></div>`;
+    <div>Tarih</div><div>Açıklama</div><div style="text-align:right;">Alınan</div><div style="text-align:right;">Verilen</div><div style="text-align:right;">Bakiye</div><div></div></div>`;
   sorted.forEach(h=>{
     const b=parseFloat(h.borc||0), a=parseFloat(h.alacak||0);
     const bc = h._rb>=0?'var(--green)':'var(--red)';
     hh += `<div style="display:grid;grid-template-columns:85px 1fr 85px 85px 95px 30px;gap:0;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px;min-width:480px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background='transparent'">
       <div style="color:var(--muted2);font-size:12px;">${_esc(h.tarih||'—')}</div>
       <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(h.aciklama||'—')}</div>
-      <div style="text-align:right;color:${b>0?'var(--red)':'var(--muted)'};font-weight:600;">${b>0?_fmtPara(b):'—'}</div>
-      <div style="text-align:right;color:${a>0?'var(--green)':'var(--muted)'};font-weight:600;">${a>0?_fmtPara(a):'—'}</div>
+      <div style="text-align:right;color:${b>0?'var(--green)':'var(--muted)'};font-weight:600;">${b>0?_fmtPara(b):'—'}</div>
+      <div style="text-align:right;color:${a>0?'var(--red)':'var(--muted)'};font-weight:600;">${a>0?_fmtPara(a):'—'}</div>
       <div style="text-align:right;color:${bc};font-weight:700;font-family:'Syne',sans-serif;">${_fmtPara(h._rb)}</div>
       <div><button onclick="event.stopPropagation();deleteCariHareket('${id}','${h.id}')" style="width:22px;height:22px;border-radius:5px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;">×</button></div>
     </div>`;
@@ -9878,10 +9951,10 @@ function saveCariHareket(){
   const aciklama=(document.getElementById('ch-aciklama').value||'').trim();
   if(!_cariData[id].hareketler) _cariData[id].hareketler={};
   const hid=_newHareketId();
-  _cariData[id].hareketler[hid]={tarih,aciklama:aciklama||(tip==='borc'?'Borç':'Alacak'),borc:tip==='borc'?tutar:0,alacak:tip==='alacak'?tutar:0,ts:Date.now()};
+  _cariData[id].hareketler[hid]={tarih,aciklama:aciklama||(tip==='borc'?'Alınan':'Verilen'),borc:tip==='borc'?tutar:0,alacak:tip==='alacak'?tutar:0,ts:Date.now()};
   _saveCariToStorage();
   document.getElementById('cari-hareket-modal').classList.remove('open');
-  showToast((tip==='borc'?'Borç':'Alacak')+' kaydedildi: '+_fmtPara(tutar),'success');
+  showToast((tip==='borc'?'Alınan':'Verilen')+' kaydedildi: '+_fmtPara(tutar),'success');
   renderCariDetay(id);
 }
 function deleteCariHareket(cariId,hareketId){
@@ -9909,14 +9982,14 @@ function exportCariExcel(){
   const entries=Object.entries(_cariData);
   if(!entries.length){ showToast('Dışa aktarılacak veri yok','error'); return; }
   const turLabel={sofor:'Şoför',taseron:'Taşeron',okul:'Okul',firma:'Firma',personel:'Personel',diger:'Diğer'};
-  const genelRows=[['SR.NO','CARİ İSMİ','CARİ TÜRÜ','SERVİS NO','PLAKA','FİRMA','CEP TEL','BORÇ','ALACAK','BAKİYE']];
+  const genelRows=[['SR.NO','CARİ İSMİ','CARİ TÜRÜ','SERVİS NO','PLAKA','FİRMA','CEP TEL','ALINAN','VERİLEN','BAKİYE']];
   entries.forEach(([id,c],i)=>{ const calc=_cariCalcBakiye(c); genelRows.push([i+1,c.isim||'',turLabel[c.tur]||'Diğer',c.servis||'',c.plaka||'',c.firma||'',c.tel||'',calc.borc,calc.alacak,calc.bakiye]); });
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(genelRows), 'GENEL LİSTE');
   entries.forEach(([id,c],i)=>{
     const har=Object.values(c.hareketler||{}); har.sort((a,b)=>(a.tarih||'').localeCompare(b.tarih||''));
-    const rows=[['CARİ: '+(c.isim||'')],['SR.NO','TARİH','AÇIKLAMA','BORÇ','ALACAK','BAKİYE']];
-    let bal=0; har.forEach((h,j)=>{ const b=parseFloat(h.borc||0),a=parseFloat(h.alacak||0); bal+=(a-b); rows.push([j+1,h.tarih||'',h.aciklama||'',b,a,bal]); });
+    const rows=[['CARİ: '+(c.isim||'')],['SR.NO','TARİH','AÇIKLAMA','ALINAN','VERİLEN','BAKİYE']];
+    let bal=0; har.forEach((h,j)=>{ const b=parseFloat(h.borc||0),a=parseFloat(h.alacak||0); bal+=(b-a); rows.push([j+1,h.tarih||'',h.aciklama||'',b,a,bal]); });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), String(i+1).substring(0,30));
   });
   XLSX.writeFile(wb,'Cari_Hesaplar_'+new Date().toISOString().split('T')[0]+'.xlsx');
