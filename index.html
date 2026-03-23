@@ -9955,101 +9955,144 @@ function editTaseronGun(cariId, hareketId){
   const c = _cariData[cariId];
   const h = _cariData[cariId].hareketler[hareketId];
   const yov = parseFloat(c.yovmiye||0);
-  // Mevcut gün sayısını hesapla
   const mevcutGun = yov>0 ? Math.round(parseFloat(h.borc||0)/yov) : 0;
 
-  // Dinamik modal
+  // State'i window üzerinde sakla — inline onclick problemi yok
+  window._etgState = { cariId, hareketId, yov,
+    tarih: h.tarih||'', gunKey: h.gunKey||'' };
+
   const mDiv = document.createElement('div');
+  mDiv.id = 'etg-modal-wrap';
   mDiv.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;';
-  mDiv.onclick = function(e){ if(e.target===this) this.remove(); };
-  mDiv.innerHTML = `<div style="background:var(--card);border:1px solid rgba(245,158,11,.3);border-radius:var(--radius);padding:28px 24px;max-width:380px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,.6);">
-    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:4px;color:#fbbf24;">🚌 ${_esc(c.isim||'')} — Gün Düzenle</div>
-    <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">${_esc(h.aciklama||'')} · Günlük yövmiye: ${_fmtPara(yov)}</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
-      <label style="font-size:11px;color:var(--muted2);font-weight:700;letter-spacing:.4px;text-transform:uppercase;">Bu ay kaç gün çalıştı?</label>
-      <input id="etg-gun" type="number" min="0" max="31" step="1" value="${mevcutGun}"
-        style="padding:12px 14px;border-radius:10px;border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.08);color:#fbbf24;font-size:24px;font-weight:800;font-family:'Syne',sans-serif;text-align:center;outline:none;width:100%;">
-      <div id="etg-preview" style="text-align:center;font-size:13px;color:rgba(255,255,255,.5);min-height:18px;"></div>
-    </div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn btn-full" style="flex:2;background:rgba(245,158,11,.18);border:1px solid rgba(245,158,11,.4);color:#fbbf24;"
-        onclick="(function(){
-          const gun=parseInt(document.getElementById('etg-gun').value)||0;
-          if(!gun||gun<1||gun>31){showToast('1-31 arası gün girin','error');return;}
-          const toplam = ${yov} * gun;
-          const ayKey = '${h.gunKey||''}';
-          const ayLabel = '${h.tarih||''}' ? '${h.tarih||''}'.substring(0,7).replace('-','/') : '';
-          _cariData['${cariId}'].hareketler['${hareketId}'] = {
-            tarih: '${h.tarih||''}',
-            aciklama: ayLabel+' · '+gun+' gün × ${yov.toLocaleString('tr-TR')}₺',
-            borc: toplam, alacak: 0, ts: Date.now(),
-            gunKey: '${h.gunKey||''}', otomatik: true
-          };
-          _saveCariToStorage();
-          renderCariDetay('${cariId}');
-          showToast('Gün güncellendi: '+gun+' gün = '+toplam.toLocaleString('tr-TR')+'₺','success');
-          document.querySelector('[style*="position:fixed"][style*="inset:0"][style*="9999"]')?.remove();
-        })()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>
-        Kaydet
-      </button>
-      <button class="btn btn-ghost" style="flex:1;" onclick="this.closest('[style*=fixed]').remove()">İptal</button>
-    </div>
-  </div>`;
-  // Preview hesapla
+  mDiv.onclick = function(e){ if(e.target===this) _etgKapat(); };
+  mDiv.innerHTML =
+    '<div style="background:var(--card);border:1px solid rgba(245,158,11,.3);border-radius:var(--radius);padding:28px 24px;max-width:380px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,.6);">' +
+      '<div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:4px;color:#fbbf24;">🚌 ' + _esc(c.isim||'') + ' — Gün Düzenle</div>' +
+      '<div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Günlük yövmiye: ' + _fmtPara(yov) + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">' +
+        '<label style="font-size:11px;color:var(--muted2);font-weight:700;letter-spacing:.4px;text-transform:uppercase;">Bu ay kaç gün çalıştı?</label>' +
+        '<input id="etg-gun" type="number" min="1" max="31" step="1" value="' + mevcutGun + '" ' +
+          'style="padding:12px 14px;border-radius:10px;border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.08);color:#fbbf24;font-size:28px;font-weight:800;font-family:'Syne',sans-serif;text-align:center;outline:none;width:100%;" ' +
+          'oninput="_etgPreview()">' +
+        '<div id="etg-preview" style="text-align:center;font-size:14px;color:rgba(255,255,255,.55);min-height:20px;font-weight:600;"></div>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;">' +
+        '<button class="btn btn-full" style="flex:2;background:rgba(245,158,11,.18);border:1px solid rgba(245,158,11,.4);color:#fbbf24;" onclick="_etgKaydet()">' +
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>' +
+          'Kaydet' +
+        '</button>' +
+        '<button class="btn btn-ghost" style="flex:1;" onclick="_etgKapat()">İptal</button>' +
+      '</div>' +
+    '</div>';
   document.body.appendChild(mDiv);
   const gunInp = document.getElementById('etg-gun');
-  const prev = document.getElementById('etg-preview');
-  function updatePrev(){ const g=parseInt(gunInp?.value||0)||0; if(prev) prev.textContent = g>0 ? g+' gün × '+yov.toLocaleString('tr-TR')+'₺ = '+_fmtPara(g*yov) : ''; }
-  if(gunInp){ gunInp.addEventListener('input',updatePrev); updatePrev(); gunInp.select(); }
+  if(gunInp){ _etgPreview(); gunInp.focus(); gunInp.select(); }
+}
+
+function _etgPreview(){
+  const gunInp = document.getElementById('etg-gun');
+  const prev   = document.getElementById('etg-preview');
+  if(!gunInp||!prev||!window._etgState) return;
+  const g = parseInt(gunInp.value)||0;
+  const yov = window._etgState.yov;
+  prev.textContent = g>0 ? g+' gün × '+yov.toLocaleString('tr-TR')+'₺ = '+_fmtPara(g*yov) : '';
+}
+
+function _etgKaydet(){
+  const gunInp = document.getElementById('etg-gun');
+  if(!gunInp||!window._etgState) return;
+  const gun = parseInt(gunInp.value)||0;
+  if(!gun||gun<1||gun>31){ showToast('1-31 arası geçerli bir gün girin','error'); return; }
+  const { cariId, hareketId, yov, tarih, gunKey } = window._etgState;
+  if(!_cariData[cariId]||!_cariData[cariId].hareketler) return;
+  const toplam = yov * gun;
+  const ayLabel = tarih ? tarih.substring(0,7).replace('-','/') : '';
+  _cariData[cariId].hareketler[hareketId] = {
+    tarih,
+    aciklama: ayLabel + ' · ' + gun + ' gün × ' + yov.toLocaleString('tr-TR') + '₺',
+    borc: toplam,
+    alacak: 0,
+    ts: Date.now(),
+    gunKey,
+    otomatik: true
+  };
+  _saveCariToStorage();
+  _etgKapat();
+  renderCariDetay(cariId);
+  showToast('Gün güncellendi: ' + gun + ' gün = ' + _fmtPara(toplam), 'success');
+  window._etgState = null;
+}
+
+function _etgKapat(){
+  const el = document.getElementById('etg-modal-wrap');
+  if(el) el.remove();
 }
 
 // Genel hareket düzenleme modalı (tüm cari türleri)
 function editCariHareket(cariId, hareketId){
   if(!_cariData[cariId]?.hareketler?.[hareketId]) return;
   const h = _cariData[cariId].hareketler[hareketId];
-  const mDiv = document.createElement('div');
-  mDiv.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;';
-  mDiv.onclick=function(e){if(e.target===this)this.remove();};
-  const isBorc = parseFloat(h.borc||0)>0;
+  const isBorc = parseFloat(h.borc||0) > 0;
   const tutar  = isBorc ? parseFloat(h.borc||0) : parseFloat(h.alacak||0);
-  mDiv.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;max-width:400px;width:92%;box-shadow:0 24px 80px rgba(0,0,0,.6);">
-    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:16px;color:#60a5fa;">✏️ Hareketi Düzenle</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-      <div class="field"><label>Tarih</label><input id="ech-tarih" type="date" value="${h.tarih||''}"></div>
-      <div class="field"><label>Açıklama</label><input id="ech-aciklama" maxlength="200" value="${_esc(h.aciklama||'')}"></div>
-      <div class="field"><label>Tür</label>
-        <select id="ech-tip">
-          <option value="borc" ${isBorc?'selected':''}>Alınan (bize ödendi)</option>
-          <option value="alacak" ${!isBorc?'selected':''}>Verilen (biz ödedik)</option>
-        </select>
-      </div>
-      <div class="field"><label>Tutar (₺)</label><input id="ech-tutar" type="number" min="0" step="any" value="${tutar}"></div>
-    </div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn btn-blue btn-full" style="flex:2;" onclick="(function(){
-        const tarih=document.getElementById('ech-tarih').value;
-        const aciklama=(document.getElementById('ech-aciklama').value||'').trim();
-        const tip=document.getElementById('ech-tip').value;
-        const tutar=parseFloat(document.getElementById('ech-tutar').value)||0;
-        if(!tutar||tutar<=0){showToast('Geçerli tutar girin','error');return;}
-        _cariData['${cariId}'].hareketler['${hareketId}']={
-          tarih: tarih||new Date().toISOString().split('T')[0],
-          aciklama: aciklama||(tip==='borc'?'Alınan':'Verilen'),
-          borc: tip==='borc'?tutar:0,
-          alacak: tip==='alacak'?tutar:0,
-          ts: Date.now()
-        };
-        _saveCariToStorage();
-        renderCariDetay('${cariId}');
-        showToast('Hareket güncellendi','success');
-        document.querySelector('[style*=fixed][style*=inset]')?.remove();
-      })()">Kaydet</button>
-      <button class="btn btn-ghost" style="flex:1;" onclick="this.closest('[style*=fixed]').remove()">İptal</button>
-    </div>
-  </div>`;
+
+  // State'i window üzerinde sakla
+  window._echState = { cariId, hareketId };
+
+  const mDiv = document.createElement('div');
+  mDiv.id = 'ech-modal-wrap';
+  mDiv.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;';
+  mDiv.onclick = function(e){ if(e.target===this) _echKapat(); };
+
+  mDiv.innerHTML =
+    '<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;max-width:400px;width:92%;box-shadow:0 24px 80px rgba(0,0,0,.6);">' +
+      '<div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;margin-bottom:16px;color:#60a5fa;">✏️ Hareketi Düzenle</div>' +
+      '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">' +
+        '<div class="field"><label>Tarih</label><input id="ech-tarih" type="date" value="' + (h.tarih||'') + '"></div>' +
+        '<div class="field"><label>Açıklama</label><input id="ech-aciklama" maxlength="200" value="' + _esc(h.aciklama||'') + '"></div>' +
+        '<div class="field"><label>Tür</label>' +
+          '<select id="ech-tip">' +
+            '<option value="borc"' + (isBorc?' selected':'') + '>Alınan (bize ödendi)</option>' +
+            '<option value="alacak"' + (!isBorc?' selected':'') + '>Verilen (biz ödedik)</option>' +
+          '</select>' +
+        '</div>' +
+        '<div class="field"><label>Tutar (₺)</label><input id="ech-tutar" type="number" min="0" step="any" value="' + tutar + '"></div>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;">' +
+        '<button class="btn btn-blue btn-full" style="flex:2;" onclick="_echKaydet()">Kaydet</button>' +
+        '<button class="btn btn-ghost" style="flex:1;" onclick="_echKapat()">İptal</button>' +
+      '</div>' +
+    '</div>';
+
   document.body.appendChild(mDiv);
   document.getElementById('ech-tutar')?.select();
+}
+
+function _echKaydet(){
+  if(!window._echState) return;
+  const { cariId, hareketId } = window._echState;
+  const tarih     = (document.getElementById('ech-tarih')?.value||'').trim();
+  const aciklama  = (document.getElementById('ech-aciklama')?.value||'').trim();
+  const tip       = document.getElementById('ech-tip')?.value || 'borc';
+  const tutar     = parseFloat(document.getElementById('ech-tutar')?.value||0)||0;
+  if(!tutar||tutar<=0){ showToast('Geçerli bir tutar girin','error'); return; }
+  if(!_cariData[cariId]||!_cariData[cariId].hareketler) return;
+  _cariData[cariId].hareketler[hareketId] = {
+    tarih:    tarih || new Date().toISOString().split('T')[0],
+    aciklama: aciklama || (tip==='borc'?'Alınan':'Verilen'),
+    borc:     tip==='borc' ? tutar : 0,
+    alacak:   tip==='alacak' ? tutar : 0,
+    ts:       Date.now()
+  };
+  _saveCariToStorage();
+  _echKapat();
+  renderCariDetay(cariId);
+  showToast('Hareket güncellendi','success');
+  window._echState = null;
+}
+
+function _echKapat(){
+  const el = document.getElementById('ech-modal-wrap');
+  if(el) el.remove();
 }
 
 function exportCariExcel(){
