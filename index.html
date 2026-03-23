@@ -9406,9 +9406,12 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="field"><label>Firma</label><input id="cm-firma" maxlength="80" placeholder="Firma adı"></div>
     </div>
     <div class="field"><label>Cep Telefonu</label><input id="cm-tel" maxlength="15" placeholder="05XX XXX XX XX" type="tel"></div>
-    <div id="cm-yovmiye-wrap" style="display:none;" class="field">
-      <label>Günlük Yövmiye (₺)</label>
-      <input id="cm-yovmiye" type="number" min="0" max="99999" step="1" placeholder="Örn: 1500">
+    <div id="cm-yovmiye-wrap" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;margin-top:4px;">
+        <label style="font-size:11px;color:var(--muted2);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin:0;">Okul — Günlük Yövmiye</label>
+        <button type="button" onclick="_cariAddOkulRow()" style="padding:4px 10px;border-radius:7px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.08);color:#fbbf24;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;">+ Okul Ekle</button>
+      </div>
+      <div id="cm-okul-rows" style="display:flex;flex-direction:column;gap:6px;"></div>
     </div>
     <div class="field"><label>Not</label><input id="cm-not" maxlength="200" placeholder="Opsiyonel açıklama..."></div>
     <div style="display:flex;gap:8px;margin-top:16px;">
@@ -9581,13 +9584,13 @@ function renderCariListe(){
   filtered.sort((a,b)=> (a.isim||'').localeCompare(b.isim||'','tr'));
   if(countEl) countEl.textContent = filtered.length + ' cari hesap';
 
-  // Dashboard özet - Alınan (borc=yeşil), Verilen (alacak=kırmızı)
+  // Dashboard özet - aktif filtreye göre hesapla
   let topBorc=0, topAlacak=0;
-  entries.forEach(c=>{ topBorc+=c.borc; topAlacak+=c.alacak; });
-  const net = topBorc - topAlacak; // alınan - verilen
-  _setText('cd-toplam-cari', entries.length);
-  _setText('cd-toplam-borc', _fmtPara(topBorc)); // Alınan = yeşil
-  _setText('cd-toplam-alacak', _fmtPara(topAlacak)); // Verilen = kırmızı
+  filtered.forEach(c=>{ topBorc+=c.borc; topAlacak+=c.alacak; });
+  const net = topBorc - topAlacak;
+  _setText('cd-toplam-cari', filtered.length);
+  _setText('cd-toplam-borc', _fmtPara(topBorc));
+  _setText('cd-toplam-alacak', _fmtPara(topAlacak));
   const netEl = document.getElementById('cd-net-bakiye');
   if(netEl){ netEl.textContent = _fmtPara(net); netEl.style.color = net>=0?'var(--green)':'var(--red)'; }
 
@@ -9690,8 +9693,13 @@ function renderCariDetay(id){
   const turLabel = {kasa:'Kasa',sofor:'Personel',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
 
   _setText('cdet-name', c.isim||'İsimsiz');
-  const _detAlt = (turLabel[c.tur]||'Diğer') + (c.plaka?' • '+c.plaka:'') + (c.servis?' • Servis: '+c.servis:'') + (c.tur==='taseron'&&c.yovmiye?' • Yövmiye: '+parseFloat(c.yovmiye).toLocaleString('tr-TR')+'₺/gün':'');
+  let _detAlt = (turLabel[c.tur]||'Diğer') + (c.plaka?' • '+c.plaka:'') + (c.servis?' • Servis: '+c.servis:'');
+  if(c.tur==='taseron' && c.yovmiye){
+    _detAlt += ' • Toplam yövmiye: ' + parseFloat(c.yovmiye).toLocaleString('tr-TR') + '₺/gün';
+  }
   _setText('cdet-subtitle', _detAlt);
+  // Taşeron okul-yövmiye bilgisini profil kartına ekle
+  window._activeDetayId = id;
 
   const profil = document.getElementById('cdet-profil');
   if(profil){
@@ -9703,7 +9711,8 @@ function renderCariDetay(id){
         ${c.not?'<div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic;">'+_esc(c.not)+'</div>':''}
       </div>
       <button onclick="deleteCari('${id}')" style="padding:8px 12px;border-radius:9px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:var(--red);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;">Sil</button>
-    </div>`;
+    </div>
+    ${c.tur==='taseron' && Array.isArray(c.okulYovmiye) && c.okulYovmiye.length ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-wrap:wrap;gap:6px;">' + c.okulYovmiye.map(oy=>{ const sc=SCHOOLS.find(s=>s.key===oy.okulKey); return '<span style="font-size:11px;padding:3px 10px;border-radius:8px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#fbbf24;">' + (sc?sc.short||sc.name:oy.okulKey) + ': ' + parseFloat(oy.yovmiye).toLocaleString('tr-TR') + '₺/gün</span>'; }).join('') + '</div>' : ''}`;
   }
 
   const bOzet = document.getElementById('cdet-bakiye-ozet');
@@ -9768,8 +9777,8 @@ function openCariAddModal(){
   document.getElementById('cari-edit-id').value='';
   ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>document.getElementById(x).value='');
   document.getElementById('cm-tur').value='personel';
-  const _yovEl2 = document.getElementById('cm-yovmiye');
-  if(_yovEl2) _yovEl2.value='';
+  const _rows2 = document.getElementById('cm-okul-rows');
+  if(_rows2) _rows2.innerHTML = '';
   _toggleCariYovmiye('personel');
   document.getElementById('cari-add-modal').classList.add('open');
 }
@@ -9785,9 +9794,13 @@ function openCariEditModal(id){
   document.getElementById('cm-firma').value=c.firma||'';
   document.getElementById('cm-tel').value=c.tel||'';
   document.getElementById('cm-not').value=c.not||'';
-  const _yovEl = document.getElementById('cm-yovmiye');
-  if(_yovEl) _yovEl.value = c.yovmiye||'';
+  // Okul-yövmiye satırlarını temizle ve doldur
+  const _rows = document.getElementById('cm-okul-rows');
+  if(_rows) _rows.innerHTML = '';
   _toggleCariYovmiye(c.tur||'diger');
+  if(c.tur==='taseron' && Array.isArray(c.okulYovmiye) && c.okulYovmiye.length){
+    c.okulYovmiye.forEach(oy=>_cariAddOkulRow(oy.okulKey, oy.yovmiye));
+  }
   document.getElementById('cari-add-modal').classList.add('open');
 }
 function saveCariModal(){
@@ -9805,9 +9818,12 @@ function saveCariModal(){
   _cariData[id].not=(document.getElementById('cm-not').value||'').trim();
   const _tur = _cariData[id].tur;
   if(_tur==='taseron'){
-    const _yv = parseFloat(document.getElementById('cm-yovmiye')?.value||0)||0;
-    _cariData[id].yovmiye = _yv;
+    const _oyList = _cariGetOkulYovmiye();
+    _cariData[id].okulYovmiye = _oyList;
+    // Toplam günlük yövmiye (tüm okullar toplamı) — aylık hesapta kullanılır
+    _cariData[id].yovmiye = _oyList.reduce((sum,oy)=>sum+(parseFloat(oy.yovmiye)||0),0);
   } else {
+    _cariData[id].okulYovmiye = [];
     _cariData[id].yovmiye = 0;
   }
   _saveCariToStorage();
@@ -9872,10 +9888,60 @@ function deleteCari(id){
   cm.style.display='flex';
 }
 
-// Cari modal: taşeron seçilince yövmiye alanını göster/gizle
+// Cari modal: taşeron seçilince okul-yövmiye satırlarını göster/gizle
 function _toggleCariYovmiye(tur){
   const w = document.getElementById('cm-yovmiye-wrap');
   if(w) w.style.display = tur==='taseron' ? 'block' : 'none';
+  if(tur==='taseron'){
+    const rows = document.getElementById('cm-okul-rows');
+    if(rows && !rows.children.length) _cariAddOkulRow(); // en az 1 satır
+  }
+}
+
+function _cariAddOkulRow(okulKey, yovmiye){
+  const rows = document.getElementById('cm-okul-rows');
+  if(!rows) return;
+  const idx = Date.now();
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:6px;align-items:center;';
+  div.dataset.rowId = idx;
+
+  const sel = document.createElement('select');
+  sel.id = 'cmok-okul-' + idx;
+  sel.style.cssText = 'flex:1;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:Outfit,sans-serif;';
+  sel.innerHTML = '<option value="">Okul Seçin</option>' +
+    SCHOOLS.map(sc => '<option value="' + sc.key + '"' + (okulKey===sc.key?' selected':'') + '>' + (sc.short||sc.name) + '</option>').join('');
+
+  const inp = document.createElement('input');
+  inp.id = 'cmok-yov-' + idx;
+  inp.type = 'number';
+  inp.placeholder = 'Yövmiye ₺';
+  inp.min = '0'; inp.max = '99999'; inp.step = '1';
+  if(yovmiye) inp.value = yovmiye;
+  inp.style.cssText = 'width:110px;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:Outfit,sans-serif;';
+
+  const delBtn = document.createElement('button');
+  delBtn.type = 'button';
+  delBtn.textContent = '×';
+  delBtn.className = 'del-row-btn';
+  delBtn.title = 'Kaldır';
+  delBtn.onclick = function(){ div.remove(); };
+
+  div.append(sel, inp, delBtn);
+  rows.appendChild(div);
+}
+
+function _cariGetOkulYovmiye(){
+  const rows = document.getElementById('cm-okul-rows');
+  if(!rows) return [];
+  const result = [];
+  rows.querySelectorAll('[data-row-id]').forEach(div => {
+    const idx = div.dataset.rowId;
+    const okulKey = div.querySelector('[id^="cmok-okul-"]')?.value || '';
+    const yovmiye = parseFloat(div.querySelector('[id^="cmok-yov-"]')?.value||0)||0;
+    if(okulKey && yovmiye > 0) result.push({ okulKey, yovmiye });
+  });
+  return result;
 }
 
 
@@ -9893,7 +9959,7 @@ function taseronAylikHesapla(){
   const _sifirYov = _taseronlar.filter(([,c])=>!parseFloat(c.yovmiye||0));
   if(_sifirYov.length){
     const isimler = _sifirYov.map(([,c])=>c.isim||'?').join(', ');
-    showToast(`⚠️ Yövmiyesi girilmemiş: ${isimler}. Düzenle butonundan yövmiye girin.`,'error');
+    showToast('⚠️ Yövmiyesi girilmemiş: '+isimler+'. Düzenle → Okul Ekle ile yövmiye girin.','error');
     return;
   }
 
