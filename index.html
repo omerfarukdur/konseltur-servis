@@ -793,6 +793,7 @@ body.light .field select{
 
 @media(max-width:380px){
  #login-screen >div[style*="max-width:560px"] >div[style*="grid-template-columns"]{
+ grid-template-columns:1fr!important;
  gap:8px!important;
  }
 }
@@ -1589,25 +1590,37 @@ function _addManagedListener(target, event, handler, options) {
       <button id="btn-manage-schools" class="login-manage-btn" onclick="toggleManageMode()">Yönet</button>
     </div>
 
-    <!-- Şoför Cüzdanı — Okul Bağımsız Erişim -->
-    <div style="margin-bottom:20px;flex-shrink:0;">
+    <!-- Şoför Cüzdanı & Cari Hesap — Okul Bağımsız Erişim -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;flex-shrink:0;">
+      <!-- Şoför Cüzdanı -->
       <button onclick="enterSoforDirect()"
-        style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;border:1px solid rgba(139,92,246,.28);background:rgba(139,92,246,.06);cursor:pointer;font-family:'Outfit',sans-serif;transition:all var(--t-slow);text-align:left;position:relative;overflow:hidden;"
+        style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1px solid rgba(139,92,246,.28);background:rgba(139,92,246,.06);cursor:pointer;font-family:'Outfit',sans-serif;transition:all var(--t-slow);text-align:left;position:relative;overflow:hidden;"
         onmouseover="this.style.background='rgba(139,92,246,.14)';this.style.borderColor='rgba(139,92,246,.5)';this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(139,92,246,.18)'"
         onmouseout="this.style.background='rgba(139,92,246,.06)';this.style.borderColor='rgba(139,92,246,.28)';this.style.transform='none';this.style.boxShadow='none'">
-        <!-- İkon -->
+        <div style="position:absolute;top:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,.4),transparent);"></div>
         <div style="width:42px;height:42px;border-radius:11px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="12.01"/></svg>
         </div>
-        <!-- Metin -->
         <div style="flex:1;min-width:0;">
           <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:.2px;">Şoför Cüzdanı</div>
-          <div style="font-size:11px;color:rgba(139,92,246,.65);margin-top:2px;">Okul seçmeden doğrudan erişim</div>
+          <div style="font-size:10px;color:rgba(139,92,246,.65);margin-top:2px;">Okul bağımsız erişim</div>
         </div>
-        <!-- Ok -->
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(139,92,246,.5)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
-        <!-- Üst çizgi -->
-        <div style="position:absolute;top:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,.4),transparent);"></div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(139,92,246,.5)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <!-- Cari Hesap -->
+      <button onclick="enterCariDirect()"
+        style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;border:1px solid rgba(59,130,246,.28);background:rgba(59,130,246,.06);cursor:pointer;font-family:'Outfit',sans-serif;transition:all var(--t-slow);text-align:left;position:relative;overflow:hidden;"
+        onmouseover="this.style.background='rgba(59,130,246,.14)';this.style.borderColor='rgba(59,130,246,.5)';this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(59,130,246,.18)'"
+        onmouseout="this.style.background='rgba(59,130,246,.06)';this.style.borderColor='rgba(59,130,246,.28)';this.style.transform='none';this.style.boxShadow='none'">
+        <div style="position:absolute;top:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.4),transparent);"></div>
+        <div style="width:42px;height:42px;border-radius:11px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:.2px;">Cari Hesap</div>
+          <div style="font-size:10px;color:rgba(59,130,246,.65);margin-top:2px;">Borç / Alacak takibi</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(59,130,246,.5)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
     </div>
 
@@ -1695,7 +1708,7 @@ function _addManagedListener(target, event, handler, options) {
     </div>
 
     <!-- Modül kartları — büyük, tam ekrana yayılan -->
-    <div style="display:flex;gap:20px;width:100%;max-width:720px;margin-bottom:44px;">
+    <div style="display:flex;gap:20px;width:100%;max-width:480px;margin-bottom:44px;">
 
       <!-- Rota Yönetimi -->
       <div id="ms-rota-card" onclick="enterModule('rota')"
@@ -1723,22 +1736,6 @@ function _addManagedListener(target, event, handler, options) {
         <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:rgba(255,255,255,.9);margin-bottom:14px;letter-spacing:.4px;text-transform:uppercase;">Ücret Yönetimi</div>
         <div style="width:32px;height:2px;background:rgba(34,197,94,.5);border-radius:1px;margin:0 auto 18px;"></div>
         <div style="font-size:13px;color:rgba(255,255,255,.3);line-height:2;">Aylık ücret takibi<br>Ödeme durumu<br>Öğrenci bazlı kayıt</div>
-      </div>
-
-    </div>
-
-      <!-- Cari Hesap -->
-      <div id="ms-cari-card" onclick="enterModule('cari')"
-           style="flex:1;cursor:pointer;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:48px 28px 44px;text-align:center;transition:all var(--t-slow) cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;"
-           onmouseover="this.style.background='rgba(59,130,246,.06)';this.style.borderColor='rgba(59,130,246,.4)';this.style.transform='translateY(-6px)';this.style.boxShadow='0 28px 64px rgba(0,0,0,.5),0 0 0 1px rgba(59,130,246,.18)'"
-           onmouseout="this.style.background='rgba(255,255,255,.02)';this.style.borderColor='rgba(255,255,255,.07)';this.style.transform='translateY(0)';this.style.boxShadow='none'">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.8),transparent);"></div>
-        <div style="width:72px;height:72px;border-radius:20px;background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.18);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;">
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>
-        </div>
-        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:rgba(255,255,255,.9);margin-bottom:14px;letter-spacing:.4px;text-transform:uppercase;">Cari Hesap</div>
-        <div style="width:32px;height:2px;background:rgba(59,130,246,.5);border-radius:1px;margin:0 auto 18px;"></div>
-        <div style="font-size:13px;color:rgba(255,255,255,.3);line-height:2;">Borç / Alacak takibi<br>Cari hareket girişi<br>Bakiye raporlama</div>
       </div>
 
     </div>
@@ -3575,6 +3572,7 @@ function enterSchool(key){
 function enterSoforDirect(){
  if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
  window._soforDirectEntry = true; // login'e dönerken bu flag kullanılır
+ window._cariDirectEntry = false;
  _setText('school-indicator','🚗 Şoför Cüzdanı');
  const _si = document.getElementById('school-indicator');
  if(_si){ _si.style.color='#a78bfa'; _si.style.background='rgba(139,92,246,.12)'; }
@@ -3587,11 +3585,37 @@ function enterSoforDirect(){
  const tRota = document.getElementById('tabs-rota');
  const tUcret = document.getElementById('tabs-ucret');
  const tSofor = document.getElementById('tabs-sofor');
+ const tCari = document.getElementById('tabs-cari');
  if(tRota) tRota.style.display='none';
  if(tUcret) tUcret.style.display='none';
  if(tSofor) tSofor.style.display='flex';
+ if(tCari) tCari.style.display='none';
  switchApp('sofor');
  gotoS('sofor-liste');
+}
+
+// Cari Hesap'a okul seçmeden doğrudan giriş
+function enterCariDirect(){
+ if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
+ window._cariDirectEntry = true;
+ window._soforDirectEntry = false;
+ _setText('school-indicator','📒 Cari Hesap');
+ const _si = document.getElementById('school-indicator');
+ if(_si){ _si.style.color='#60a5fa'; _si.style.background='rgba(59,130,246,.12)'; }
+ loadCariData();
+ document.getElementById('login-screen').style.display = 'none';
+ document.getElementById('module-select-screen').style.display = 'none';
+ document.getElementById('app-wrapper').style.display = 'flex';
+ const tRota = document.getElementById('tabs-rota');
+ const tUcret = document.getElementById('tabs-ucret');
+ const tSofor = document.getElementById('tabs-sofor');
+ const tCari = document.getElementById('tabs-cari');
+ if(tRota) tRota.style.display='none';
+ if(tUcret) tUcret.style.display='none';
+ if(tSofor) tSofor.style.display='none';
+ if(tCari) tCari.style.display='flex';
+ switchApp('cari');
+ gotoC('cari-liste');
 }
 
 function enterModule(mod){
@@ -3884,10 +3908,12 @@ function _showModuleSelect(){
   const appWrapper = document.getElementById('app-wrapper');
   const moduleScreen = document.getElementById('module-select-screen');
   const loginScreen = document.getElementById('login-screen');
-  if(window._soforDirectEntry){
-    // Şoför cüzdanı direkt girişi — login'e dön
+  if(window._soforDirectEntry || window._cariDirectEntry){
+    // Şoför cüzdanı veya Cari direkt girişi — login'e dön
     if(appWrapper) appWrapper.style.display='none';
     if(loginScreen){ loginScreen.style.display='flex'; }
+    window._soforDirectEntry = false;
+    window._cariDirectEntry = false;
     renderLoginSchoolCards();
   } else {
     // Okul seçilerek girildi — modül seçimine dön
