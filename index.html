@@ -2206,6 +2206,33 @@ function _addManagedListener(target, event, handler, options) {
     <span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
     <input type="text" id="cari-search" placeholder="Cari ismi, plaka veya firma ara..." maxlength="100" oninput="searchCari(this.value)">
   </div>
+  <!-- Taşeron Aylık Hesapla Paneli — sadece Personeller filtresi aktifken gösterilir -->
+  <div id="taseron-gun-panel" style="display:none;background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.25);border-radius:14px;padding:16px 18px;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#fbbf24;margin-bottom:2px;">🚌 Taşeron Aylık Hesaplama</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);">Bu ay tüm taşeronların kaç gün çalıştığını girin — bakiyeleri otomatik güncellenir.</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <label style="font-size:10px;color:rgba(245,158,11,.7);font-weight:700;letter-spacing:.5px;text-transform:uppercase;">Gün Sayısı</label>
+          <input id="taseron-gun-input" type="number" min="1" max="31" step="1" placeholder="Örn: 22"
+            style="width:80px;padding:8px 10px;border-radius:9px;border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.08);color:#fbbf24;font-size:16px;font-weight:800;font-family:'Syne',sans-serif;text-align:center;outline:none;"
+            oninput="this.style.borderColor=this.value?'rgba(245,158,11,.7)':'rgba(245,158,11,.4)'">
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <div style="font-size:10px;color:rgba(245,158,11,.6);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px;">Ay Seçin</div>
+          <input id="taseron-ay-input" type="month" style="padding:7px 10px;border-radius:9px;border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.08);color:#fbbf24;font-size:12px;outline:none;font-family:'Outfit',sans-serif;">
+        </div>
+        <button onclick="taseronAylikHesapla()" style="padding:10px 16px;border-radius:9px;border:1px solid rgba(245,158,11,.4);background:rgba(245,158,11,.15);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;align-self:flex-end;"
+          onmouseover="this.style.background='rgba(245,158,11,.3)'" onmouseout="this.style.background='rgba(245,158,11,.15)'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>
+          Uygula
+        </button>
+      </div>
+    </div>
+    <div id="taseron-gun-preview" style="margin-top:10px;font-size:11px;color:rgba(255,255,255,.35);min-height:16px;"></div>
+  </div>
   <div id="cari-list-count" style="font-size:11px;color:var(--muted2);font-weight:600;margin-bottom:8px;"></div>
   <div id="cari-list-wrap">
     <div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/><path d="M8 11h8"/></svg></div>Henüz cari hesap eklenmedi.</div>
@@ -8296,8 +8323,8 @@ function openImportSoforModal(){
         <div>
           <div style="font-size:10px;color:var(--muted2);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Şoför Tipi</div>
           <select id="sim-tip-${d.id}" style="width:100%;padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:'Outfit',sans-serif;">
-            <option value="sofor" ${(d.tip||'sofor')!=='taseron'?'selected':''}>Şoför</option>
-            <option value="taseron" ${d.tip==='taseron'?'selected':''}>Taşeron</option>
+            <option value="sofor" ${(d.tip||'sofor')!=='taseron'?'selected':''}>Personel (Maaşlı)</option>
+            <option value="taseron" ${d.tip==='taseron'?'selected':''}>Taşeron (Yövmiyeli)</option>
           </select>
         </div>
         <div>
@@ -8363,6 +8390,12 @@ function saveImportSofor(){
 
     const tip   = document.getElementById('sim-tip-'  + didStr)?.value || 'sofor';
     const plaka = (document.getElementById('sim-plaka-'+ didStr)?.value || '').toUpperCase().trim();
+    // Taşeron ise şoför cüzdanındaki yövmiye ortalamasını al (varsa)
+    const _sf = soforler.find(s=>s.driverRef===didNum||String(s.driverRef)===didStr);
+    let _yov = 0;
+    if(_sf && _sf.tip==='taseron' && Array.isArray(_sf.okulYovmiye) && _sf.okulYovmiye.length){
+      _yov = _sf.okulYovmiye.reduce((sum,oy)=>sum+(parseFloat(oy.yovmiye)||0),0) / _sf.okulYovmiye.length;
+    }
 
     // _cariData'ya ekle (Cari Hesaplar modülüne)
     const newId = _newCariId();
@@ -8374,6 +8407,7 @@ function saveImportSofor(){
       firma:     '',
       tel:       d.ph || '',
       not:       d.veh || '',
+      yovmiye:   tip==='taseron' ? _yov : 0,
       driverRef: didNum,
       hareketler: {}
     };
@@ -9366,10 +9400,11 @@ document.addEventListener('DOMContentLoaded',function(){
     <div class="field"><label>Cari İsmi *</label><input id="cm-isim" maxlength="100" placeholder="Örn: Ali Yılmaz"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div class="field"><label>Cari Türü</label>
-        <select id="cm-tur">
+        <select id="cm-tur" onchange="_toggleCariYovmiye(this.value)">
           <option value="kasa">Kasa</option>
           <option value="firma">Firma / Okul</option>
           <option value="personel">Personel</option>
+          <option value="taseron">Taşeron</option>
           <option value="diger">Diğer</option>
         </select>
       </div>
@@ -9380,6 +9415,10 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="field"><label>Firma</label><input id="cm-firma" maxlength="80" placeholder="Firma adı"></div>
     </div>
     <div class="field"><label>Cep Telefonu</label><input id="cm-tel" maxlength="15" placeholder="05XX XXX XX XX" type="tel"></div>
+    <div id="cm-yovmiye-wrap" style="display:none;" class="field">
+      <label>Günlük Yövmiye (₺)</label>
+      <input id="cm-yovmiye" type="number" min="0" max="99999" step="1" placeholder="Örn: 1500">
+    </div>
     <div class="field"><label>Not</label><input id="cm-not" maxlength="200" placeholder="Opsiyonel açıklama..."></div>
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button class="btn btn-full" style="flex:1;background:linear-gradient(135deg,rgba(59,130,246,.25),rgba(59,130,246,.15));border:1px solid rgba(59,130,246,.45);color:#93c5fd;box-shadow:0 4px 18px rgba(59,130,246,.2);" onclick="saveCariModal()">Kaydet</button>
@@ -9502,9 +9541,26 @@ function renderCariListe(){
   const countEl = document.getElementById('cari-list-count');
   if(!wrap) return;
 
-  // "Şoförlerden Personel Aktar" butonunu sadece Personeller filtresi aktifken göster
+  // Personeller filtresi aktifken: Aktar butonu + Taşeron paneli göster
   const _aktarBtn = document.getElementById('cari-sofor-aktar-btn');
-  if(_aktarBtn) _aktarBtn.style.display = _cariFilter==='sofor' ? 'inline-flex' : 'none';
+  const _taseronPanel = document.getElementById('taseron-gun-panel');
+  const _isPersonelFilter = _cariFilter === 'sofor';
+  if(_aktarBtn) _aktarBtn.style.display = _isPersonelFilter ? 'inline-flex' : 'none';
+  if(_taseronPanel) _taseronPanel.style.display = _isPersonelFilter ? 'block' : 'none';
+  // Ay input varsayılan: bu ay; input event bağla
+  if(_isPersonelFilter){
+    const _ayInp = document.getElementById('taseron-ay-input');
+    if(_ayInp && !_ayInp.value){
+      const _now = new Date();
+      _ayInp.value = _now.getFullYear()+'-'+String(_now.getMonth()+1).padStart(2,'0');
+    }
+    const _gunInp = document.getElementById('taseron-gun-input');
+    if(_gunInp && !_gunInp._evtBound){
+      _gunInp.addEventListener('input', _updateTaseronPreview);
+      _gunInp._evtBound = true;
+    }
+    _updateTaseronPreview();
+  }
 
   // SCHOOLS'dan okulları otomatik olarak firma/okul carisi olarak dahil et
   _ensureSchoolCaris();
@@ -9517,11 +9573,11 @@ function renderCariListe(){
   // Filtre mantığı
   let filtered = entries;
   if(_cariFilter==='kasa') filtered = entries.filter(c=>c.tur==='kasa');
-  else if(_cariFilter==='sofor') filtered = entries.filter(c=>c.tur==='sofor'||c.tur==='taseron');
+  else if(_cariFilter==='sofor') filtered = entries.filter(c=>c.tur==='sofor'||c.tur==='taseron'||c.tur==='personel');
   else if(_cariFilter==='firma') filtered = entries.filter(c=>c.tur==='firma'||c.tur==='okul');
   else if(_cariFilter==='alinan') filtered = entries.filter(c=>c.bakiye>0); // bakiye pozitif = bize borçlular = alınan
   else if(_cariFilter==='verilen') filtered = entries.filter(c=>c.bakiye<0); // bakiye negatif = biz borçluyuz = verilen
-  else if(_cariFilter==='diger') filtered = entries.filter(c=>c.tur!=='sofor'&&c.tur!=='taseron'&&c.tur!=='firma'&&c.tur!=='okul'&&c.tur!=='kasa');
+  else if(_cariFilter==='diger') filtered = entries.filter(c=>c.tur!=='sofor'&&c.tur!=='taseron'&&c.tur!=='personel'&&c.tur!=='firma'&&c.tur!=='okul'&&c.tur!=='kasa');
 
   if(_cariSearchTerm){
     const q = _cariSearchTerm.toLowerCase();
@@ -9551,9 +9607,9 @@ function renderCariListe(){
     return;
   }
 
-  const turLabel = {kasa:'Kasa',sofor:'Personel',taseron:'Personel',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
-  const turColor = {kasa:'#fbbf24',sofor:'#a78bfa',taseron:'#a78bfa',okul:'#60a5fa',firma:'#60a5fa',personel:'#4ade80',diger:'var(--muted2)'};
-  const turIcon = {kasa:'💰',sofor:'👤',taseron:'👤',okul:'🏫',firma:'🏢',personel:'👤',diger:'📋'};
+  const turLabel = {kasa:'Kasa',sofor:'Personel',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
+  const turColor = {kasa:'#fbbf24',sofor:'#a78bfa',taseron:'#f59e0b',okul:'#60a5fa',firma:'#60a5fa',personel:'#4ade80',diger:'var(--muted2)'};
+  const turIcon = {kasa:'💰',sofor:'👤',taseron:'🚌',okul:'🏫',firma:'🏢',personel:'👤',diger:'📋'};
 
   let html = '';
   filtered.forEach(c=>{
@@ -9657,10 +9713,11 @@ function renderCariDetay(id){
   if(!id || !_cariData[id]) return;
   const c = _cariData[id];
   const calc = _cariCalcBakiye(c);
-  const turLabel = {kasa:'Kasa',sofor:'Personel',taseron:'Personel',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
+  const turLabel = {kasa:'Kasa',sofor:'Personel',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
 
   _setText('cdet-name', c.isim||'İsimsiz');
-  _setText('cdet-subtitle', (turLabel[c.tur]||'Diğer') + (c.plaka?' • '+c.plaka:'') + (c.servis?' • Servis: '+c.servis:''));
+  const _detAlt = (turLabel[c.tur]||'Diğer') + (c.plaka?' • '+c.plaka:'') + (c.servis?' • Servis: '+c.servis:'') + (c.tur==='taseron'&&c.yovmiye?' • Yövmiye: '+parseFloat(c.yovmiye).toLocaleString('tr-TR')+'₺/gün':'');
+  _setText('cdet-subtitle', _detAlt);
 
   const profil = document.getElementById('cdet-profil');
   if(profil){
@@ -9733,6 +9790,9 @@ function openCariAddModal(){
   document.getElementById('cari-edit-id').value='';
   ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>document.getElementById(x).value='');
   document.getElementById('cm-tur').value='personel';
+  const _yovEl2 = document.getElementById('cm-yovmiye');
+  if(_yovEl2) _yovEl2.value='';
+  _toggleCariYovmiye('personel');
   document.getElementById('cari-add-modal').classList.add('open');
 }
 function openCariEditModal(id){
@@ -9747,6 +9807,9 @@ function openCariEditModal(id){
   document.getElementById('cm-firma').value=c.firma||'';
   document.getElementById('cm-tel').value=c.tel||'';
   document.getElementById('cm-not').value=c.not||'';
+  const _yovEl = document.getElementById('cm-yovmiye');
+  if(_yovEl) _yovEl.value = c.yovmiye||'';
+  _toggleCariYovmiye(c.tur||'diger');
   document.getElementById('cari-add-modal').classList.add('open');
 }
 function saveCariModal(){
@@ -9762,6 +9825,13 @@ function saveCariModal(){
   _cariData[id].firma=(document.getElementById('cm-firma').value||'').trim();
   _cariData[id].tel=(document.getElementById('cm-tel').value||'').trim();
   _cariData[id].not=(document.getElementById('cm-not').value||'').trim();
+  const _tur = _cariData[id].tur;
+  if(_tur==='taseron'){
+    const _yv = parseFloat(document.getElementById('cm-yovmiye')?.value||0)||0;
+    _cariData[id].yovmiye = _yv;
+  } else {
+    _cariData[id].yovmiye = 0;
+  }
   _saveCariToStorage();
   document.getElementById('cari-add-modal').classList.remove('open');
   showToast(editId?'Cari güncellendi':'Yeni cari eklendi','success');
@@ -9824,10 +9894,107 @@ function deleteCari(id){
   cm.style.display='flex';
 }
 
+// Cari modal: taşeron seçilince yövmiye alanını göster/gizle
+function _toggleCariYovmiye(tur){
+  const w = document.getElementById('cm-yovmiye-wrap');
+  if(w) w.style.display = tur==='taseron' ? 'block' : 'none';
+}
+
+// Taşeron önizleme
+function _updateTaseronPreview(){
+  const gun = parseInt(document.getElementById('taseron-gun-input')?.value||0)||0;
+  const _taseronlar = Object.values(_cariData).filter(c=>c.tur==='taseron');
+  if(!_taseronlar.length){
+    const p = document.getElementById('taseron-gun-preview');
+    if(p) p.textContent = 'Henüz taşeron kaydı yok.';
+    return;
+  }
+  const p = document.getElementById('taseron-gun-preview');
+  if(!gun){
+    if(p) p.textContent = _taseronlar.length+' taşeron bulundu. Gün sayısı girin.';
+    return;
+  }
+  const satirlar = _taseronlar.map(c=>{
+    const yov = parseFloat(c.yovmiye||0);
+    const toplam = yov * gun;
+    return `${c.isim||'?'}: ${yov.toLocaleString('tr-TR')}₺ × ${gun} gün = <b style="color:#fbbf24">${toplam.toLocaleString('tr-TR')}₺</b>`;
+  });
+  if(p) p.innerHTML = satirlar.join(' &nbsp;|&nbsp; ');
+}
+
+// Taşeron aylık hesapla ve cari hareketlerine ekle
+function taseronAylikHesapla(){
+  const gun = parseInt(document.getElementById('taseron-gun-input')?.value||0)||0;
+  const ay  = document.getElementById('taseron-ay-input')?.value||'';
+  if(!gun||gun<1||gun>31){ showToast('Geçerli bir gün sayısı girin (1-31)','error'); return; }
+  if(!ay){ showToast('Ay seçin','error'); return; }
+
+  const _taseronlar = Object.entries(_cariData).filter(([,c])=>c.tur==='taseron');
+  if(!_taseronlar.length){ showToast('Taşeron kaydı bulunamadı','error'); return; }
+
+  // Yövmiyesi sıfır olan taşeronları uyar
+  const _sifirYov = _taseronlar.filter(([,c])=>!parseFloat(c.yovmiye||0));
+  if(_sifirYov.length){
+    const isimler = _sifirYov.map(([,c])=>c.isim||'?').join(', ');
+    showToast(`⚠️ Yövmiyesi girilmemiş: ${isimler}. Düzenle butonundan yövmiye girin.`,'error');
+    return;
+  }
+
+  // Bu ay+gün için zaten hareket var mı kontrol et
+  const hareketKey = ay + '_taseron_gun';
+  const mevcutlar = _taseronlar.filter(([id,c])=>{
+    const harList = Object.values(c.hareketler||{});
+    return harList.some(h=>h.gunKey===hareketKey);
+  });
+
+  const doConfirm = () => {
+    let eklenen = 0;
+    _taseronlar.forEach(([id,c])=>{
+      const yov = parseFloat(c.yovmiye||0);
+      if(!yov) return;
+      const toplam = yov * gun;
+      // Aynı ay için önceki otomatik hareketi sil
+      if(!_cariData[id].hareketler) _cariData[id].hareketler = {};
+      const eskiKey = Object.keys(_cariData[id].hareketler).find(k=>_cariData[id].hareketler[k].gunKey===hareketKey);
+      if(eskiKey) delete _cariData[id].hareketler[eskiKey];
+      // Yeni hareketi ekle
+      const hid = 'th_'+Date.now()+'_'+Math.random().toString(36).substr(2,4);
+      const tarih = ay+'-01';
+      _cariData[id].hareketler[hid] = {
+        tarih,
+        aciklama: ay.replace('-','/') + ' · ' + gun + ' gün × ' + yov.toLocaleString('tr-TR') + '₺',
+        borc: toplam,   // "alınan" = biz ödeyeceğiz = bizim borcumuz
+        alacak: 0,
+        ts: Date.now(),
+        gunKey: hareketKey,
+        otomatik: true
+      };
+      eklenen++;
+    });
+    _saveCariToStorage();
+    showToast(`✅ ${eklenen} taşeron için ${ay} ayı hesaplandı (${gun} gün)`,'success');
+    renderCariListe();
+    // preview güncelle
+    _updateTaseronPreview();
+  };
+
+  if(mevcutlar.length){
+    const cm = document.getElementById('confirm-modal');
+    document.getElementById('confirm-title').textContent = ay+' Ayı Üzerine Yaz';
+    document.getElementById('confirm-msg').textContent = mevcutlar.length+' taşeron için '+ay+' ayı zaten hesaplanmış. Üzerine yazılsın mı?';
+    const okBtn = document.getElementById('confirm-ok-btn');
+    okBtn.textContent = 'Evet, Güncelle';
+    okBtn.onclick = function(){ cm.style.display='none'; doConfirm(); };
+    cm.style.display='flex';
+  } else {
+    doConfirm();
+  }
+}
+
 function exportCariExcel(){
   const entries=Object.entries(_cariData);
   if(!entries.length){ showToast('Dışa aktarılacak veri yok','error'); return; }
-  const turLabel={sofor:'Personel',taseron:'Personel',okul:'Okul',firma:'Firma',personel:'Personel',diger:'Diğer'};
+  const turLabel={sofor:'Personel',taseron:'Taşeron',okul:'Okul',firma:'Firma',personel:'Personel',diger:'Diğer'};
   const genelRows=[['SR.NO','CARİ İSMİ','CARİ TÜRÜ','SERVİS NO','PLAKA','FİRMA','CEP TEL','ALINAN','VERİLEN','BAKİYE']];
   entries.forEach(([id,c],i)=>{ const calc=_cariCalcBakiye(c); genelRows.push([i+1,c.isim||'',turLabel[c.tur]||'Diğer',c.servis||'',c.plaka||'',c.firma||'',c.tel||'',calc.borc,calc.alacak,calc.bakiye]); });
   const wb=XLSX.utils.book_new();
