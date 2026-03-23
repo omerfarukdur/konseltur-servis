@@ -135,6 +135,8 @@ nav::before {
 .nav-tab.active.ucret-tab::after{ background:#4ade80; }
 .nav-tab.active.sofor-tab{ color:var(--purple); border-color:rgba(167,139,250,.2); }
 .nav-tab.active.sofor-tab::after{ background:#a78bfa; }
+.nav-tab.active.cari-tab{ color:var(--blue); border-color:rgba(59,130,246,.2); }
+.nav-tab.active.cari-tab::after{ background:#60a5fa; }
 .tab-icon{ flex-shrink:0; opacity:.7; }
 .nav-tab.active .tab-icon{ opacity:1; }
 
@@ -728,6 +730,7 @@ body.light .field select{
  .hero { flex-direction: column; gap: 10px; padding: 16px 14px; }
  .hero >div:last-child { display: none; }
  .dash-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+ #cari-dash { grid-template-columns: repeat(2, 1fr); gap: 8px; }
  .dash-card { padding: 14px 12px; }
  .dash-card-val { font-size: 26px; }
  .dash-card-label { font-size: 10px; }
@@ -1692,7 +1695,7 @@ function _addManagedListener(target, event, handler, options) {
     </div>
 
     <!-- Modül kartları — büyük, tam ekrana yayılan -->
-    <div style="display:flex;gap:20px;width:100%;max-width:480px;margin-bottom:44px;">
+    <div style="display:flex;gap:20px;width:100%;max-width:720px;margin-bottom:44px;">
 
       <!-- Rota Yönetimi -->
       <div id="ms-rota-card" onclick="enterModule('rota')"
@@ -1720,6 +1723,22 @@ function _addManagedListener(target, event, handler, options) {
         <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:rgba(255,255,255,.9);margin-bottom:14px;letter-spacing:.4px;text-transform:uppercase;">Ücret Yönetimi</div>
         <div style="width:32px;height:2px;background:rgba(34,197,94,.5);border-radius:1px;margin:0 auto 18px;"></div>
         <div style="font-size:13px;color:rgba(255,255,255,.3);line-height:2;">Aylık ücret takibi<br>Ödeme durumu<br>Öğrenci bazlı kayıt</div>
+      </div>
+
+    </div>
+
+      <!-- Cari Hesap -->
+      <div id="ms-cari-card" onclick="enterModule('cari')"
+           style="flex:1;cursor:pointer;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:48px 28px 44px;text-align:center;transition:all var(--t-slow) cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;"
+           onmouseover="this.style.background='rgba(59,130,246,.06)';this.style.borderColor='rgba(59,130,246,.4)';this.style.transform='translateY(-6px)';this.style.boxShadow='0 28px 64px rgba(0,0,0,.5),0 0 0 1px rgba(59,130,246,.18)'"
+           onmouseout="this.style.background='rgba(255,255,255,.02)';this.style.borderColor='rgba(255,255,255,.07)';this.style.transform='translateY(0)';this.style.boxShadow='none'">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(59,130,246,.8),transparent);"></div>
+        <div style="width:72px;height:72px;border-radius:20px;background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.18);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:rgba(255,255,255,.9);margin-bottom:14px;letter-spacing:.4px;text-transform:uppercase;">Cari Hesap</div>
+        <div style="width:32px;height:2px;background:rgba(59,130,246,.5);border-radius:1px;margin:0 auto 18px;"></div>
+        <div style="font-size:13px;color:rgba(255,255,255,.3);line-height:2;">Borç / Alacak takibi<br>Cari hareket girişi<br>Bakiye raporlama</div>
       </div>
 
     </div>
@@ -1809,6 +1828,16 @@ function _addManagedListener(target, event, handler, options) {
      <button class="nav-tab sofor-tab" id="stab-detay" style="display:none;">
        <svg class="tab-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
        <span class="tab-text" id="stab-detay-text">Detay</span>
+     </button>
+   </div>
+   <div id="tabs-cari" class="nav-tabs" style="display:none;">
+     <button class="nav-tab cari-tab active" id="ctab-liste" onclick="gotoC('cari-liste')">
+       <svg class="tab-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/><path d="M8 11h8"/></svg>
+       <span class="tab-text">Cari Liste</span>
+     </button>
+     <button class="nav-tab cari-tab" id="ctab-detay" style="display:none;">
+       <svg class="tab-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+       <span class="tab-text" id="ctab-detay-text">Hesap Detayı</span>
      </button>
    </div>
  </div>
@@ -2199,6 +2228,108 @@ function _addManagedListener(target, event, handler, options) {
   <!-- Yıl özeti -->
   <div id="sd-yil-ozet" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px;"></div>
 
+</div>
+</div>
+
+<!-- CARİ HESAP - LİSTE -->
+<div class="page-scroll" id="page-cari-liste">
+<div class="page-inner">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;">Cari Hesaplar</h2>
+      <div style="font-size:12px;color:var(--muted2);margin-top:3px;">Borç / Alacak takibi ve cari hesap yönetimi</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-sm" style="background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#60a5fa;" onclick="openCariAddModal()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Yeni Cari
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCariExcel()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Excel
+      </button>
+    </div>
+  </div>
+
+  <!-- Dashboard Özet Kartları -->
+  <div id="cari-dash" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+    <div class="dash-card">
+      <div class="dash-card-glow" style="background:var(--blue);"></div>
+      <div class="dash-card-icon">📒</div>
+      <div class="dash-card-val" id="cd-toplam-cari">0</div>
+      <div class="dash-card-label">Toplam Cari</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-glow" style="background:var(--red);"></div>
+      <div class="dash-card-icon">📤</div>
+      <div class="dash-card-val" id="cd-toplam-borc" style="color:var(--red);">₺0</div>
+      <div class="dash-card-label">Toplam Borç</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-glow" style="background:var(--green);"></div>
+      <div class="dash-card-icon">📥</div>
+      <div class="dash-card-val" id="cd-toplam-alacak" style="color:var(--green);">₺0</div>
+      <div class="dash-card-label">Toplam Alacak</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-card-glow" style="background:var(--amber);"></div>
+      <div class="dash-card-icon">⚖️</div>
+      <div class="dash-card-val" id="cd-net-bakiye">₺0</div>
+      <div class="dash-card-label">Net Bakiye</div>
+    </div>
+  </div>
+
+  <!-- Filtre & Arama -->
+  <div class="filter-bar" id="cari-filter-bar">
+    <div class="filter-chip active" onclick="filterCari('all',this)">Tümü</div>
+    <div class="filter-chip" onclick="filterCari('borclu',this)" style="border-color:rgba(239,68,68,.3);color:var(--red);">Borçlular</div>
+    <div class="filter-chip" onclick="filterCari('alacakli',this)" style="border-color:rgba(34,197,94,.3);color:var(--green);">Alacaklılar</div>
+    <div class="filter-chip" onclick="filterCari('sofor',this)" style="border-color:rgba(139,92,246,.3);color:var(--purple);">Şoförler</div>
+    <div class="filter-chip" onclick="filterCari('diger',this)" style="border-color:rgba(59,130,246,.3);color:#60a5fa;">Diğer</div>
+  </div>
+  <div class="search-wrap" style="margin-bottom:14px;">
+    <span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+    <input type="text" id="cari-search" placeholder="Cari ismi, plaka veya firma ara..." maxlength="100" oninput="searchCari(this.value)">
+  </div>
+  <div id="cari-list-count" style="font-size:11px;color:var(--muted2);font-weight:600;margin-bottom:8px;"></div>
+  <div id="cari-list-wrap">
+    <div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/><path d="M8 11h8"/></svg></div>Henüz cari hesap eklenmedi.</div>
+  </div>
+</div>
+</div>
+
+<!-- CARİ HESAP - DETAY -->
+<div class="page-scroll" id="page-cari-detay">
+<div class="page-inner">
+  <!-- Geri + Başlık -->
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <button onclick="gotoC('cari-liste')" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--muted2);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div style="flex:1;min-width:0;">
+      <h2 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="cdet-name">Cari Adı</h2>
+      <div style="font-size:11px;color:var(--muted2);margin-top:2px;" id="cdet-subtitle">—</div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button onclick="openCariEditModal(window._activeCariId)" style="padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--card2);color:var(--muted2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;" onmouseover="this.style.borderColor='rgba(59,130,246,.4)';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted2)'">Düzenle</button>
+      <button onclick="openCariHareketModal()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(59,130,246,.35);background:rgba(59,130,246,.1);color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;">+ Hareket</button>
+    </div>
+  </div>
+
+  <!-- Cari Profil Kartı -->
+  <div id="cdet-profil" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;"></div>
+
+  <!-- Bakiye Özet -->
+  <div id="cdet-bakiye-ozet" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;"></div>
+
+  <!-- Hareket Geçmişi -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--muted2);">Hareket Geçmişi</div>
+    <div id="cdet-hareket-count" style="font-size:11px;color:var(--muted2);font-weight:600;"></div>
+  </div>
+  <div id="cdet-hareket-list" style="margin-bottom:20px;">
+    <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Henüz hareket yok</div>
+  </div>
 </div>
 </div>
 
@@ -3469,10 +3600,12 @@ function enterModule(mod){
  const tRota = document.getElementById('tabs-rota');
  const tUcret = document.getElementById('tabs-ucret');
  const tSofor = document.getElementById('tabs-sofor');
+ const tCari = document.getElementById('tabs-cari');
  if(mod==='rota'){
    if(tRota) tRota.style.display='flex';
    if(tUcret) tUcret.style.display='none';
    if(tSofor) tSofor.style.display='none';
+   if(tCari) tCari.style.display='none';
    // Son sekmeyi hatırla
    try{
      const _lp=JSON.parse(localStorage.getItem('_ks_lastPage')||'null');
@@ -3485,6 +3618,7 @@ function enterModule(mod){
    if(tRota) tRota.style.display='none';
    if(tUcret) tUcret.style.display='flex';
    if(tSofor) tSofor.style.display='none';
+   if(tCari) tCari.style.display='none';
    // Son sekmeyi hatırla
    try{
      const _lp2=JSON.parse(localStorage.getItem('_ks_lastPage')||'null');
@@ -3497,6 +3631,7 @@ function enterModule(mod){
    if(tRota) tRota.style.display='none';
    if(tUcret) tUcret.style.display='none';
    if(tSofor) tSofor.style.display='flex';
+   if(tCari) tCari.style.display='none';
    // Şoför modülü okul bağımsız — indicator güncelle
    const _si = document.getElementById('school-indicator');
    if(_si){ _si.textContent='🚗 Şoför Cüzdanı'; _si.style.color='#a78bfa'; _si.style.background='rgba(139,92,246,.12)'; }
@@ -3504,6 +3639,15 @@ function enterModule(mod){
    if(!drivers.length) { loadData(); loadPayments(); }
    loadSoforData();
    switchApp('sofor'); gotoS('sofor-liste');
+ } else if(mod==='cari'){
+   if(tRota) tRota.style.display='none';
+   if(tUcret) tUcret.style.display='none';
+   if(tSofor) tSofor.style.display='none';
+   if(tCari) tCari.style.display='flex';
+   const _si2 = document.getElementById('school-indicator');
+   if(_si2){ _si2.textContent='📒 Cari Hesap'; _si2.style.color='#60a5fa'; _si2.style.background='rgba(59,130,246,.12)'; }
+   loadCariData();
+   switchApp('cari'); gotoC('cari-liste');
  }
 }
 
@@ -3644,12 +3788,14 @@ function switchApp(app){
  document.getElementById('tabs-rota').style.display = app==='rota'?'flex':'none';
  document.getElementById('tabs-ucret').style.display = app==='ucret'?'flex':'none';
  document.getElementById('tabs-sofor').style.display = app==='sofor'?'flex':'none';
+ document.getElementById('tabs-cari').style.display = app==='cari'?'flex':'none';
  if(app==='rota') goto('dashboard');
  else if(app==='ucret') gotoU('ucret-genel');
  else if(app==='sofor') gotoS('sofor-liste');
+ else if(app==='cari') gotoC('cari-liste');
 }
 
-const ALL_PAGES = ['dashboard','students','drivers','routes','map','ucret-genel','ucret-ogrenci','sofor-liste','sofor-detay'];
+const ALL_PAGES = ['dashboard','students','drivers','routes','map','ucret-genel','ucret-ogrenci','sofor-liste','sofor-detay','cari-liste','cari-detay'];
 let _pageHistory = []; // gezinti geçmişi
 let _currentPage = 'dashboard';
 
@@ -3708,12 +3854,28 @@ function goBack(){
     return;
   }
 
+  // CARİ modülü hiyerarşisi
+  // cari-detay → cari-liste → module-select → login
+  if(p === 'cari-detay'){
+    _pageHistory = [];
+    _gotoCNoHistory('cari-liste');
+    _updateBackBtn();
+    return;
+  }
+  if(p === 'cari-liste'){
+    _pageHistory = [];
+    _updateBackBtn();
+    _showModuleSelect();
+    return;
+  }
+
   // Fallback: eski history stack
   if(_pageHistory.length){
     const prev = _pageHistory.pop();
     _updateBackBtn();
     if(prev.startsWith('ucret-')) _gotoUNoHistory(prev);
     else if(prev.startsWith('sofor-')) _gotoSNoHistory(prev);
+    else if(prev.startsWith('cari-')) _gotoCNoHistory(prev);
     else _gotoNoHistory(prev);
   }
 }
@@ -3810,6 +3972,26 @@ function gotoS(p){
  if(_currentPage && _currentPage !== p) _pageHistory.push(_currentPage);
  _updateBackBtn();
  _gotoSNoHistory(p);
+}
+
+function _gotoCNoHistory(p){
+ _currentPage = p;
+ try{ localStorage.setItem('_ks_lastPage', JSON.stringify({page:p, app:currentApp, school:_activeSchoolKey})); }catch(e){}
+ ALL_PAGES.forEach(n=>{ const el=document.getElementById('page-'+n); if(el) el.classList.remove('active'); });
+ const target = document.getElementById('page-'+p);
+ if(target) target.classList.add('active');
+ // Tab aktif güncelle
+ document.querySelectorAll('#tabs-cari .nav-tab').forEach(t=>t.classList.remove('active'));
+ if(p==='cari-liste'){ const t=document.getElementById('ctab-liste'); if(t) t.classList.add('active'); }
+ if(p==='cari-detay'){ const t=document.getElementById('ctab-detay'); if(t) t.classList.add('active'); }
+ if(p==='cari-liste') renderCariListe();
+ if(p==='cari-detay') renderCariDetay(window._activeCariId);
+}
+
+function gotoC(p){
+ if(_currentPage && _currentPage !== p) _pageHistory.push(_currentPage);
+ _updateBackBtn();
+ _gotoCNoHistory(p);
 }
 
 // 
@@ -7733,7 +7915,8 @@ document.addEventListener('keydown', function(e){
  'modal','payment-modal','student-edit-modal',
  'driver-edit-modal','route-edit-modal',
  'excel-modal','ucret-add-modal',
- 'sofor-add-modal','sofor-pay-modal','sofor-import-modal'
+ 'sofor-add-modal','sofor-pay-modal','sofor-import-modal',
+ 'cari-add-modal','cari-hareket-modal'
  ];
  for(const id of modals){
  const el = document.getElementById(id);
@@ -9291,6 +9474,431 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 });
 </script>
+
+<!-- CARİ EKLEME/DÜZENLEME MODAL -->
+<div class="modal-bg" id="cari-add-modal" onclick="if(event.target===this){document.getElementById('cari-add-modal').classList.remove('open')}">
+  <div class="modal" style="width:520px;">
+    <h2 id="cari-modal-title" style="color:#60a5fa;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/><path d="M8 11h8"/></svg>
+      Yeni Cari Hesap
+    </h2>
+    <input type="hidden" id="cari-edit-id" value="">
+    <div class="field"><label>Cari İsmi *</label><input id="cm-isim" maxlength="100" placeholder="Örn: Ali Yılmaz"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="field"><label>Cari Türü</label>
+        <select id="cm-tur">
+          <option value="sofor">Şoför</option>
+          <option value="taseron">Taşeron</option>
+          <option value="okul">Okul</option>
+          <option value="firma">Firma</option>
+          <option value="personel">Personel</option>
+          <option value="diger">Diğer</option>
+        </select>
+      </div>
+      <div class="field"><label>Servis No</label><input id="cm-servis" maxlength="20" placeholder="Örn: S-01"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="field"><label>Plaka</label><input id="cm-plaka" maxlength="20" placeholder="65 XX 001" style="text-transform:uppercase;"></div>
+      <div class="field"><label>Firma</label><input id="cm-firma" maxlength="80" placeholder="Firma adı"></div>
+    </div>
+    <div class="field"><label>Cep Telefonu</label><input id="cm-tel" maxlength="15" placeholder="05XX XXX XX XX" type="tel"></div>
+    <div class="field"><label>Not</label><input id="cm-not" maxlength="200" placeholder="Opsiyonel açıklama..."></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button class="btn btn-full" style="flex:1;background:linear-gradient(135deg,rgba(59,130,246,.25),rgba(59,130,246,.15));border:1px solid rgba(59,130,246,.45);color:#93c5fd;box-shadow:0 4px 18px rgba(59,130,246,.2);" onclick="saveCariModal()">Kaydet</button>
+      <button class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('cari-add-modal').classList.remove('open')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- CARİ HAREKET GİRİŞİ MODAL -->
+<div class="modal-bg" id="cari-hareket-modal" onclick="if(event.target===this){document.getElementById('cari-hareket-modal').classList.remove('open')}">
+  <div class="modal" style="width:480px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div>
+        <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin:0 0 4px;color:#60a5fa;">Hareket Girişi</h2>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);" id="ch-cari-label">—</div>
+      </div>
+      <button onclick="document.getElementById('cari-hareket-modal').classList.remove('open')" class="modal-close-btn">×</button>
+    </div>
+
+    <!-- Tip seçimi -->
+    <div style="font-size:10px;color:rgba(255,255,255,.3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">İşlem Tipi</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;" id="ch-tip-grid">
+      <button onclick="_setChTip('borc',this)" data-tip="borc"
+        style="padding:12px;border-radius:10px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.1);color:var(--red);font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center;">
+        📤 Borç
+      </button>
+      <button onclick="_setChTip('alacak',this)" data-tip="alacak"
+        style="padding:12px;border-radius:10px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.1);color:var(--green);font-size:13px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;text-align:center;">
+        📥 Alacak
+      </button>
+    </div>
+    <input type="hidden" id="ch-tip" value="borc">
+
+    <!-- Tarih -->
+    <div class="field"><label>Tarih</label><input id="ch-tarih" type="date"></div>
+
+    <!-- Tutar -->
+    <div class="field">
+      <label>Tutar (₺)</label>
+      <input id="ch-tutar" type="number" placeholder="0" min="0.01" step="0.01" max="99999999" style="font-size:20px;font-weight:800;font-family:'Syne',sans-serif;color:#60a5fa;">
+    </div>
+
+    <!-- Açıklama -->
+    <div class="field"><label>Açıklama</label><input id="ch-aciklama" maxlength="200" placeholder="Örn: Ocak ayı yevmiye, Avans..."></div>
+
+    <!-- Kaydet -->
+    <button onclick="saveCariHareket()"
+      style="width:100%;padding:15px;border-radius:13px;border:none;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:.5px;box-shadow:0 6px 20px rgba(59,130,246,.35);transition:all var(--t-slow);margin-top:8px;"
+      onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 28px rgba(59,130,246,.5)'"
+      onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 20px rgba(59,130,246,.35)'">
+      İşlemi Kaydet
+    </button>
+  </div>
+<script>
+// ══════════════════════════════════════════════════════════════════════
+// CARİ HESAP MODÜLÜ
+// ══════════════════════════════════════════════════════════════════════
+
+let _cariData = {};
+let _cariFilter = 'all';
+let _cariSearchTerm = '';
+window._activeCariId = null;
+
+function _esc(s){ const d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
+
+function _cariLsKey(){ return 'konseltur_cari_v1_' + (_activeSchoolKey||'GLOBAL'); }
+
+function loadCariData(){
+  try{
+    const raw = localStorage.getItem(_cariLsKey());
+    if(raw) _cariData = JSON.parse(raw);
+    else _cariData = {};
+  }catch(e){ _cariData = {}; }
+  try{
+    if(window._fbDb && window._fbRef && window._fbOnValue){
+      const dbRef = window._fbRef(window._fbDb, 'konseltur/' + (_activeSchoolKey||'GLOBAL') + '/cari');
+      window._fbOnValue(dbRef, snap=>{
+        const val = snap.val();
+        if(val){
+          _cariData = val;
+          try{ localStorage.setItem(_cariLsKey(), JSON.stringify(_cariData)); }catch(e){}
+          if(_currentPage==='cari-liste') renderCariListe();
+          if(_currentPage==='cari-detay' && window._activeCariId) renderCariDetay(window._activeCariId);
+        }
+      }, e=>{ console.warn('Cari FB dinleme hatası:', e); });
+    }
+  }catch(e){}
+}
+
+function _saveCariToStorage(){
+  try{ localStorage.setItem(_cariLsKey(), JSON.stringify(_cariData)); }catch(e){}
+  try{
+    if(window._fbDb && window._fbRef && window._fbSet){
+      const dbRef = window._fbRef(window._fbDb, 'konseltur/' + (_activeSchoolKey||'GLOBAL') + '/cari');
+      window._fbSet(dbRef, _cariData).catch(e=>console.warn('Cari FB kayıt hatası:', e));
+    }
+  }catch(e){}
+}
+
+function _newCariId(){ return 'c_' + Date.now() + '_' + Math.random().toString(36).substr(2,5); }
+function _newHareketId(){ return 'h_' + Date.now() + '_' + Math.random().toString(36).substr(2,5); }
+
+function _cariCalcBakiye(cari){
+  let borc=0, alacak=0;
+  Object.values(cari.hareketler||{}).forEach(h=>{
+    borc += parseFloat(h.borc||0);
+    alacak += parseFloat(h.alacak||0);
+  });
+  return { borc, alacak, bakiye: alacak - borc };
+}
+
+function _fmtPara(n){
+  const abs = Math.abs(n);
+  const s = abs.toLocaleString('tr-TR',{minimumFractionDigits:0,maximumFractionDigits:2});
+  return (n<0?'-':'') + '₺' + s;
+}
+
+function renderCariListe(){
+  const wrap = document.getElementById('cari-list-wrap');
+  const countEl = document.getElementById('cari-list-count');
+  if(!wrap) return;
+
+  const entries = Object.entries(_cariData).map(([id,c])=>{
+    const calc = _cariCalcBakiye(c);
+    return { id, ...c, ...calc };
+  });
+
+  let filtered = entries;
+  if(_cariFilter==='borclu') filtered = entries.filter(c=>c.bakiye<0);
+  else if(_cariFilter==='alacakli') filtered = entries.filter(c=>c.bakiye>0);
+  else if(_cariFilter==='sofor') filtered = entries.filter(c=>c.tur==='sofor'||c.tur==='taseron');
+  else if(_cariFilter==='diger') filtered = entries.filter(c=>c.tur!=='sofor'&&c.tur!=='taseron');
+
+  if(_cariSearchTerm){
+    const q = _cariSearchTerm.toLowerCase();
+    filtered = filtered.filter(c=>
+      (c.isim||'').toLowerCase().includes(q) ||
+      (c.plaka||'').toLowerCase().includes(q) ||
+      (c.firma||'').toLowerCase().includes(q) ||
+      (c.servis||'').toLowerCase().includes(q)
+    );
+  }
+
+  filtered.sort((a,b)=> (a.isim||'').localeCompare(b.isim||'','tr'));
+  if(countEl) countEl.textContent = filtered.length + ' cari hesap';
+
+  let topBorc=0, topAlacak=0;
+  entries.forEach(c=>{ topBorc+=c.borc; topAlacak+=c.alacak; });
+  const net = topAlacak - topBorc;
+  _setText('cd-toplam-cari', entries.length);
+  _setText('cd-toplam-borc', _fmtPara(topBorc));
+  _setText('cd-toplam-alacak', _fmtPara(topAlacak));
+  const netEl = document.getElementById('cd-net-bakiye');
+  if(netEl){ netEl.textContent = _fmtPara(net); netEl.style.color = net>=0?'var(--green)':'var(--red)'; }
+
+  if(!filtered.length){
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg></div>'+(_cariSearchTerm?'Eşleşen cari bulunamadı.':'Henüz cari hesap eklenmedi.')+'</div>';
+    return;
+  }
+
+  const turLabel = {sofor:'Şoför',taseron:'Taşeron',okul:'Okul',firma:'Firma',personel:'Personel',diger:'Diğer'};
+  const turColor = {sofor:'#a78bfa',taseron:'#fbbf24',okul:'#f87171',firma:'#60a5fa',personel:'#4ade80',diger:'var(--muted2)'};
+
+  let html = '';
+  filtered.forEach(c=>{
+    const harCount = Object.keys(c.hareketler||{}).length;
+    const bColor = c.bakiye>0?'var(--green)':c.bakiye<0?'var(--red)':'var(--muted2)';
+    const bdrL = c.bakiye<0?'border-left:3px solid var(--red);':'border-left:3px solid rgba(59,130,246,.3);';
+    html += `<div onclick="openCariDetay('${c.id}')" style="display:flex;align-items:center;gap:14px;padding:15px 18px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:14px;margin-bottom:8px;cursor:pointer;transition:all var(--t-slow);${bdrL}" onmouseover="this.style.borderColor='rgba(59,130,246,.3)';this.style.boxShadow='0 6px 24px rgba(0,0,0,.18)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='rgba(255,255,255,.06)';this.style.boxShadow='none';this.style.transform='none'">
+      <div style="width:42px;height:42px;border-radius:12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#60a5fa;">${(c.isim||'?')[0].toUpperCase()}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(c.isim||'İsimsiz')}</div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:3px;flex-wrap:wrap;">
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(59,130,246,.08);color:${turColor[c.tur]||'var(--muted2)'};border:1px solid rgba(255,255,255,.06);">${turLabel[c.tur]||'Diğer'}</span>
+          ${c.plaka?`<span style="font-size:10px;color:var(--muted2);font-weight:600;">${_esc(c.plaka)}</span>`:''}
+          ${c.firma?`<span style="font-size:10px;color:var(--muted);">${_esc(c.firma)}</span>`:''}
+          <span style="font-size:10px;color:var(--muted);">${harCount} hrk</span>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:${bColor};">${_fmtPara(c.bakiye)}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;">bakiye</div>
+      </div>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+function filterCari(f,el){
+  _cariFilter = f;
+  document.querySelectorAll('#cari-filter-bar .filter-chip').forEach(c=>c.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderCariListe();
+}
+function searchCari(v){ _cariSearchTerm=(v||'').trim(); renderCariListe(); }
+
+function openCariDetay(id){
+  window._activeCariId = id;
+  const dtab = document.getElementById('ctab-detay');
+  if(dtab) dtab.style.display = 'flex';
+  const dtabText = document.getElementById('ctab-detay-text');
+  const c = _cariData[id];
+  if(dtabText && c) dtabText.textContent = c.isim||'Detay';
+  gotoC('cari-detay');
+}
+
+function renderCariDetay(id){
+  if(!id || !_cariData[id]) return;
+  const c = _cariData[id];
+  const calc = _cariCalcBakiye(c);
+  const turLabel = {sofor:'Şoför',taseron:'Taşeron',okul:'Okul',firma:'Firma',personel:'Personel',diger:'Diğer'};
+
+  _setText('cdet-name', c.isim||'İsimsiz');
+  _setText('cdet-subtitle', (turLabel[c.tur]||'Diğer') + (c.plaka?' • '+c.plaka:'') + (c.servis?' • Servis: '+c.servis:''));
+
+  const profil = document.getElementById('cdet-profil');
+  if(profil){
+    profil.innerHTML = `<div style="display:flex;gap:14px;align-items:center;">
+      <div style="width:52px;height:52px;border-radius:14px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#60a5fa;">${(c.isim||'?')[0].toUpperCase()}</div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:16px;">${_esc(c.isim||'')}</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:2px;">${c.firma?'🏢 '+_esc(c.firma)+' &nbsp; ':''}${c.tel?'📱 '+_esc(c.tel)+' &nbsp; ':''}${c.plaka?'🚗 '+_esc(c.plaka):''}</div>
+        ${c.not?'<div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic;">'+_esc(c.not)+'</div>':''}
+      </div>
+      <button onclick="deleteCari('${id}')" style="padding:8px 12px;border-radius:9px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:var(--red);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;">Sil</button>
+    </div>`;
+  }
+
+  const bOzet = document.getElementById('cdet-bakiye-ozet');
+  if(bOzet){
+    const bColor = calc.bakiye>=0?'var(--green)':'var(--red)';
+    bOzet.innerHTML = `
+      <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:10px;color:var(--red);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Toplam Borç</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--red);">${_fmtPara(calc.borc)}</div>
+      </div>
+      <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:10px;color:var(--green);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Toplam Alacak</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);">${_fmtPara(calc.alacak)}</div>
+      </div>
+      <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:12px;padding:14px;text-align:center;">
+        <div style="font-size:10px;color:#60a5fa;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Net Bakiye</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:${bColor};">${_fmtPara(calc.bakiye)}</div>
+      </div>`;
+  }
+
+  const hList = document.getElementById('cdet-hareket-list');
+  const hCount = document.getElementById('cdet-hareket-count');
+  const hareketler = Object.entries(c.hareketler||{}).map(([hid,h])=>({id:hid,...h}));
+  if(hCount) hCount.textContent = hareketler.length + ' hareket';
+
+  if(!hareketler.length){
+    if(hList) hList.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Henüz hareket yok. Yukarıdaki "+ Hareket" butonuyla işlem ekleyin.</div>';
+    return;
+  }
+
+  let runBal = 0;
+  const sorted = [...hareketler].sort((a,b)=>(a.tarih||'').localeCompare(b.tarih||''));
+  sorted.forEach(h=>{ runBal += (parseFloat(h.alacak||0) - parseFloat(h.borc||0)); h._rb = runBal; });
+  sorted.reverse();
+
+  let hh = '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;overflow-x:auto;">';
+  hh += `<div style="display:grid;grid-template-columns:85px 1fr 85px 85px 95px 30px;gap:0;padding:10px 14px;background:rgba(255,255,255,.025);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);min-width:480px;">
+    <div>Tarih</div><div>Açıklama</div><div style="text-align:right;">Borç</div><div style="text-align:right;">Alacak</div><div style="text-align:right;">Bakiye</div><div></div></div>`;
+  sorted.forEach(h=>{
+    const b=parseFloat(h.borc||0), a=parseFloat(h.alacak||0);
+    const bc = h._rb>=0?'var(--green)':'var(--red)';
+    hh += `<div style="display:grid;grid-template-columns:85px 1fr 85px 85px 95px 30px;gap:0;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px;min-width:480px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background='transparent'">
+      <div style="color:var(--muted2);font-size:12px;">${_esc(h.tarih||'—')}</div>
+      <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(h.aciklama||'—')}</div>
+      <div style="text-align:right;color:${b>0?'var(--red)':'var(--muted)'};font-weight:600;">${b>0?_fmtPara(b):'—'}</div>
+      <div style="text-align:right;color:${a>0?'var(--green)':'var(--muted)'};font-weight:600;">${a>0?_fmtPara(a):'—'}</div>
+      <div style="text-align:right;color:${bc};font-weight:700;font-family:'Syne',sans-serif;">${_fmtPara(h._rb)}</div>
+      <div><button onclick="event.stopPropagation();deleteCariHareket('${id}','${h.id}')" style="width:22px;height:22px;border-radius:5px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;">×</button></div>
+    </div>`;
+  });
+  hh += '</div>';
+  if(hList) hList.innerHTML = hh;
+}
+
+// Modal: Cari Ekle
+function openCariAddModal(){
+  document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> Yeni Cari Hesap';
+  document.getElementById('cari-edit-id').value='';
+  ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('cm-tur').value='sofor';
+  document.getElementById('cari-add-modal').classList.add('open');
+}
+function openCariEditModal(id){
+  if(!id||!_cariData[id]) return;
+  const c=_cariData[id];
+  document.getElementById('cari-modal-title').innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> Cari Düzenle';
+  document.getElementById('cari-edit-id').value=id;
+  document.getElementById('cm-isim').value=c.isim||'';
+  document.getElementById('cm-tur').value=c.tur||'diger';
+  document.getElementById('cm-servis').value=c.servis||'';
+  document.getElementById('cm-plaka').value=c.plaka||'';
+  document.getElementById('cm-firma').value=c.firma||'';
+  document.getElementById('cm-tel').value=c.tel||'';
+  document.getElementById('cm-not').value=c.not||'';
+  document.getElementById('cari-add-modal').classList.add('open');
+}
+function saveCariModal(){
+  const isim=(document.getElementById('cm-isim').value||'').trim();
+  if(!isim){ showToast('Cari ismi zorunludur','error'); return; }
+  const editId=document.getElementById('cari-edit-id').value;
+  const id=editId||_newCariId();
+  if(!_cariData[id]) _cariData[id]={hareketler:{}};
+  _cariData[id].isim=isim;
+  _cariData[id].tur=document.getElementById('cm-tur').value||'diger';
+  _cariData[id].servis=(document.getElementById('cm-servis').value||'').trim();
+  _cariData[id].plaka=(document.getElementById('cm-plaka').value||'').trim().toUpperCase();
+  _cariData[id].firma=(document.getElementById('cm-firma').value||'').trim();
+  _cariData[id].tel=(document.getElementById('cm-tel').value||'').trim();
+  _cariData[id].not=(document.getElementById('cm-not').value||'').trim();
+  _saveCariToStorage();
+  document.getElementById('cari-add-modal').classList.remove('open');
+  showToast(editId?'Cari güncellendi':'Yeni cari eklendi','success');
+  if(_currentPage==='cari-liste') renderCariListe();
+  if(_currentPage==='cari-detay') renderCariDetay(id);
+}
+
+// Hareket Modal
+function openCariHareketModal(){
+  const id=window._activeCariId;
+  if(!id||!_cariData[id]) return;
+  document.getElementById('ch-cari-label').textContent=_cariData[id].isim||'—';
+  document.getElementById('ch-tarih').value=new Date().toISOString().split('T')[0];
+  document.getElementById('ch-tutar').value='';
+  document.getElementById('ch-aciklama').value='';
+  document.getElementById('ch-tip').value='borc';
+  const grid=document.getElementById('ch-tip-grid');
+  if(grid){ grid.querySelectorAll('button').forEach(b=>{b.style.opacity='0.55';b.style.transform='scale(.97)';}); const bb=grid.querySelector('[data-tip="borc"]'); if(bb){bb.style.opacity='1';bb.style.transform='scale(1.04)';} }
+  document.getElementById('cari-hareket-modal').classList.add('open');
+}
+function _setChTip(tip,btn){
+  document.querySelectorAll('#ch-tip-grid button').forEach(b=>{b.style.opacity='0.55';b.style.transform='scale(.97)';});
+  btn.style.opacity='1';btn.style.transform='scale(1.04)';
+  document.getElementById('ch-tip').value=tip;
+}
+function saveCariHareket(){
+  const id=window._activeCariId;
+  if(!id||!_cariData[id]) return;
+  const tutar=parseFloat(document.getElementById('ch-tutar').value);
+  if(!tutar||tutar<=0){ showToast('Geçerli bir tutar girin','error'); return; }
+  const tip=document.getElementById('ch-tip').value;
+  const tarih=document.getElementById('ch-tarih').value||new Date().toISOString().split('T')[0];
+  const aciklama=(document.getElementById('ch-aciklama').value||'').trim();
+  if(!_cariData[id].hareketler) _cariData[id].hareketler={};
+  const hid=_newHareketId();
+  _cariData[id].hareketler[hid]={tarih,aciklama:aciklama||(tip==='borc'?'Borç':'Alacak'),borc:tip==='borc'?tutar:0,alacak:tip==='alacak'?tutar:0,ts:Date.now()};
+  _saveCariToStorage();
+  document.getElementById('cari-hareket-modal').classList.remove('open');
+  showToast((tip==='borc'?'Borç':'Alacak')+' kaydedildi: '+_fmtPara(tutar),'success');
+  renderCariDetay(id);
+}
+function deleteCariHareket(cariId,hareketId){
+  if(!_cariData[cariId]||!_cariData[cariId].hareketler||!_cariData[cariId].hareketler[hareketId]) return;
+  const cm=document.getElementById('confirm-modal');
+  _setText('confirm-title','Hareketi Sil');
+  _setText('confirm-msg','Bu hareket kalıcı olarak silinecek. Emin misiniz?');
+  const okBtn=document.getElementById('confirm-ok-btn');
+  okBtn.textContent='Evet, Sil';
+  okBtn.onclick=function(){ delete _cariData[cariId].hareketler[hareketId]; _saveCariToStorage(); cm.style.display='none'; showToast('Hareket silindi','success'); renderCariDetay(cariId); };
+  cm.style.display='flex';
+}
+function deleteCari(id){
+  if(!_cariData[id]) return;
+  const cm=document.getElementById('confirm-modal');
+  _setText('confirm-title','Cari Hesabı Sil');
+  _setText('confirm-msg','"'+(_cariData[id].isim||'')+'" cari hesabı ve tüm hareketleri silinecek.');
+  const okBtn=document.getElementById('confirm-ok-btn');
+  okBtn.textContent='Evet, Sil';
+  okBtn.onclick=function(){ delete _cariData[id]; _saveCariToStorage(); cm.style.display='none'; showToast('Cari hesap silindi','success'); gotoC('cari-liste'); };
+  cm.style.display='flex';
+}
+
+function exportCariExcel(){
+  const entries=Object.entries(_cariData);
+  if(!entries.length){ showToast('Dışa aktarılacak veri yok','error'); return; }
+  const turLabel={sofor:'Şoför',taseron:'Taşeron',okul:'Okul',firma:'Firma',personel:'Personel',diger:'Diğer'};
+  const genelRows=[['SR.NO','CARİ İSMİ','CARİ TÜRÜ','SERVİS NO','PLAKA','FİRMA','CEP TEL','BORÇ','ALACAK','BAKİYE']];
+  entries.forEach(([id,c],i)=>{ const calc=_cariCalcBakiye(c); genelRows.push([i+1,c.isim||'',turLabel[c.tur]||'Diğer',c.servis||'',c.plaka||'',c.firma||'',c.tel||'',calc.borc,calc.alacak,calc.bakiye]); });
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(genelRows), 'GENEL LİSTE');
+  entries.forEach(([id,c],i)=>{
+    const har=Object.values(c.hareketler||{}); har.sort((a,b)=>(a.tarih||'').localeCompare(b.tarih||''));
+    const rows=[['CARİ: '+(c.isim||'')],['SR.NO','TARİH','AÇIKLAMA','BORÇ','ALACAK','BAKİYE']];
+    let bal=0; har.forEach((h,j)=>{ const b=parseFloat(h.borc||0),a=parseFloat(h.alacak||0); bal+=(a-b); rows.push([j+1,h.tarih||'',h.aciklama||'',b,a,bal]); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), String(i+1).substring(0,30));
+  });
+  XLSX.writeFile(wb,'Cari_Hesaplar_'+new Date().toISOString().split('T')[0]+'.xlsx');
+  showToast('Excel indirildi','success');
+}
+</script>
+
+</div>
 
 <!-- CONFIRM MODAL -->
 <div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(4px);" onclick="if(event.target===this)document.getElementById('confirm-modal').style.display='none';">
