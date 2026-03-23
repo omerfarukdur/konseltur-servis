@@ -9976,18 +9976,18 @@ function taseronAylikHesapla(){
       const yov = parseFloat(c.yovmiye||0);
       if(!yov) return;
       const toplam = yov * gun;
-      // Aynı ay için önceki otomatik hareketi sil
       if(!_cariData[id].hareketler) _cariData[id].hareketler = {};
+      // Aynı ay için önceki otomatik hareketi sil
       const eskiKey = Object.keys(_cariData[id].hareketler).find(k=>_cariData[id].hareketler[k].gunKey===hareketKey);
       if(eskiKey) delete _cariData[id].hareketler[eskiKey];
-      // Yeni hareketi ekle
-      const hid = 'th_'+Date.now()+'_'+Math.random().toString(36).substr(2,4);
+      // Yeni hareketi ekle — taşeron bize hizmet etti, biz ödeyeceğiz → alacak (verilen)
+      const hid = 'th_'+Date.now()+'_'+id.slice(-4)+'_'+Math.random().toString(36).substr(2,4);
       const tarih = ay+'-01';
       _cariData[id].hareketler[hid] = {
         tarih,
         aciklama: ay.replace('-','/') + ' · ' + gun + ' gün × ' + yov.toLocaleString('tr-TR') + '₺',
-        borc: toplam,   // "alınan" = biz ödeyeceğiz = bizim borcumuz
-        alacak: 0,
+        borc: 0,
+        alacak: toplam,
         ts: Date.now(),
         gunKey: hareketKey,
         otomatik: true
@@ -9995,10 +9995,8 @@ function taseronAylikHesapla(){
       eklenen++;
     });
     _saveCariToStorage();
-    showToast(`✅ ${eklenen} taşeron için ${ay} ayı hesaplandı (${gun} gün)`,'success');
+    showToast('✅ ' + eklenen + ' taşeron için ' + ay + ' ayı hesaplandı (' + gun + ' gün)', 'success');
     renderCariListe();
-    // preview güncelle
-    _updateTaseronPreview();
   };
 
   if(mevcutlar.length){
@@ -10106,8 +10104,8 @@ function _etgKaydet(){
   _cariData[cariId].hareketler[hareketId] = {
     tarih,
     aciklama: ayLabel + ' · ' + gun + ' gün × ' + yov.toLocaleString('tr-TR') + '₺',
-    borc: toplam,
-    alacak: 0,
+    borc: 0,
+    alacak: toplam,
     ts: Date.now(),
     gunKey,
     otomatik: true
