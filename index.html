@@ -9471,6 +9471,9 @@ document.addEventListener('DOMContentLoaded',function(){
 // CARİ HESAP MODÜLÜ
 // ══════════════════════════════════════════════════════════════════════
 
+// showToast alias — cari kodunun ana toast fonksiyonunu kullanır
+function showToast(msg, type){ toast(msg, type||'success'); }
+
 let _cariData = {};
 let _cariFilter = 'all';
 let _cariSearchTerm = '';
