@@ -9535,9 +9535,9 @@ function renderCariListe(){
   const countEl = document.getElementById('cari-list-count');
   if(!wrap) return;
 
-  // Personel filtresi: Aktar butonu göster
+  // Personel veya Taşeron filtresi: Aktar butonu göster
   const _aktarBtn = document.getElementById('cari-sofor-aktar-btn');
-  if(_aktarBtn) _aktarBtn.style.display = (_cariFilter==='personel') ? 'inline-flex' : 'none';
+  if(_aktarBtn) _aktarBtn.style.display = (_cariFilter==='personel'||_cariFilter==='taseron') ? 'inline-flex' : 'none';
   // Taşeron filtresi: Aylık hesaplama paneli göster
   const _taseronPanel = document.getElementById('taseron-gun-panel');
   const _isTaseronFilter = (_cariFilter==='taseron');
@@ -9547,11 +9547,6 @@ function renderCariListe(){
     if(_ayInp && !_ayInp.value){
       const _now = new Date();
       _ayInp.value = _now.getFullYear()+'-'+String(_now.getMonth()+1).padStart(2,'0');
-    }
-    const _gunInp = document.getElementById('taseron-gun-input');
-    if(_gunInp && !_gunInp._evtBound){
-      _gunInp.addEventListener('input', ()=>{});
-      _gunInp._evtBound = true;
     }
   }
 
@@ -9947,66 +9942,69 @@ function _cariGetOkulYovmiye(){
 
 // Taşeron aylık hesapla ve cari hareketlerine ekle
 function taseronAylikHesapla(){
-  const gun = parseInt(document.getElementById('taseron-gun-input')?.value||0)||0;
-  const ay  = document.getElementById('taseron-ay-input')?.value||'';
+  const gunEl = document.getElementById('taseron-gun-input');
+  const ayEl  = document.getElementById('taseron-ay-input');
+  const gun   = parseInt(gunEl?.value||0)||0;
+  const ay    = (ayEl?.value||'').trim();
+
   if(!gun||gun<1||gun>31){ showToast('Geçerli bir gün sayısı girin (1-31)','error'); return; }
   if(!ay){ showToast('Ay seçin','error'); return; }
 
   const _taseronlar = Object.entries(_cariData).filter(([,c])=>c.tur==='taseron');
   if(!_taseronlar.length){ showToast('Taşeron kaydı bulunamadı','error'); return; }
 
-  // Yövmiyesi sıfır olan taşeronları uyar
+  // Yövmiyesi sıfır olanları uyar
   const _sifirYov = _taseronlar.filter(([,c])=>!parseFloat(c.yovmiye||0));
   if(_sifirYov.length){
-    const isimler = _sifirYov.map(([,c])=>c.isim||'?').join(', ');
-    showToast('⚠️ Yövmiyesi girilmemiş: '+isimler+'. Düzenle → Okul Ekle ile yövmiye girin.','error');
+    showToast('⚠️ Yövmiyesi girilmemiş: ' + _sifirYov.map(([,c])=>c.isim||'?').join(', ') + '. Düzenle → Okul Ekle ile yövmiye girin.', 'error');
     return;
   }
 
-  // Bu ay+gün için zaten hareket var mı kontrol et
   const hareketKey = ay + '_taseron_gun';
-  const mevcutlar = _taseronlar.filter(([id,c])=>{
-    const harList = Object.values(c.hareketler||{});
-    return harList.some(h=>h.gunKey===hareketKey);
-  });
 
-  const doConfirm = () => {
+  // Mevcut ay hareketi var mı?
+  const mevcutSayisi = _taseronlar.filter(([id,c])=>{
+    const har = c.hareketler||{};
+    return Object.values(har).some(h=>h && h.gunKey===hareketKey);
+  }).length;
+
+  function doConfirm(){
     let eklenen = 0;
     _taseronlar.forEach(([id,c])=>{
-      const yov = parseFloat(c.yovmiye||0);
+      const yov    = parseFloat(c.yovmiye||0);
       if(!yov) return;
       const toplam = yov * gun;
       if(!_cariData[id].hareketler) _cariData[id].hareketler = {};
-      // Aynı ay için önceki otomatik hareketi sil
-      const eskiKey = Object.keys(_cariData[id].hareketler).find(k=>_cariData[id].hareketler[k].gunKey===hareketKey);
-      if(eskiKey) delete _cariData[id].hareketler[eskiKey];
-      // Yeni hareketi ekle — taşeron bize hizmet etti, biz ödeyeceğiz → alacak (verilen)
-      const hid = 'th_'+Date.now()+'_'+id.slice(-4)+'_'+Math.random().toString(36).substr(2,4);
-      const tarih = ay+'-01';
+      // Aynı aya ait eski otomatik hareketi sil
+      Object.keys(_cariData[id].hareketler).forEach(k=>{
+        if(_cariData[id].hareketler[k]?.gunKey===hareketKey) delete _cariData[id].hareketler[k];
+      });
+      // Yeni hareket: taşeron bize hizmet etti → biz öderiz → alacak (verilen)
+      const hid = 'th_' + ay.replace('-','') + '_' + id.slice(-4) + '_' + Math.random().toString(36).substr(2,6);
       _cariData[id].hareketler[hid] = {
-        tarih,
-        aciklama: ay.replace('-','/') + ' · ' + gun + ' gün × ' + yov.toLocaleString('tr-TR') + '₺',
-        borc: 0,
-        alacak: toplam,
-        ts: Date.now(),
-        gunKey: hareketKey,
-        otomatik: true
+        tarih:      ay + '-01',
+        aciklama:   ay.replace('-','/') + ' · ' + gun + ' gün × ' + yov.toLocaleString('tr-TR') + '₺',
+        borc:       0,
+        alacak:     toplam,
+        ts:         Date.now(),
+        gunKey:     hareketKey,
+        otomatik:   true
       };
       eklenen++;
     });
     _saveCariToStorage();
-    showToast('✅ ' + eklenen + ' taşeron için ' + ay + ' ayı hesaplandı (' + gun + ' gün)', 'success');
+    showToast('✅ ' + eklenen + ' taşeron için ' + ay.replace('-','/') + ' ayı kaydedildi (' + gun + ' gün)', 'success');
     renderCariListe();
-  };
+  }
 
-  if(mevcutlar.length){
+  if(mevcutSayisi > 0){
     const cm = document.getElementById('confirm-modal');
-    document.getElementById('confirm-title').textContent = ay+' Ayı Üzerine Yaz';
-    document.getElementById('confirm-msg').textContent = mevcutlar.length+' taşeron için '+ay+' ayı zaten hesaplanmış. Üzerine yazılsın mı?';
+    _setText('confirm-title', ay.replace('-','/') + ' Ayı Üzerine Yaz');
+    _setText('confirm-msg', mevcutSayisi + ' taşeron için ' + ay.replace('-','/') + ' ayı zaten hesaplanmış. Üzerine yazılsın mı?');
     const okBtn = document.getElementById('confirm-ok-btn');
     okBtn.textContent = 'Evet, Güncelle';
     okBtn.onclick = function(){ cm.style.display='none'; doConfirm(); };
-    cm.style.display='flex';
+    cm.style.display = 'flex';
   } else {
     doConfirm();
   }
