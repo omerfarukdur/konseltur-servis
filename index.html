@@ -1656,46 +1656,96 @@ function _addManagedListener(target, event, handler, options) {
   </div>
 
   <!-- Takvim - Sol alt köşe -->
-  <div id="calendar-widget" style="position:fixed;left:20px;bottom:20px;z-index:500;background:rgba(10,14,26,.95);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;width:280px;box-shadow:0 16px 48px rgba(0,0,0,.5);display:none;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <button onclick="calPrevMonth()" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:16px;padding:4px 8px;">‹</button>
-      <span id="cal-title" style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;color:#fff;"></span>
-      <button onclick="calNextMonth()" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:16px;padding:4px 8px;">›</button>
+  <div id="calendar-widget" style="position:fixed;left:20px;bottom:74px;z-index:500;background:rgba(8,12,24,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:20px;width:300px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;overflow:hidden;">
+  <!-- Başlık -->
+  <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(200,55,26,.9)" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      <span style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;">Takvim</span>
     </div>
-    <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px;"></div>
-    <div id="cal-event-form" style="display:none;margin-top:10px;border-top:1px solid rgba(255,255,255,.06);padding-top:10px;">
-      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px;" id="cal-selected-label"></div>
-      <textarea id="cal-event-input" placeholder="Not veya görev ekle..." style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;padding:8px;resize:none;height:56px;font-family:Outfit,sans-serif;box-sizing:border-box;"></textarea>
-      <button onclick="saveCalEvent()" style="margin-top:6px;width:100%;padding:8px;border-radius:8px;border:none;background:var(--brand);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">Kaydet</button>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button onclick="calPrevMonth()" style="background:rgba(255,255,255,.06);border:none;color:rgba(255,255,255,.6);cursor:pointer;width:26px;height:26px;border-radius:7px;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">‹</button>
+      <span id="cal-title" style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);min-width:90px;text-align:center;"></span>
+      <button onclick="calNextMonth()" style="background:rgba(255,255,255,.06);border:none;color:rgba(255,255,255,.6);cursor:pointer;width:26px;height:26px;border-radius:7px;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.15s;" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">›</button>
     </div>
-    <div id="cal-events-list" style="margin-top:8px;max-height:100px;overflow-y:auto;"></div>
   </div>
+  <!-- Grid -->
+  <div style="padding:12px 14px;">
+    <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;"></div>
+  </div>
+  <!-- Seçili gün formu -->
+  <div id="cal-event-form" style="display:none;padding:0 14px 14px;">
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px;">
+      <div style="font-size:11px;font-weight:700;color:rgba(200,55,26,.9);margin-bottom:8px;letter-spacing:.5px;" id="cal-selected-label"></div>
+      <input id="cal-event-input" placeholder="Not veya görev..." style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;padding:8px 10px;font-family:Outfit,sans-serif;box-sizing:border-box;outline:none;margin-bottom:8px;" onfocus="this.style.borderColor='rgba(200,55,26,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+      <!-- Alarm saati -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <label style="font-size:11px;color:rgba(255,255,255,.35);white-space:nowrap;">⏰ Alarm:</label>
+        <input type="time" id="cal-alarm-time" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:#fff;font-size:12px;padding:5px 8px;font-family:Outfit,sans-serif;flex:1;" onfocus="this.style.borderColor='rgba(200,55,26,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+      </div>
+      <button onclick="saveCalEvent()" style="width:100%;padding:9px;border-radius:8px;border:none;background:linear-gradient(135deg,rgba(200,55,26,.9),rgba(168,45,21,.9));color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Kaydet</button>
+    </div>
+    <div id="cal-events-list" style="margin-top:8px;max-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
+  </div>
+</div>
 
-  <!-- Takvim toggle butonu -->
-  <button onclick="toggleCalendar()" style="position:fixed;left:20px;bottom:20px;z-index:499;width:44px;height:44px;border-radius:12px;background:rgba(10,14,26,.9);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;" id="cal-toggle-btn"
-    onmouseover="this.style.borderColor='rgba(200,55,26,.5)';this.style.color='var(--brand)'"
-    onmouseout="this.style.borderColor='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.6)'">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-  </button>
+<!-- Takvim toggle butonu -->
+<button onclick="toggleCalendar()" id="cal-toggle-btn"
+  style="position:fixed;left:20px;bottom:20px;z-index:499;width:44px;height:44px;border-radius:12px;background:rgba(8,12,24,.9);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 4px 16px rgba(0,0,0,.4);"
+  onmouseover="this.style.borderColor='rgba(200,55,26,.5)';this.style.color='var(--brand)'"
+  onmouseout="this.style.borderColor='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.6)'">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+</button>
 </div>
 
 <!-- NOT DEFTERİ MODALI -->
-<div id="notepad-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);align-items:center;justify-content:center;">
-  <div style="background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:20px;width:560px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6);">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        <span style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:#fff;">Not Defteri</span>
+<div id="notepad-modal" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;" onclick="handleNotepadBackdrop(event)">
+  <div id="notepad-panel" style="background:linear-gradient(145deg,#0a0e1a,#080c18);border:1px solid rgba(255,255,255,.1);border-radius:24px;width:680px;max-width:95vw;height:80vh;max-height:720px;display:flex;flex-direction:column;box-shadow:0 40px 100px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.05);overflow:hidden;position:relative;">
+    <!-- Üst çizgi -->
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(200,55,26,.8),transparent);"></div>
+
+    <!-- Header -->
+    <div style="padding:24px 28px 0;display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(200,55,26,.12);border:1px solid rgba(200,55,26,.2);display:flex;align-items:center;justify-content:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
+          <span style="font-family:Syne,sans-serif;font-size:20px;font-weight:900;color:#fff;letter-spacing:-.3px;">Not Defteri</span>
+        </div>
+        <div style="font-size:12px;color:rgba(255,255,255,.3);">Şirketle ilgili önemli notlarınız</div>
       </div>
-      <button onclick="closeNotepad()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:20px;line-height:1;">×</button>
+      <button onclick="closeNotepad()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:rgba(255,255,255,.5);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;transition:.15s;flex-shrink:0;" onmouseover="this.style.background='rgba(239,68,68,.15)';this.style.color='#ef4444'" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='rgba(255,255,255,.5)'">×</button>
     </div>
-    <div style="padding:20px 24px;flex:1;overflow-y:auto;">
-      <div style="display:flex;gap:8px;margin-bottom:14px;">
-        <input id="notepad-title" placeholder="Not başlığı..." style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:13px;padding:10px 14px;font-family:Outfit,sans-serif;">
-        <button onclick="addNote()" style="padding:10px 18px;border-radius:8px;border:none;background:var(--brand);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap;">+ Ekle</button>
+
+    <!-- Input alanı -->
+    <div style="padding:20px 28px;flex-shrink:0;">
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;transition:.2s;" onfocusin="this.style.borderColor='rgba(200,55,26,.35)'" onfocusout="this.style.borderColor='rgba(255,255,255,.08)'">
+        <input id="notepad-title" placeholder="Not başlığı..." style="width:100%;background:transparent;border:none;color:#fff;font-size:15px;font-weight:700;font-family:Syne,sans-serif;outline:none;margin-bottom:8px;display:block;" >
+        <div style="height:1px;background:rgba(255,255,255,.06);margin-bottom:8px;"></div>
+        <textarea id="notepad-content" placeholder="Düşüncelerinizi, kararlarınızı, hatırlatmaları buraya yazın..." style="width:100%;background:transparent;border:none;color:rgba(255,255,255,.75);font-size:13px;font-family:Outfit,sans-serif;outline:none;resize:none;height:80px;line-height:1.7;display:block;"></textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+          <div style="display:flex;gap:6px;">
+            <button onclick="setNoteTag('önemli')" class="note-tag-btn" style="padding:4px 10px;border-radius:20px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:rgba(239,68,68,.8);font-size:10px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">🔴 Önemli</button>
+            <button onclick="setNoteTag('görev')" class="note-tag-btn" style="padding:4px 10px;border-radius:20px;border:1px solid rgba(59,130,246,.3);background:rgba(59,130,246,.08);color:rgba(96,165,250,.8);font-size:10px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">📋 Görev</button>
+            <button onclick="setNoteTag('fikir')" class="note-tag-btn" style="padding:4px 10px;border-radius:20px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.08);color:rgba(34,197,94,.8);font-size:10px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">💡 Fikir</button>
+          </div>
+          <button onclick="addNote()" style="padding:8px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,rgba(200,55,26,.9),rgba(168,45,21,.9));color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;display:flex;align-items:center;gap:6px;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ekle
+          </button>
+        </div>
       </div>
-      <textarea id="notepad-content" placeholder="Notunuzu buraya yazın..." style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:13px;padding:12px 14px;resize:none;height:120px;font-family:Outfit,sans-serif;box-sizing:border-box;"></textarea>
-      <div id="notes-list" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;"></div>
+      <input type="hidden" id="notepad-tag" value="">
+    </div>
+
+    <!-- Not listesi -->
+    <div style="flex:1;overflow-y:auto;padding:0 28px 24px;">
+      <div id="notes-list" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+      <div id="notes-empty" style="display:none;text-align:center;padding:40px 20px;">
+        <div style="font-size:40px;margin-bottom:12px;">📝</div>
+        <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;color:rgba(255,255,255,.3);margin-bottom:6px;">Henüz not yok</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.18);">Yukarıdan ilk notunuzu ekleyin</div>
+      </div>
     </div>
   </div>
 </div>
@@ -2188,7 +2238,6 @@ function _addManagedListener(target, event, handler, options) {
   <!-- Filtre & Arama -->
   <div class="filter-bar" id="cari-filter-bar">
     <div class="filter-chip active" onclick="filterCari('all',this)">Tümü</div>
-    <div class="filter-chip" onclick="filterCari('kasa',this)" style="border-color:rgba(245,158,11,.3);color:var(--amber);">Kasa</div>
     <div class="filter-chip" onclick="filterCari('personel',this)" style="border-color:rgba(139,92,246,.3);color:var(--purple);">Personeller</div>
     <div class="filter-chip" onclick="filterCari('taseron',this)" style="border-color:rgba(245,158,11,.3);color:#fbbf24;">Taşeronlar</div>
     <div class="filter-chip" onclick="filterCari('firma',this)" style="border-color:rgba(59,130,246,.3);color:#60a5fa;">Firmalar</div>
@@ -3522,8 +3571,8 @@ function enterSchool(key){
 function enterKasaDirect(){
   if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
   window._cariDirectEntry = true;
-  // Kasa filtresi ile cari ekranı aç
-  _setText('school-indicator','💰 Kasa');
+  window._kasaModOnly = true; // Sadece kasa modu
+  _setText('school-indicator','💰 Kasa Cari');
   const _si = document.getElementById('school-indicator');
   if(_si){ _si.style.color='#f59e0b'; _si.style.background='rgba(245,158,11,.12)'; }
   loadCariData();
@@ -3538,8 +3587,45 @@ function enterKasaDirect(){
   if(tCari) tCari.style.display='flex';
   switchApp('cari');
   gotoC('cari-liste');
-  // Kasa filtresini aktif yap
-  setTimeout(()=>{ try{ filterCari('kasa', null); }catch(e){} }, 300);
+  // Kasa filtresi + filtre bar gizle
+  setTimeout(()=>{
+    filterCari('kasa', null);
+    const fb = document.getElementById('cari-filter-bar');
+    if(fb) fb.style.display='none';
+    // Başlık güncelle
+    const h2 = document.querySelector('#page-cari-liste h2');
+    if(h2) h2.textContent = 'Kasa Cari';
+    const sub = document.querySelector('#page-cari-liste h2 + div');
+    if(sub) sub.textContent = 'Kasa giriş / çıkış takibi';
+  }, 200);
+}
+
+// Cari girişinde kasa modunu temizle
+function enterCariDirect_orig(){
+  if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
+  window._cariDirectEntry = true;
+  window._kasaModOnly = false;
+  _setText('school-indicator','📒 Cari Hesap');
+  const _si = document.getElementById('school-indicator');
+  if(_si){ _si.style.color='#60a5fa'; _si.style.background='rgba(59,130,246,.12)'; }
+  loadCariData();
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('module-select-screen').style.display = 'none';
+  document.getElementById('app-wrapper').style.display = 'flex';
+  const tRota = document.getElementById('tabs-rota');
+  const tUcret = document.getElementById('tabs-ucret');
+  const tCari = document.getElementById('tabs-cari');
+  if(tRota) tRota.style.display='none';
+  if(tUcret) tUcret.style.display='none';
+  if(tCari) tCari.style.display='flex';
+  switchApp('cari');
+  gotoC('cari-liste');
+  setTimeout(()=>{
+    window._kasaModOnly = false;
+    const fb = document.getElementById('cari-filter-bar');
+    if(fb) fb.style.display='';
+    filterCari('all', document.querySelector('#cari-filter-bar .filter-chip'));
+  }, 200);
 }
 
 // === OKUL SEÇİM İÇİN MODÜL GEÇİŞİ ===
@@ -3557,6 +3643,17 @@ function showSchoolSelectForModule(mod){
 }
 
 // === NOT DEFTERİ ===
+window._noteTag = '';
+function setNoteTag(tag){
+  window._noteTag = window._noteTag === tag ? '' : tag;
+  document.querySelectorAll('.note-tag-btn').forEach(b=>{
+    const isActive = b.getAttribute('onclick').includes("'"+tag+"'") && window._noteTag===tag;
+    b.style.opacity = window._noteTag && !isActive ? '.4' : '1';
+    b.style.transform = isActive ? 'scale(1.05)' : 'scale(1)';
+  });
+  document.getElementById('notepad-tag').value = window._noteTag;
+}
+
 function openNotepad(){
   document.getElementById('notepad-modal').style.display='flex';
   renderNotes();
@@ -3564,15 +3661,22 @@ function openNotepad(){
 function closeNotepad(){
   document.getElementById('notepad-modal').style.display='none';
 }
+function handleNotepadBackdrop(e){
+  if(e.target.id==='notepad-modal') closeNotepad();
+}
 function addNote(){
-  const title = document.getElementById('notepad-title').value.trim();
-  const content = document.getElementById('notepad-content').value.trim();
-  if(!title && !content) return;
+  const title = (document.getElementById('notepad-title').value||'').trim();
+  const body = (document.getElementById('notepad-content').value||'').trim();
+  if(!title && !body) return;
+  const tag = document.getElementById('notepad-tag').value||'';
   const notes = JSON.parse(localStorage.getItem('_konseltur_notes')||'[]');
-  notes.unshift({id:Date.now(), title:title||'Başlıksız', content, date: new Date().toLocaleDateString('tr-TR')});
+  notes.unshift({id:Date.now(), title:title||'Başlıksız', content:body, tag, date:new Date().toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'})});
   localStorage.setItem('_konseltur_notes', JSON.stringify(notes));
   document.getElementById('notepad-title').value='';
   document.getElementById('notepad-content').value='';
+  window._noteTag='';
+  document.querySelectorAll('.note-tag-btn').forEach(b=>{ b.style.opacity='1'; b.style.transform='scale(1)'; });
+  document.getElementById('notepad-tag').value='';
   renderNotes();
 }
 function deleteNote(id){
@@ -3583,40 +3687,70 @@ function deleteNote(id){
 function renderNotes(){
   const notes = JSON.parse(localStorage.getItem('_konseltur_notes')||'[]');
   const el = document.getElementById('notes-list');
+  const empty = document.getElementById('notes-empty');
   if(!el) return;
-  if(!notes.length){el.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.2);text-align:center;padding:16px;">Henüz not eklenmedi.</div>';return;}
-  el.innerHTML = notes.map(n=>`
-    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 14px;position:relative;">
-      <div style="display:flex;align-items:start;justify-content:space-between;gap:8px;">
-        <div>
-          <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:4px;">${n.title}</div>
-          ${n.content?`<div style="font-size:12px;color:rgba(255,255,255,.45);line-height:1.6;white-space:pre-wrap;">${n.content}</div>`:''}
-          <div style="font-size:10px;color:rgba(255,255,255,.2);margin-top:6px;">${n.date}</div>
+  if(!notes.length){
+    el.innerHTML='';
+    if(empty) empty.style.display='block';
+    return;
+  }
+  if(empty) empty.style.display='none';
+  const tagStyles = {
+    'önemli': {icon:'🔴', bg:'rgba(239,68,68,.08)', border:'rgba(239,68,68,.2)', color:'rgba(239,68,68,.9)'},
+    'görev':  {icon:'📋', bg:'rgba(59,130,246,.08)', border:'rgba(59,130,246,.2)', color:'rgba(96,165,250,.9)'},
+    'fikir':  {icon:'💡', bg:'rgba(34,197,94,.08)', border:'rgba(34,197,94,.2)', color:'rgba(34,197,94,.9)'},
+  };
+  el.innerHTML = notes.map(n=>{
+    const ts = tagStyles[n.tag]||{icon:'📝', bg:'rgba(255,255,255,.04)', border:'rgba(255,255,255,.07)', color:'rgba(255,255,255,.3)'};
+    return `<div style="background:${ts.bg};border:1px solid ${ts.border};border-radius:14px;padding:14px;position:relative;transition:.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+      <div style="display:flex;align-items:start;justify-content:space-between;gap:6px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
+          <span style="font-size:14px;">${ts.icon}</span>
+          <span style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${n.title}</span>
         </div>
-        <button onclick="deleteNote(${n.id})" style="background:none;border:none;color:rgba(255,255,255,.2);cursor:pointer;font-size:16px;flex-shrink:0;line-height:1;padding:0;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='rgba(255,255,255,.2)'">×</button>
+        <button onclick="deleteNote(${n.id})" style="background:none;border:none;color:rgba(255,255,255,.15);cursor:pointer;font-size:16px;padding:0;line-height:1;flex-shrink:0;transition:.15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='rgba(255,255,255,.15)'">×</button>
       </div>
-    </div>
-  `).join('');
+      ${n.content?`<div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:8px;white-space:pre-wrap;">${n.content}</div>`:''}
+      <div style="font-size:10px;color:${ts.color};font-weight:600;">${n.date}</div>
+    </div>`;
+  }).join('');
 }
 
 // === TAKVİM ===
 window._calDate = new Date();
 window._calSelected = null;
+window._alarmIntervalId = null;
+
 function toggleCalendar(){
   const w = document.getElementById('calendar-widget');
-  const b = document.getElementById('cal-toggle-btn');
   if(!w) return;
   if(w.style.display==='none'||!w.style.display){
     w.style.display='block';
-    if(b) b.style.bottom='280px';
     renderCalendar();
+    // Dışına tıklayınca kapat - sonraki tick'te ekle (kendi tıklamasını atla)
+    setTimeout(()=>{
+      document.addEventListener('click', _calOutsideClick);
+    }, 50);
   } else {
-    w.style.display='none';
-    if(b) b.style.bottom='20px';
+    _closeCalendar();
   }
+}
+function _calOutsideClick(e){
+  const w = document.getElementById('calendar-widget');
+  const btn = document.getElementById('cal-toggle-btn');
+  if(!w) return;
+  if(!w.contains(e.target) && !btn.contains(e.target)){
+    _closeCalendar();
+  }
+}
+function _closeCalendar(){
+  const w = document.getElementById('calendar-widget');
+  if(w) w.style.display='none';
+  document.removeEventListener('click', _calOutsideClick);
 }
 function calPrevMonth(){ window._calDate.setMonth(window._calDate.getMonth()-1); renderCalendar(); }
 function calNextMonth(){ window._calDate.setMonth(window._calDate.getMonth()+1); renderCalendar(); }
+
 function renderCalendar(){
   const d = window._calDate;
   const y = d.getFullYear(), m = d.getMonth();
@@ -3631,62 +3765,83 @@ function renderCalendar(){
   const startOffset = (firstDay===0)?6:firstDay-1;
   const daysInMonth = new Date(y,m+1,0).getDate();
   const today = new Date();
-  let html = days.map(d=>`<div style="font-size:9px;color:rgba(255,255,255,.25);text-align:center;padding:2px 0;">${d}</div>`).join('');
+  let html = days.map(d=>`<div style="font-size:9px;color:rgba(255,255,255,.2);text-align:center;padding:2px 0;font-weight:700;">${d}</div>`).join('');
   for(let i=0;i<startOffset;i++) html+=`<div></div>`;
   for(let day=1;day<=daysInMonth;day++){
     const key=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const isToday = y===today.getFullYear()&&m===today.getMonth()&&day===today.getDate();
     const isSelected = window._calSelected===key;
     const hasEvent = events[key]&&events[key].length>0;
-    const bg = isSelected?'var(--brand)':isToday?'rgba(200,55,26,.2)':'transparent';
-    const color = isSelected?'#fff':isToday?'var(--brand)':'rgba(255,255,255,.6)';
-    html+=`<div onclick="calSelectDay('${key}',${day})" style="text-align:center;padding:4px 2px;border-radius:6px;font-size:11px;cursor:pointer;background:${bg};color:${color};position:relative;">${day}${hasEvent?`<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:${isSelected?'rgba(255,255,255,.8)':'var(--brand)'}"></div>`:''}</div>`;
+    const bg = isSelected?'var(--brand)':isToday?'rgba(200,55,26,.25)':'transparent';
+    const color = isSelected?'#fff':isToday?'var(--brand)':'rgba(255,255,255,.65)';
+    html+=`<div onclick="calSelectDay('${key}')" title="${key}" style="text-align:center;padding:5px 2px;border-radius:7px;font-size:11px;cursor:pointer;background:${bg};color:${color};position:relative;transition:.1s;" onmouseover="if(this.style.background!=='var(--brand)')this.style.background='rgba(255,255,255,.08)'" onmouseout="this.style.background='${bg}'">${day}${hasEvent?`<div style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:${isSelected?'rgba(255,255,255,.8)':'var(--brand)'}"></div>`:''}</div>`;
   }
   grid.innerHTML = html;
   renderCalEvents();
 }
-function calSelectDay(key, day){
+
+function calSelectDay(key){
   window._calSelected = key;
   const f = document.getElementById('cal-event-form');
   const l = document.getElementById('cal-selected-label');
   if(f) f.style.display='block';
-  if(l) l.textContent = key+' için not/görev:';
-  const events = JSON.parse(localStorage.getItem('_konseltur_cal_events')||'{}');
+  // Türkçe tarih göster
+  const parts = key.split('-');
+  const months = ['','Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+  if(l) l.textContent = parts[2]+' '+months[parseInt(parts[1])]+' '+parts[0]+' için not:';
   const inp = document.getElementById('cal-event-input');
   if(inp) inp.value='';
+  const alInp = document.getElementById('cal-alarm-time');
+  if(alInp) alInp.value='';
   renderCalendar();
+  renderCalEvents();
 }
+
 function saveCalEvent(){
   const inp = document.getElementById('cal-event-input');
+  const alarmInp = document.getElementById('cal-alarm-time');
   if(!inp||!inp.value.trim()||!window._calSelected) return;
   const events = JSON.parse(localStorage.getItem('_konseltur_cal_events')||'{}');
   if(!events[window._calSelected]) events[window._calSelected]=[];
-  events[window._calSelected].push({text:inp.value.trim(), ts:Date.now()});
+  events[window._calSelected].push({
+    text: inp.value.trim(),
+    alarm: alarmInp ? alarmInp.value : '',
+    ts: Date.now()
+  });
   localStorage.setItem('_konseltur_cal_events', JSON.stringify(events));
   inp.value='';
+  if(alarmInp) alarmInp.value='';
   renderCalendar();
   checkCalNotifications();
 }
+
 function renderCalEvents(){
   const el = document.getElementById('cal-events-list');
   if(!el||!window._calSelected) return;
   const events = JSON.parse(localStorage.getItem('_konseltur_cal_events')||'{}');
   const evs = events[window._calSelected]||[];
   if(!evs.length){el.innerHTML='';return;}
-  el.innerHTML = evs.map((e,i)=>`<div style="display:flex;align-items:start;gap:6px;padding:6px;background:rgba(255,255,255,.04);border-radius:6px;margin-bottom:4px;">
-    <div style="font-size:11px;color:rgba(255,255,255,.6);flex:1;">${e.text}</div>
-    <button onclick="deleteCalEvent('${window._calSelected}',${i})" style="background:none;border:none;color:rgba(255,255,255,.2);cursor:pointer;font-size:13px;padding:0;line-height:1;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='rgba(255,255,255,.2)'">×</button>
-  </div>`).join('');
+  el.innerHTML = evs.map((e,i)=>`
+    <div style="display:flex;align-items:start;gap:6px;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;color:rgba(255,255,255,.7);">${e.text}</div>
+        ${e.alarm?`<div style="font-size:10px;color:rgba(200,55,26,.8);margin-top:2px;">⏰ ${e.alarm}</div>`:''}
+      </div>
+      <button onclick="deleteCalEvent('${window._calSelected}',${i})" style="background:none;border:none;color:rgba(255,255,255,.2);cursor:pointer;font-size:13px;padding:0;line-height:1;flex-shrink:0;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='rgba(255,255,255,.2)'">×</button>
+    </div>`).join('');
 }
+
 function deleteCalEvent(key, idx){
   const events = JSON.parse(localStorage.getItem('_konseltur_cal_events')||'{}');
   if(events[key]) events[key].splice(idx,1);
   localStorage.setItem('_konseltur_cal_events', JSON.stringify(events));
+  renderCalEvents();
   renderCalendar();
 }
+
 function checkCalNotifications(){
-  const today = new Date();
-  const key = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const now = new Date();
+  const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const events = JSON.parse(localStorage.getItem('_konseltur_cal_events')||'{}');
   const todays = events[key]||[];
   if(todays.length>0){
@@ -3694,19 +3849,55 @@ function checkCalNotifications(){
     if(!checked){
       localStorage.setItem('_cal_notif_checked_'+key,'1');
       setTimeout(()=>{
-        const msgs = todays.map(e=>e.text).join('\n• ');
-        if(typeof toast==='function') toast('📅 Bugün için '+todays.length+' hatırlatma:\n• '+msgs,'info');
+        const msgs = todays.map(e=>e.text+(e.alarm?' (⏰'+e.alarm+')':'')).join(' · ');
+        if(typeof toast==='function') toast('📅 Bugün için '+todays.length+' not: '+msgs,'info');
       }, 2000);
     }
   }
+  // Alarm kontrolü - her dakika çalış
+  if(!window._alarmIntervalId){
+    window._alarmIntervalId = setInterval(_checkAlarms, 30000);
+  }
 }
-// Sayfa yüklenince bildirimleri kontrol et
+
+function _checkAlarms(){
+  const now = new Date();
+  const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const currentTime = hh+':'+mm;
+  const events = JSON.parse(localStorage.getItem('_konseltur_cal_events')||'{}');
+  const todays = events[key]||[];
+  todays.forEach((e,i)=>{
+    if(e.alarm && e.alarm===currentTime){
+      const firedKey = '_cal_alarm_fired_'+key+'_'+i+'_'+currentTime;
+      if(!localStorage.getItem(firedKey)){
+        localStorage.setItem(firedKey,'1');
+        // Alarm bildirimi
+        if(typeof toast==='function') toast('⏰ ALARM: '+e.text,'warning');
+        // Tarayıcı bildirimi varsa
+        try{
+          if(Notification && Notification.permission==='granted'){
+            new Notification('⏰ Konseltur Alarm',{body:e.text,icon:'/icon-192.png'});
+          } else if(Notification && Notification.permission!=='denied'){
+            Notification.requestPermission();
+          }
+        }catch(_){}
+      }
+    }
+  });
+}
+
+// Sayfa yüklenince
 setTimeout(checkCalNotifications, 3000);
+_checkAlarms();
+
 
 function enterCariDirect(){
  if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
  window._cariDirectEntry = true;
  window._soforDirectEntry = false;
+ window._kasaModOnly = false;
  _setText('school-indicator','📒 Cari Hesap');
  const _si = document.getElementById('school-indicator');
  if(_si){ _si.style.color='#60a5fa'; _si.style.background='rgba(59,130,246,.12)'; }
@@ -3722,6 +3913,11 @@ function enterCariDirect(){
  if(tCari) tCari.style.display='flex';
  switchApp('cari');
  gotoC('cari-liste');
+ setTimeout(()=>{
+   const fb = document.getElementById('cari-filter-bar');
+   if(fb) fb.style.display='';
+   filterCari('all', document.querySelector('#cari-filter-bar .filter-chip'));
+ }, 200);
 }
 
 function enterModule(mod){
@@ -9761,7 +9957,7 @@ function renderCariListe(){
   });
 
   // Filtre mantığı
-  let filtered = entries;
+  let filtered = _cariFilter==='all' ? entries.filter(c=>c.tur!=='kasa') : entries;
   if(_cariFilter==='kasa') filtered = entries.filter(c=>c.tur==='kasa');
   else if(_cariFilter==='personel') filtered = entries.filter(c=>c.tur==='personel'||c.tur==='sofor');
   else if(_cariFilter==='taseron') filtered = entries.filter(c=>c.tur==='taseron');
