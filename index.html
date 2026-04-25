@@ -1599,7 +1599,7 @@ function _addManagedListener(target, event, handler, options) {
       </button>
 
       <!-- 3. Öğrenci Ücret Yönetimi -->
-      <button onclick="showSchoolSelectForModule('ucret')"
+      <button onclick="showSoforSelectForUcret()"
         style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;border:1px solid rgba(34,197,94,.28);background:rgba(34,197,94,.06);cursor:pointer;text-align:left;transition:all .2s;width:100%;"
         onmouseover="this.style.background='rgba(34,197,94,.14)';this.style.borderColor='rgba(34,197,94,.5)';this.style.transform='translateY(-2px)'"
         onmouseout="this.style.background='rgba(34,197,94,.06)';this.style.borderColor='rgba(34,197,94,.28)';this.style.transform='none'">
@@ -1696,6 +1696,114 @@ function _addManagedListener(target, event, handler, options) {
   onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(200,55,26,.35),0 2px 8px rgba(0,0,0,.4)'">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
 </button>
+
+<!-- KDV/TEVKİFAT HESAPLAMA WİDGET -->
+<div id="kdv-widget" style="position:fixed;left:78px;bottom:20px;z-index:500;background:rgba(8,12,24,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:20px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;overflow:hidden;">
+  <div style="padding:16px 18px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:9px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(34,197,94,.9)" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      <span style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;">KDV & Tevkifat</span>
+    </div>
+    <button onclick="toggleKdvWidget()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:8px;color:rgba(255,255,255,.4);cursor:pointer;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;transition:.15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='rgba(255,255,255,.4)'">×</button>
+  </div>
+
+  <div style="padding:14px 16px;">
+    <!-- Tutar girişi -->
+    <div style="margin-bottom:10px;">
+      <label style="font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.8px;display:block;margin-bottom:5px;">TUTAR (₺)</label>
+      <input id="kdv-tutar" type="number" min="0" step="0.01" placeholder="0,00"
+        style="width:100%;padding:9px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:15px;font-weight:700;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;transition:.15s;"
+        oninput="kdvHesapla()" onfocus="this.style.borderColor='rgba(34,197,94,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+    </div>
+
+    <!-- Tutar türü -->
+    <div style="margin-bottom:10px;">
+      <label style="font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.8px;display:block;margin-bottom:5px;">TUTAR TÜRÜ</label>
+      <div style="display:flex;gap:4px;">
+        <button onclick="setKdvTur('haric',this)" id="kdv-tur-haric" style="flex:1;padding:7px 4px;border-radius:8px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.1);color:rgba(34,197,94,.9);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">KDV Hariç</button>
+        <button onclick="setKdvTur('dahil',this)" id="kdv-tur-dahil" style="flex:1;padding:7px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.35);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">KDV Dahil</button>
+        <button onclick="setKdvTur('kdv',this)" id="kdv-tur-kdv" style="flex:1;padding:7px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.35);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">KDV Tutarı</button>
+      </div>
+    </div>
+
+    <!-- KDV Oranı -->
+    <div style="margin-bottom:10px;">
+      <label style="font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.8px;display:block;margin-bottom:5px;">KDV ORANI</label>
+      <div style="display:flex;gap:4px;">
+        <button onclick="setKdvOran(1,this)" id="kdv-oran-1" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.35);font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">%1</button>
+        <button onclick="setKdvOran(10,this)" id="kdv-oran-10" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.35);font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">%10</button>
+        <button onclick="setKdvOran(20,this)" id="kdv-oran-20" style="flex:1;padding:7px;border-radius:8px;border:1px solid rgba(59,130,246,.35);background:rgba(59,130,246,.1);color:rgba(96,165,250,.9);font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">%20</button>
+      </div>
+    </div>
+
+    <!-- Tevkifat -->
+    <div style="margin-bottom:12px;padding:10px 12px;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.12);border-radius:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <label style="font-size:10px;font-weight:700;color:rgba(245,158,11,.8);letter-spacing:.8px;">TEVKİFAT</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox" id="kdv-tevkifat-aktif" onchange="kdvTevkifatToggle()" style="width:14px;height:14px;accent-color:#f59e0b;">
+          <span style="font-size:10px;font-weight:700;color:rgba(245,158,11,.7);">Aktif</span>
+        </label>
+      </div>
+      <div id="kdv-tevkifat-panel" style="display:none;">
+        <label style="font-size:10px;color:rgba(255,255,255,.3);display:block;margin-bottom:5px;">Tevkifat Oranı</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
+          <button onclick="setTevkifat('2/10',this)" class="tevk-btn" style="padding:6px 4px;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.4);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">2/10</button>
+          <button onclick="setTevkifat('3/10',this)" class="tevk-btn" style="padding:6px 4px;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.4);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">3/10</button>
+          <button onclick="setTevkifat('4/10',this)" class="tevk-btn" style="padding:6px 4px;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.4);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">4/10</button>
+          <button onclick="setTevkifat('5/10',this)" class="tevk-btn" style="padding:6px 4px;border-radius:7px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.1);color:rgba(245,158,11,.9);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">5/10</button>
+          <button onclick="setTevkifat('7/10',this)" class="tevk-btn" style="padding:6px 4px;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.4);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">7/10</button>
+          <button onclick="setTevkifat('9/10',this)" class="tevk-btn" style="padding:6px 4px;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.4);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">9/10</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sonuçlar -->
+    <div id="kdv-sonuc" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:12px;font-size:12px;">
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+        <span style="color:rgba(255,255,255,.45);">Matrah (KDV Hariç)</span>
+        <span id="kdv-r-matrah" style="font-weight:700;color:rgba(255,255,255,.8);">₺0,00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+        <span id="kdv-r-oran-lbl" style="color:rgba(255,255,255,.45);">KDV Tutarı (%20)</span>
+        <span id="kdv-r-kdv" style="font-weight:700;color:rgba(96,165,250,.9);">₺0,00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+        <span style="color:rgba(255,255,255,.45);">KDV Dahil Toplam</span>
+        <span id="kdv-r-dahil" style="font-weight:700;color:#fff;">₺0,00</span>
+      </div>
+      <div id="kdv-r-tevkifat-row" style="display:none;flex-direction:column;gap:2px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);">
+        <div style="display:flex;justify-content:space-between;">
+          <span id="kdv-r-tevk-lbl" style="color:rgba(245,158,11,.7);">Tevkifat (5/10)</span>
+          <span id="kdv-r-tevk" style="font-weight:700;color:rgba(245,158,11,.9);">₺0,00</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="color:rgba(255,255,255,.3);font-size:10px;">Ödenecek KDV</span>
+          <span id="kdv-r-odenecek" style="font-weight:700;color:rgba(34,197,94,.9);font-size:11px;">₺0,00</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0 2px;">
+        <span style="color:#fff;font-weight:700;">Genel Toplam</span>
+        <span id="kdv-r-toplam" style="font-weight:900;color:rgba(34,197,94,1);font-size:14px;">₺0,00</span>
+      </div>
+    </div>
+
+    <!-- Kopyala -->
+    <button onclick="kdvSonucKopyala()" style="margin-top:8px;width:100%;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);color:rgba(255,255,255,.4);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;display:flex;align-items:center;justify-content:center;gap:6px;" onmouseover="this.style.background='rgba(255,255,255,.08)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.03)';this.style.color='rgba(255,255,255,.4)'">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Sonucu Kopyala
+    </button>
+  </div>
+</div>
+
+<!-- KDV Widget toggle butonu -->
+<button onclick="toggleKdvWidget()" id="kdv-toggle-btn"
+  style="position:fixed;left:78px;bottom:20px;z-index:499;width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(34,197,94,.85),rgba(22,163,74,.85));border:1px solid rgba(34,197,94,.5);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 4px 20px rgba(34,197,94,.3),0 2px 8px rgba(0,0,0,.4);"
+  onmouseover="this.style.transform='scale(1.08)';this.style.boxShadow='0 6px 24px rgba(34,197,94,.5),0 2px 8px rgba(0,0,0,.4)'"
+  onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(34,197,94,.3),0 2px 8px rgba(0,0,0,.4)'">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+</button>
+
 </div>
 
 <!-- NOT DEFTERİ MODALI -->
@@ -2169,44 +2277,70 @@ function _addManagedListener(target, event, handler, options) {
 <!-- ÜCRET ÖĞRENCİ -->
 <div class="page-scroll" id="page-ucret-ogrenci">
 <div class="page-inner">
- <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
- <div>
- <h2 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;">Öğrenci Ödemeleri</h2>
- <div style="font-size:12px;color:var(--muted2);margin-top:3px;">Öğrenciye tıklayın → aylık ödeme girin</div>
- </div>
- <button class="btn btn-green btn-sm" onclick="openUcretAddModal()">Öğrenci Ekle</button>
- </div>
- <div class="filter-bar">
- <div class="filter-chip active" onclick="filterUcret('all',this)">Tümü</div>
- <div class="filter-chip" onclick="filterUcret('unpaid',this)" style="border-color:rgba(245,158,11,.3);color:var(--amber);">Bekleyenler</div>
- </div>
- <div class="search-wrap"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" placeholder="Öğrenci ara..." maxlength="100" oninput="searchUcret(this.value)"></div>
- <!-- Toplu ödeme araç çubuğu -->
- <div class="toplu-bar" id="toplu-bar">
-   <input type="checkbox" id="toplu-select-all" class="pay-row-checkbox"
-     onchange="topluToggleAll(this.checked)" title="Tümünü seç/kaldır">
-   <div class="toplu-bar-txt"><span id="toplu-count">0</span> öğrenci seçildi</div>
-   <button class="btn btn-sm btn-green" onclick="topluOdeModal()" style="font-size:12px;">
-     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-     Seçilenleri Öde
-   </button>
-   <button class="btn btn-sm btn-ghost" onclick="topluIptal()" style="font-size:12px;">İptal</button>
- </div>
- <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-   <div id="u-list-count" style="font-size:11px;color:var(--muted2);font-weight:600;"></div>
-   <button id="toplu-mode-btn" class="btn btn-sm btn-ghost" onclick="topluModeToggle()"
-     style="font-size:11px;padding:5px 10px;">
-     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="10" y="3" width="4" height="4" rx="1"/><rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="10" width="4" height="4" rx="1"/></svg>
-     Toplu Seç
-   </button>
- </div>
- <div id="u-student-list"><div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>Öğrenci bulunamadı.</div></div>
+
+  <!-- ŞOFÖR LİSTESİ GÖRÜNÜMÜ -->
+  <div id="ucret-sofor-view">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:900;">Ücret Yönetimi</h2>
+        <div style="font-size:12px;color:var(--muted2);margin-top:3px;">Şoföre tıklayın → öğrenci ödemelerini görün</div>
+      </div>
+    </div>
+    <div id="ucret-sofor-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+    <div id="ucret-sofor-empty" style="display:none;" class="empty">
+      <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></div>
+      Sistemde kadro şoförü bulunamadı.
+    </div>
+  </div>
+
+  <!-- ÖĞRENCİ LİSTESİ GÖRÜNÜMÜ -->
+  <div id="ucret-ogrenci-view" style="display:none;">
+    <!-- Geri + Başlık -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+      <button onclick="ucretGoSoforList()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.6);cursor:pointer;font-size:12px;font-weight:700;font-family:Outfit,sans-serif;transition:.15s;" onmouseover="this.style.borderColor='rgba(255,255,255,.25)'" onmouseout="this.style.borderColor='rgba(255,255,255,.1)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Şoförler
+      </button>
+      <div>
+        <div id="ucret-sofor-adi" style="font-family:Syne,sans-serif;font-size:17px;font-weight:900;color:#fff;"></div>
+        <div id="ucret-sofor-ozet" style="font-size:11px;color:var(--muted2);margin-top:2px;"></div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-green btn-sm" onclick="openUcretAddModal()">+ Öğrenci Ekle</button>
+      </div>
+    </div>
+
+    <!-- Filtre + Arama + Sıralama -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <div class="filter-bar" style="margin:0;flex:1;min-width:200px;">
+        <div class="filter-chip active" onclick="filterUcret('all',this)">Tümü</div>
+        <div class="filter-chip" onclick="filterUcret('unpaid',this)" style="border-color:rgba(239,68,68,.3);color:var(--red);">Bekleyenler</div>
+        <div class="filter-chip" onclick="filterUcret('paid',this)" style="border-color:rgba(34,197,94,.3);color:var(--green);">Tam Ödedi</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <!-- Sıralama -->
+        <button id="sort-btn-name" onclick="ucretSort('name')" title="Ada göre sırala"
+          style="padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;display:flex;align-items:center;gap:5px;transition:.15s;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Ad <span id="sort-arrow-name"></span>
+        </button>
+        <button id="sort-btn-okul" onclick="ucretSort('okul')" title="Okula göre sırala"
+          style="padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;display:flex;align-items:center;gap:5px;transition:.15s;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Okul <span id="sort-arrow-okul"></span>
+        </button>
+      </div>
+      <input class="search-box" placeholder="Öğrenci ara..." oninput="searchUcret(this.value)" style="width:160px;" id="ucret-search-inp">
+    </div>
+
+    <div id="u-student-list"></div>
+  </div>
+
 </div>
 </div>
 
 
 
-<!-- CARİ HESAP - LİSTE -->
 <div class="page-scroll" id="page-cari-liste">
 <div class="page-inner">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
@@ -2461,7 +2595,8 @@ function _addManagedListener(target, event, handler, options) {
 <div class="modal-bg" id="payment-modal" onclick="if(event.target===this){document.getElementById('payment-modal').classList.remove('open')}">
  <div class="modal" style="width:660px;max-width:96vw;">
  <h2 id="pm-title">Öğrenci Ödemeleri</h2>
- <div style="font-size:12px;color:var(--muted2);margin-bottom:20px;" id="pm-sub"></div>
+ <div style="font-size:12px;color:var(--muted2);margin-bottom:8px;" id="pm-sub"></div>
+ <div id="pm-kayit-ay" style="display:none;font-size:11px;color:rgba(255,255,255,.5);margin-bottom:14px;padding:6px 10px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:8px;"></div>
  <div class="pm-group-label">Güz Dönemi</div>
  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;" id="pm-months-guz"></div>
  <div style="height:1px;background:var(--border);margin-bottom:10px;"></div>
@@ -2558,8 +2693,24 @@ function _addManagedListener(target, event, handler, options) {
  <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;">Sisteme kayıtlı öğrencilerden ücret listesine ekleyin</div>
  <div class="search-wrap" style="margin-bottom:10px;"><span class="search-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span><input type="text" placeholder="Öğrenci adı ara..." maxlength="100" oninput="filterUcretAddList(this.value)" style="width:100%;padding:8px 10px 8px 32px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  <div id="ucret-add-list" style="max-height:360px;overflow-y:auto;"></div>
- <div style="margin-top:12px;">
- <button class="btn btn-ghost btn-full" onclick="document.getElementById('ucret-add-modal').classList.remove('open')">Kapat</button>
+ <div style="margin-top:12px;padding:10px 12px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:10px;">
+   <label style="font-size:11px;font-weight:700;color:rgba(245,158,11,.8);display:block;margin-bottom:6px;">📅 Kayıt Başlangıç Ayı</label>
+   <select id="ucret-add-kayit-ay" style="width:100%;padding:8px 10px;background:var(--card2);border:1px solid rgba(245,158,11,.25);border-radius:8px;color:var(--text);font-size:12px;font-family:Outfit,sans-serif;">
+     <option value="">Eylül (Dönem başı - varsayılan)</option>
+     <option value="ekim">Ekim</option>
+     <option value="kasim">Kasım</option>
+     <option value="aralik">Aralık</option>
+     <option value="ocak">Ocak</option>
+     <option value="subat">Şubat</option>
+     <option value="mart">Mart</option>
+     <option value="nisan">Nisan</option>
+     <option value="mayis">Mayıs</option>
+     <option value="haziran">Haziran</option>
+   </select>
+   <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:4px;">Seçilen aydan itibaren ücret takibi başlar</div>
+ </div>
+ <div style="margin-top:10px;">
+   <button class="btn btn-ghost btn-full" onclick="document.getElementById('ucret-add-modal').classList.remove('open')">Kapat</button>
  </div>
  </div>
 </div>
@@ -3651,6 +3802,186 @@ function enterCariDirect_orig(){
   }, 200);
 }
 
+// === ÜCRET YÖNETİMİ - ŞOFÖR BAZLI ===
+window._ucretActiveSoforId = null;
+window._ucretSortKey = null;
+window._ucretSortDir = {};
+
+function showSoforSelectForUcret(){
+  if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
+  // Direkt ücret modülüne gir - şoför listesi gösterilecek
+  window._cariDirectEntry = false;
+  window._pendingModule = null;
+  // Tüm verileri yükle
+  loadSoforData();
+  // Tüm okulların students/routes/payments verilerini çek
+  _loadAllSchoolsForUcret();
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('module-select-screen').style.display = 'none';
+  document.getElementById('app-wrapper').style.display = 'flex';
+  const tRota = document.getElementById('tabs-rota');
+  const tUcret = document.getElementById('tabs-ucret');
+  const tCari = document.getElementById('tabs-cari');
+  if(tRota) tRota.style.display='none';
+  if(tUcret) tUcret.style.display='flex';
+  if(tCari) tCari.style.display='none';
+  switchApp('ucret');
+  gotoU('ucret-ogrenci');
+  ucretGoSoforList();
+}
+
+function _loadAllSchoolsForUcret(){
+  // Tüm okulların verilerini birleştir
+  students = []; routes = []; payments = {};
+  SCHOOLS.forEach((sch, idx) => {
+    try {
+      const raw = localStorage.getItem('konseltur_main_v2_' + sch.key);
+      if(raw){
+        const d = JSON.parse(raw);
+        if(d.students) d.students.forEach(s => { s.school = idx; students.push(s); });
+        if(d.routes) d.routes.forEach(r => { r.school = idx; routes.push(r); });
+        if(d.nSid && d.nSid > nSid) nSid = d.nSid;
+      }
+      const rawPay = localStorage.getItem('konseltur_pay_v2_' + sch.key);
+      if(rawPay){
+        const dp = JSON.parse(rawPay);
+        Object.assign(payments, dp);
+      }
+    } catch(e){}
+  });
+}
+
+// Tüm öğrenci verilerini okullara göre geri kaydet
+function _saveAllSchoolsFromUcret(){
+  // Payments - her okula kendi öğrencilerinin payment'larını kaydet
+  SCHOOLS.forEach((sch, schIdx) => {
+    const schStudents = students.filter(s => s.school === schIdx);
+    const schPayments = {};
+    schStudents.forEach(s => { if(payments[s.id]) schPayments[s.id] = payments[s.id]; });
+    try{ localStorage.setItem('konseltur_pay_v2_' + sch.key, JSON.stringify(schPayments)); } catch(e){}
+    // Öğrenci verisini de kaydet (kayitAy için)
+    const rawMain = localStorage.getItem('konseltur_main_v2_' + sch.key);
+    if(rawMain){
+      try{
+        const d = JSON.parse(rawMain);
+        d.students = (d.students||[]).map(st => {
+          const updated = students.find(s => s.id === st.id);
+          return updated ? {...st, kayitAy: updated.kayitAy||st.kayitAy} : st;
+        });
+        localStorage.setItem('konseltur_main_v2_' + sch.key, JSON.stringify(d));
+      } catch(e){}
+    }
+  });
+}
+
+
+function ucretGoSoforList(){
+  window._ucretActiveSoforId = null;
+  const sv = document.getElementById('ucret-sofor-view');
+  const ov = document.getElementById('ucret-ogrenci-view');
+  if(sv) sv.style.display = 'block';
+  if(ov) ov.style.display = 'none';
+  renderUcretSoforList();
+}
+
+function ucretGoOgrenciler(soforId){
+  window._ucretActiveSoforId = soforId;
+  const sv = document.getElementById('ucret-sofor-view');
+  const ov = document.getElementById('ucret-ogrenci-view');
+  if(sv) sv.style.display = 'none';
+  if(ov) ov.style.display = 'block';
+  // Şoför adını göster
+  const drv = soforler.find(d => d.id === soforId);
+  const nameEl = document.getElementById('ucret-sofor-adi');
+  if(nameEl && drv) nameEl.textContent = '🚌 ' + drv.name;
+  // Sıralama sıfırla
+  window._ucretSortKey = null; window._ucretSortDir = {};
+  _updateSortBtns();
+  uFilter = 'all';
+  uSearch = '';
+  const inp = document.getElementById('ucret-search-inp');
+  if(inp) inp.value = '';
+  document.querySelectorAll('#page-ucret-ogrenci .filter-chip').forEach((c,i)=>{
+    c.classList.toggle('active', i===0);
+  });
+  renderUcretOgrenci();
+}
+
+function renderUcretSoforList(){
+  const wrap = document.getElementById('ucret-sofor-list');
+  const empty = document.getElementById('ucret-sofor-empty');
+  if(!wrap) return;
+  // Sadece kadro şoförleri (taşeron hariç)
+  const kadroSoforler = soforler.filter(d => d.tip !== 'taseron');
+  if(!kadroSoforler.length){
+    wrap.innerHTML = '';
+    if(empty) empty.style.display = 'flex';
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+  wrap.innerHTML = kadroSoforler.map(drv => {
+    // Bu şoförün rotaları
+    const drvRoutes = routes.filter(r => r.driverId === drv.id);
+    const studentIds = new Set(drvRoutes.flatMap(r => r.students || []));
+    const payStudents = [...studentIds].filter(id => payments[id] !== undefined);
+    const total = payStudents.length;
+    // Ödemeler özeti
+    let paidCount = 0, bekleyenCount = 0;
+    payStudents.forEach(id => {
+      const s = students.find(st => st.id === id);
+      const aktifAylar = s ? getAktifAylar(s) : AYLAR;
+      const t = calcStudentTotalsForAylar(id, aktifAylar);
+      if(t.paidMonths >= aktifAylar.length && aktifAylar.length > 0) paidCount++;
+      else bekleyenCount++;
+    });
+    const col = drv.color || 'var(--brand)';
+    const colMap = {'var(--brand)':'#c8371a','var(--green)':'#22c55e','var(--blue)':'#3b82f6','var(--purple)':'#8b5cf6','var(--amber)':'#f59e0b'};
+    const hexCol = colMap[col] || (col.startsWith('#') ? col : '#60a5fa');
+    const r = parseInt(hexCol.slice(1,3),16), g = parseInt(hexCol.slice(3,5),16), b = parseInt(hexCol.slice(5,7),16);
+    return `<div onclick="ucretGoOgrenciler(${drv.id})"
+      style="display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;border:1px solid rgba(${r},${g},${b},.2);background:rgba(${r},${g},${b},.05);cursor:pointer;transition:all .2s;"
+      onmouseover="this.style.background='rgba(${r},${g},${b},.12)';this.style.borderColor='rgba(${r},${g},${b},.4)';this.style.transform='translateY(-2px)'"
+      onmouseout="this.style.background='rgba(${r},${g},${b},.05)';this.style.borderColor='rgba(${r},${g},${b},.2)';this.style.transform='none'">
+      <div style="width:46px;height:46px;border-radius:13px;background:rgba(${r},${g},${b},.15);border:1px solid rgba(${r},${g},${b},.25);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:16px;font-weight:900;color:${hexCol};flex-shrink:0;">${escHtml((drv.name||'?').charAt(0).toUpperCase())}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:#fff;">${escHtml(drv.name)}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">${drvRoutes.length} rota · ${total} öğrenci</div>
+        <div style="display:flex;gap:8px;margin-top:5px;">
+          ${paidCount > 0 ? `<span style="font-size:10px;font-weight:700;color:var(--green);">✓ ${paidCount} tam ödedi</span>` : ''}
+          ${bekleyenCount > 0 ? `<span style="font-size:10px;font-weight:700;color:var(--red);">⚠ ${bekleyenCount} bekliyor</span>` : ''}
+          ${total===0 ? `<span style="font-size:10px;color:rgba(255,255,255,.25);">Öğrenci eklenmemiş</span>` : ''}
+        </div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(${r},${g},${b},.5)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </div>`;
+  }).join('');
+}
+
+function ucretSort(key){
+  if(window._ucretSortKey === key){
+    window._ucretSortDir[key] = window._ucretSortDir[key]==='asc' ? 'desc' : 'asc';
+  } else {
+    window._ucretSortKey = key;
+    window._ucretSortDir[key] = 'asc';
+  }
+  _updateSortBtns();
+  renderUcretOgrenci();
+}
+
+function _updateSortBtns(){
+  ['name','okul'].forEach(k => {
+    const btn = document.getElementById('sort-btn-'+k);
+    const arrow = document.getElementById('sort-arrow-'+k);
+    if(!btn) return;
+    const isActive = window._ucretSortKey === k;
+    btn.style.color = isActive ? '#fff' : 'rgba(255,255,255,.5)';
+    btn.style.borderColor = isActive ? 'rgba(255,255,255,.3)' : 'rgba(255,255,255,.1)';
+    btn.style.background = isActive ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.04)';
+    if(arrow) arrow.textContent = isActive ? (window._ucretSortDir[k]==='asc' ? ' ↑' : ' ↓') : '';
+  });
+}
+
+
 // === OKUL SEÇİM İÇİN MODÜL GEÇİŞİ ===
 window._pendingModule = null;
 function showSchoolSelectForModule(mod){
@@ -3971,6 +4302,155 @@ function _checkAlarms(){
     }
   });
 }
+
+
+// === KDV & TEVKİFAT HESAPLAMA ===
+window._kdvState = {
+  tur: 'haric',   // 'haric' | 'dahil' | 'kdv'
+  oran: 20,        // 1 | 10 | 20
+  tevkifat: false,
+  tevkOran: '5/10' // '2/10' | '3/10' | '4/10' | '5/10' | '7/10' | '9/10'
+};
+
+function toggleKdvWidget(){
+  const w = document.getElementById('kdv-widget');
+  if(!w) return;
+  if(w.style.display === 'none' || !w.style.display){
+    w.style.display = 'block';
+    setTimeout(()=>{ document.addEventListener('click', _kdvOutsideClick); }, 50);
+    document.getElementById('kdv-tutar').focus();
+  } else {
+    _closeKdvWidget();
+  }
+}
+function _kdvOutsideClick(e){
+  const w = document.getElementById('kdv-widget');
+  const btn = document.getElementById('kdv-toggle-btn');
+  if(!w) return;
+  if(!w.contains(e.target) && !btn.contains(e.target)) _closeKdvWidget();
+}
+function _closeKdvWidget(){
+  const w = document.getElementById('kdv-widget');
+  if(w) w.style.display = 'none';
+  document.removeEventListener('click', _kdvOutsideClick);
+}
+
+function setKdvTur(tur, btn){
+  window._kdvState.tur = tur;
+  ['haric','dahil','kdv'].forEach(t => {
+    const b = document.getElementById('kdv-tur-'+t);
+    if(!b) return;
+    const active = t === tur;
+    b.style.background    = active ? 'rgba(34,197,94,.15)' : 'transparent';
+    b.style.borderColor   = active ? 'rgba(34,197,94,.45)' : 'rgba(255,255,255,.08)';
+    b.style.color         = active ? 'rgba(34,197,94,.95)' : 'rgba(255,255,255,.35)';
+  });
+  kdvHesapla();
+}
+
+function setKdvOran(oran, btn){
+  window._kdvState.oran = oran;
+  [1,10,20].forEach(o => {
+    const b = document.getElementById('kdv-oran-'+o);
+    if(!b) return;
+    const active = o === oran;
+    b.style.background    = active ? 'rgba(59,130,246,.15)' : 'transparent';
+    b.style.borderColor   = active ? 'rgba(59,130,246,.45)' : 'rgba(255,255,255,.08)';
+    b.style.color         = active ? 'rgba(96,165,250,.95)' : 'rgba(255,255,255,.35)';
+  });
+  kdvHesapla();
+}
+
+function kdvTevkifatToggle(){
+  const chk = document.getElementById('kdv-tevkifat-aktif');
+  const panel = document.getElementById('kdv-tevkifat-panel');
+  const row = document.getElementById('kdv-r-tevkifat-row');
+  window._kdvState.tevkifat = chk && chk.checked;
+  if(panel) panel.style.display = window._kdvState.tevkifat ? 'block' : 'none';
+  if(row) row.style.display = window._kdvState.tevkifat ? 'flex' : 'none';
+  kdvHesapla();
+}
+
+function setTevkifat(oran, btn){
+  window._kdvState.tevkOran = oran;
+  document.querySelectorAll('.tevk-btn').forEach(b => {
+    const active = b.getAttribute('onclick').includes("'"+oran+"'");
+    b.style.background  = active ? 'rgba(245,158,11,.15)' : 'transparent';
+    b.style.borderColor = active ? 'rgba(245,158,11,.45)' : 'rgba(255,255,255,.08)';
+    b.style.color       = active ? 'rgba(245,158,11,.95)' : 'rgba(255,255,255,.4)';
+  });
+  kdvHesapla();
+}
+
+function kdvHesapla(){
+  const raw = parseFloat(document.getElementById('kdv-tutar').value) || 0;
+  const { tur, oran, tevkifat, tevkOran } = window._kdvState;
+  const kdvOranPct = oran / 100;
+
+  let matrah = 0, kdvTutar = 0, dahilToplam = 0;
+
+  if(tur === 'haric'){
+    matrah = raw;
+    kdvTutar = Math.round(matrah * kdvOranPct * 100) / 100;
+    dahilToplam = matrah + kdvTutar;
+  } else if(tur === 'dahil'){
+    dahilToplam = raw;
+    matrah = Math.round(raw / (1 + kdvOranPct) * 100) / 100;
+    kdvTutar = Math.round((dahilToplam - matrah) * 100) / 100;
+  } else { // kdv tutarı
+    kdvTutar = raw;
+    matrah = kdvOranPct > 0 ? Math.round(kdvTutar / kdvOranPct * 100) / 100 : 0;
+    dahilToplam = matrah + kdvTutar;
+  }
+
+  // Tevkifat
+  const [paylasim, payda] = tevkOran.split('/').map(Number);
+  const tevkPct = paylasim / payda;
+  const tevkTutar = tevkifat ? Math.round(kdvTutar * tevkPct * 100) / 100 : 0;
+  const odenecekKdv = kdvTutar - tevkTutar;
+  const genelToplam = matrah + odenecekKdv;
+
+  // Güncelle
+  const fmt = n => '₺' + n.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const _s = id => document.getElementById(id);
+  if(_s('kdv-r-matrah'))  _s('kdv-r-matrah').textContent  = fmt(matrah);
+  if(_s('kdv-r-kdv'))     _s('kdv-r-kdv').textContent     = fmt(kdvTutar);
+  if(_s('kdv-r-dahil'))   _s('kdv-r-dahil').textContent   = fmt(dahilToplam);
+  if(_s('kdv-r-toplam'))  _s('kdv-r-toplam').textContent  = fmt(tevkifat ? genelToplam : dahilToplam);
+  if(_s('kdv-r-oran-lbl'))_s('kdv-r-oran-lbl').textContent = 'KDV Tutarı (%'+oran+')';
+  if(tevkifat){
+    if(_s('kdv-r-tevk'))      _s('kdv-r-tevk').textContent     = fmt(tevkTutar);
+    if(_s('kdv-r-odenecek'))  _s('kdv-r-odenecek').textContent = fmt(odenecekKdv);
+    if(_s('kdv-r-tevk-lbl'))  _s('kdv-r-tevk-lbl').textContent = 'Tevkifat ('+tevkOran+')';
+  }
+}
+
+function kdvSonucKopyala(){
+  const raw = parseFloat(document.getElementById('kdv-tutar').value) || 0;
+  const { oran, tevkifat, tevkOran } = window._kdvState;
+  const fmt = id => document.getElementById(id)?.textContent || '₺0,00';
+  let text = `KDV Hesaplama Sonucu
+`;
+  text += `Matrah: ${fmt('kdv-r-matrah')}
+`;
+  text += `KDV (%${oran}): ${fmt('kdv-r-kdv')}
+`;
+  text += `KDV Dahil: ${fmt('kdv-r-dahil')}
+`;
+  if(tevkifat){
+    text += `Tevkifat (${tevkOran}): ${fmt('kdv-r-tevk')}
+`;
+    text += `Ödenecek KDV: ${fmt('kdv-r-odenecek')}
+`;
+  }
+  text += `Genel Toplam: ${fmt('kdv-r-toplam')}`;
+  navigator.clipboard.writeText(text).then(()=>{
+    if(typeof toast==='function') toast('✅ Sonuç panoya kopyalandı','success');
+  }).catch(()=>{
+    if(typeof toast==='function') toast('⚠️ Kopyalama başarısız','warning');
+  });
+}
+
 
 // Sayfa yüklenince
 setTimeout(checkCalNotifications, 3000);
@@ -6254,6 +6734,22 @@ function calcStudentTotals(sid){
  return {paidMonths, totalAmount};
 }
 
+// Öğrencinin aktif aylarını döndür (kayıt ayına göre)
+function getAktifAylar(s){
+ if(!s || !s.kayitAy) return AYLAR;
+ const kayitIdx = AYLAR.findIndex(a => a.key === s.kayitAy);
+ if(kayitIdx < 0) return AYLAR;
+ return AYLAR.slice(kayitIdx);
+}
+
+// Belirli aylar için toplamları hesapla
+function calcStudentTotalsForAylar(sid, aylar){
+ const p = getStudentPayment(sid);
+ let paidMonths = 0, totalAmount = 0;
+ aylar.forEach(a => { if(p[a.key] && p[a.key].paid){ paidMonths++; totalAmount += Number(p[a.key].amount||0); } });
+ return { paidMonths, totalAmount: Math.round(totalAmount*100)/100 };
+}
+
 function filterUcret(f,el){
  uFilter=f;
  document.querySelectorAll('#page-ucret-ogrenci .filter-chip').forEach(c=>c.classList.remove('active'));
@@ -6264,61 +6760,75 @@ function searchUcret(q){ uSearch=q.toLowerCase(); renderUcretOgrenci(); }
 
 function renderUcretOgrenci(){
  try {
+   const wrap = document.getElementById('u-student-list');
+   if(!wrap) return;
 
- const wrap=document.getElementById('u-student-list');
- if(!wrap) return;
- // Sadece ücret listesine eklenmiş öğrenciler (payments kaydı olanlar)
- let list = students.filter(s =>payments[s.id] !== undefined);
- const _uSchIdx=getSchoolIdx(_activeSchoolKey);
- list=list.filter(s=>s.school===_uSchIdx);
- if(uFilter==='unpaid') list=list.filter(s=>calcStudentTotals(s.id).paidMonths<AYLAR.length);
- if(uSearch) list=list.filter(s=>s.name.toLowerCase().includes(uSearch));
+   // Aktif şoför seçili mi?
+   const drvId = window._ucretActiveSoforId;
+   if(!drvId){ wrap.innerHTML=''; return; }
 
- if(!list.length){
- wrap.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>Öğrenci bulunamadı.</div>';
- return;
- }
+   // Bu şoförün öğrencilerini bul - route üzerinden
+   const driverRoutes = routes.filter(r => r.driverId === drvId);
+   const routeStudentIds = new Set(driverRoutes.flatMap(r => r.students || []));
 
- wrap.innerHTML=list.map(s=>{
- const t=calcStudentTotals(s.id);
- const pct=Math.round(t.paidMonths/AYLAR.length*100);
- const barCol=pct===100?'var(--green)':pct>50?'var(--amber)':'var(--red)';
- const statusCol=pct===100?'var(--green)':t.paidMonths>0?'var(--amber)':'var(--red)';
- return`<div class="pay-row" id="pay-row-${s.id}" style="position:relative;cursor:default;">
- <input type="checkbox" class="pay-row-checkbox toplu-chk" data-sid="${s.id}"
-   style="display:none;margin-right:2px;" onchange="topluCheckChange()">
- <div onclick="openPaymentModal(${s.id})" style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;min-width:0;">
- <div class="pay-avatar" style="background:${SC[s.school]}18;border:1.5px solid ${SC[s.school]}44;color:${SC[s.school]};">${escHtml(s.name.charAt(0).toUpperCase())}</div>
- <div style="flex:1;min-width:0;">
- <div style="font-weight:600;font-size:13px;">${escHtml(s.name)}</div>
- <div style="font-size:10px;color:var(--muted2);margin-top:1px;">${escHtml(s.ilce||'')} · ${escHtml(s.mah||'')}${s.cls?' · '+escHtml(s.cls):''}</div>
- <div class="pay-progress-bar" style="margin-top:5px;">
- <div class="pay-progress-fill" style="width:${pct}%;background:${barCol};"></div>
- </div>
- </div>
- <div style="text-align:right;flex-shrink:0;">
- <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--green);">₺${t.totalAmount.toLocaleString('tr-TR')}</div>
- <div style="font-size:10px;font-weight:700;color:${statusCol};margin-top:2px;">${t.paidMonths}/${AYLAR.length} ay</div>
- </div>
- <div style="font-size:16px;color:var(--muted);margin-left:4px;">›</div>
- </div>
- <button onclick="event.stopPropagation();ucretManualRemove(${s.id})" title="Ücret listesinden çıkar"
- style="flex-shrink:0;margin-left:8px;padding:4px 8px;border-radius:6px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.07);color:var(--red);font-size:11px;cursor:pointer;opacity:0.7;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7"></button>
- </div>`;
- }).join('');
+   // payments kaydı olan ve bu şoföre ait öğrenciler
+   let list = students.filter(s => payments[s.id] !== undefined && routeStudentIds.has(s.id));
 
- } catch(e){ console.error("renderUcretOgrenci hata:", e); }
- // u-list-count güncelle
- try{
-   const _ulc2 = document.getElementById('u-list-count');
-   if(_ulc2){
-     const _listLen = document.querySelectorAll('#u-student-list .pay-row').length;
-     _ulc2.textContent = _listLen + ' öğrenci';
+   // Filtreler
+   if(uFilter === 'unpaid') list = list.filter(s => calcStudentTotals(s.id).paidMonths < getAktifAylar(s).length);
+   if(uFilter === 'paid')   list = list.filter(s => { const t=calcStudentTotals(s.id); return t.paidMonths > 0 && t.paidMonths >= getAktifAylar(s).length; });
+   if(uSearch) list = list.filter(s => s.name.toLowerCase().includes(uSearch));
+
+   // Sıralama
+   const _sortDir = window._ucretSortDir || {};
+   if(window._ucretSortKey === 'name'){
+     const dir = _sortDir['name'] === 'asc' ? 1 : -1;
+     list.sort((a,b) => dir * a.name.localeCompare(b.name, 'tr'));
+   } else if(window._ucretSortKey === 'okul'){
+     const dir = _sortDir['okul'] === 'asc' ? 1 : -1;
+     list.sort((a,b) => dir * (SCHOOLS[a.school]?.name||'').localeCompare(SCHOOLS[b.school]?.name||'', 'tr'));
    }
-   // Toplu mod aktifse checkbox'ları yeniden göster
+
+   if(!list.length){
+     wrap.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>Öğrenci bulunamadı.</div>';
+     return;
+   }
+
+   wrap.innerHTML = list.map(s => {
+     const aktifAylar = getAktifAylar(s);
+     const t = calcStudentTotalsForAylar(s.id, aktifAylar);
+     const total = aktifAylar.length || 1;
+     const pct = Math.round(t.paidMonths / total * 100);
+     const barCol = pct===100?'var(--green)':pct>50?'var(--amber)':'var(--red)';
+     const sch = SCHOOLS[s.school] || SCHOOLS[0];
+     return `<div class="pay-row" id="pay-row-${s.id}" style="position:relative;cursor:default;">
+       <input type="checkbox" class="pay-row-checkbox toplu-chk" data-sid="${s.id}"
+         style="display:none;margin-right:2px;" onchange="topluCheckChange()">
+       <div onclick="openPaymentModal(${s.id})" style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;min-width:0;">
+         <div class="pay-avatar" style="background:${SC[s.school]||'#60a5fa'}18;border:1.5px solid ${SC[s.school]||'#60a5fa'}44;color:${SC[s.school]||'#60a5fa'};">${escHtml(s.name.charAt(0).toUpperCase())}</div>
+         <div style="flex:1;min-width:0;">
+           <div style="font-weight:600;font-size:13px;">${escHtml(s.name)}</div>
+           <div style="font-size:10px;color:var(--muted2);margin-top:1px;">${escHtml(sch.name||'')} · ${escHtml(s.ilce||'')}${s.cls?' · '+escHtml(s.cls):''}</div>
+           ${s.kayitAy ? `<div style="font-size:9px;color:var(--amber);margin-top:1px;">📅 Kayıt: ${s.kayitAy}</div>` : ''}
+           <div class="pay-progress-bar" style="margin-top:5px;">
+             <div class="pay-progress-fill" style="width:${pct}%;background:${barCol};"></div>
+           </div>
+         </div>
+         <div style="text-align:right;flex-shrink:0;">
+           <div style="font-size:11px;font-weight:700;color:${barCol};">${t.paidMonths}/${total} ay</div>
+           <div style="font-size:10px;color:var(--muted2);">${t.totalAmount>0?'₺'+t.totalAmount.toLocaleString('tr-TR'):''}</div>
+         </div>
+       </div>
+     </div>`;
+   }).join('');
+
+   // Özet
+   const _ulc2 = document.getElementById('ucret-sofor-ozet');
+   if(_ulc2) _ulc2.textContent = list.length + ' öğrenci · Şoföre Göre';
    if(typeof _topluMod !== 'undefined' && _topluMod) _topluShowCheckboxes();
- }catch(e){}
+ } catch(e){ console.error('renderUcretOgrenci hata:', e); }
 }
+
 
 function renderUcretGenel(){
  try {
@@ -6380,7 +6890,18 @@ function openPaymentModal(sid){
  if(!s)return;
  const p=getStudentPayment(sid);
  _setText('pm-title', s.name);
- _setText('pm-sub', SCHOOLS[s.school].name+' · '+s.ilce+' / '+s.mah);
+ _setText('pm-sub', (SCHOOLS[s.school]||SCHOOLS[0]).name+' · '+(s.ilce||'')+' / '+(s.mah||''));
+ // Kayıt ayı bilgisi
+ const pmKayitEl = document.getElementById('pm-kayit-ay');
+ if(pmKayitEl){
+   if(s.kayitAy){
+     const ayObj = AYLAR.find(a=>a.key===s.kayitAy);
+     pmKayitEl.innerHTML = '📅 Kayıt: <b style="color:var(--amber);">'+(ayObj?ayObj.label:s.kayitAy)+'</b> tarihinden itibaren';
+     pmKayitEl.style.display='block';
+   } else { pmKayitEl.style.display='none'; }
+ }
+ // Aktif aylar - kayıt ayından itibaren
+ const _aktifAylar = getAktifAylar(s);
  // Ay grupları: Güz / Kış / Bahar
  const AY_GRUPLARI = {
   guz:   ['eylul','ekim','kasim','aralik'],
@@ -6391,7 +6912,8 @@ function openPaymentModal(sid){
   return keyler.map(key=>{
    const a=AYLAR.find(x=>x.key===key)||{key,label:key};
    const mp=p[a.key]||{paid:false,amount:''};
-   return`<div class="month-cell ${mp.paid?'paid':''}" id="mc-${a.key}">
+   const isAktif = _aktifAylar.some(ay=>ay.key===key);
+   return`<div class="month-cell ${mp.paid?'paid':''}" id="mc-${a.key}" style="${!isAktif?'opacity:.35;pointer-events:none;':''}" title="${!isAktif?'Bu ay kayıt öncesi - pasif':''}">
  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
  <span style="font-weight:700;font-size:13px;">${a.label}</span>
  <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;">
@@ -6431,16 +6953,18 @@ function onChkChange(key){
 }
 
 function updatePmSummary(){
+ const s = students.find(x=>x.id===_editingStudentId);
+ const aktifAylar = s ? getAktifAylar(s) : AYLAR;
  let total=0, paidCount=0;
  AYLAR.forEach(a=>{
- const chk=document.getElementById('pm-chk-'+a.key);
- const amt=document.getElementById('pm-amt-'+a.key);
- if(chk&&chk.checked){ paidCount++; total+=Number(amt?.value||0); }
+  const chk=document.getElementById('pm-chk-'+a.key);
+  const amt=document.getElementById('pm-amt-'+a.key);
+  if(chk&&chk.checked){ paidCount++; total+=Number(amt?.value||0); }
  });
  total=Math.round(total*100)/100;
  _setText('pm-total', '₺'+total.toLocaleString('tr-TR'));
- _setText('pm-paid-months', paidCount+'/'+AYLAR.length);
- _setText('pm-remaining', AYLAR.length-paidCount);
+ _setText('pm-paid-months', paidCount+'/'+aktifAylar.length);
+ _setText('pm-remaining', aktifAylar.length-paidCount);
 }
 
 function savePayments(){
@@ -8236,9 +8760,13 @@ function filterUcretAddList(q){
 function ucretManualAdd(sid){
  if(payments[sid]) return;
  payments[sid] = {}; // boş ödeme kaydı
- // localStorage kaydet
- const str = _serialize(payments);
- try{ localStorage.setItem(LS_PAY(), str); }catch(e){}
+ // Kayıt ayını öğrenciye ekle
+ const kayitAyEl = document.getElementById('ucret-add-kayit-ay');
+ const kayitAy = kayitAyEl ? kayitAyEl.value : '';
+ const s = students.find(x=>x.id===sid);
+ if(s && kayitAy) s.kayitAy = kayitAy;
+ // localStorage kaydet (tüm okullar için)
+ _saveAllSchoolsFromUcret();
  // Firebase'e kaydet
  if(window._fbReady && _isOnline){
  const path = 'konseltur/' + _activeSchoolKey + '/payments';
