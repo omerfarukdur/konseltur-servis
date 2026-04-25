@@ -3827,41 +3827,76 @@ function showSoforSelectForUcret(){
 
 function _loadAllSchoolsForUcret(){
   // Tüm okulların verilerini birleştir
+  // ID ÇAKIŞMASI ÇÖZÜMÜ: her okul için ID'leri benzersiz yap (schIdx * 100000 + origId)
   students = []; routes = []; payments = {};
-  SCHOOLS.forEach((sch, idx) => {
+  SCHOOLS.forEach((sch, schIdx) => {
     try {
       const raw = localStorage.getItem('konseltur_main_v2_' + sch.key);
       if(raw){
         const d = JSON.parse(raw);
-        if(d.students) d.students.forEach(s => { s.school = idx; students.push(s); });
-        if(d.routes) d.routes.forEach(r => { r.school = idx; routes.push(r); });
-        if(d.nSid && d.nSid > nSid) nSid = d.nSid;
+        const ID_OFFSET = schIdx * 100000; // Her okul 100k ID bloğu alır
+        if(d.students) d.students.forEach(s => {
+          const ns = Object.assign({}, s);
+          ns._origId = s.id;          // Orijinal ID sakla (kayıt için)
+          ns.id = s.id + ID_OFFSET;   // Unique global ID
+          ns.school = schIdx;
+          ns._schIdx = schIdx;
+          students.push(ns);
+        });
+        if(d.routes) d.routes.forEach(r => {
+          const nr = Object.assign({}, r);
+          nr._origId = r.id;
+          nr.id = r.id + ID_OFFSET;
+          nr.school = schIdx;
+          nr._schIdx = schIdx;
+          // Route içindeki student referanslarını da güncelle
+          if(nr.students) nr.students = nr.students.map(st => {
+            if(typeof st === 'object' && st !== null){
+              return Object.assign({}, st, {id: st.id + ID_OFFSET, _origId: st.id, _schIdx: schIdx});
+            }
+            return st + ID_OFFSET; // ID sayısalsa
+          });
+          routes.push(nr);
+        });
+        if(d.nSid && d.nSid + ID_OFFSET > nSid) nSid = d.nSid + ID_OFFSET;
       }
       const rawPay = localStorage.getItem('konseltur_pay_v2_' + sch.key);
       if(rawPay){
         const dp = JSON.parse(rawPay);
-        Object.assign(payments, dp);
+        // Payment key'lerini de offset ile kaydet
+        const ID_OFFSET = schIdx * 100000;
+        Object.entries(dp).forEach(([origId, val]) => {
+          payments[parseInt(origId) + ID_OFFSET] = val;
+        });
       }
-    } catch(e){}
+    } catch(e){ console.error('_loadAllSchoolsForUcret hata:', e); }
   });
 }
 
 // Tüm öğrenci verilerini okullara göre geri kaydet
 function _saveAllSchoolsFromUcret(){
-  // Payments - her okula kendi öğrencilerinin payment'larını kaydet
+  // ID_OFFSET sistemi: global ID - offset = orijinal ID
   SCHOOLS.forEach((sch, schIdx) => {
-    const schStudents = students.filter(s => s.school === schIdx);
+    const ID_OFFSET = schIdx * 100000;
+    const schStudents = students.filter(s => s._schIdx === schIdx || s.school === schIdx);
+    // Payments: global ID → orijinal ID ile kaydet
     const schPayments = {};
-    schStudents.forEach(s => { if(payments[s.id]) schPayments[s.id] = payments[s.id]; });
+    schStudents.forEach(s => {
+      const globalId = s.id;
+      const origId = s._origId !== undefined ? s._origId : (globalId - ID_OFFSET);
+      if(payments[globalId]) schPayments[origId] = payments[globalId];
+    });
     try{ localStorage.setItem('konseltur_pay_v2_' + sch.key, JSON.stringify(schPayments)); } catch(e){}
-    // Öğrenci verisini de kaydet (kayitAy için)
+    // Öğrenci verisini de kaydet (kayitAy için) — orijinal ID ile
     const rawMain = localStorage.getItem('konseltur_main_v2_' + sch.key);
     if(rawMain){
       try{
         const d = JSON.parse(rawMain);
         d.students = (d.students||[]).map(st => {
-          const updated = students.find(s => s.id === st.id);
-          return updated ? {...st, kayitAy: updated.kayitAy||st.kayitAy} : st;
+          // Orijinal ID'ye göre updated öğrenci bul
+          const origId = st.id;
+          const updated = schStudents.find(s => (s._origId === origId) || (s.id - ID_OFFSET === origId));
+          return updated ? {...st, kayitAy: updated.kayitAy || st.kayitAy} : st;
         });
         localStorage.setItem('konseltur_main_v2_' + sch.key, JSON.stringify(d));
       } catch(e){}
@@ -4695,7 +4730,7 @@ function goBack(){
   }
 
   // ÜCRET modülü hiyerarşisi
-  // ucret-ogrenci → ucret-genel → module-select → login
+  // ucret-ogrenci → ucret-genel → login (artık okul seçim ekranı yok)
   if(p === 'ucret-ogrenci'){
     _pageHistory = [];
     _gotoUNoHistory('ucret-genel');
@@ -4705,7 +4740,7 @@ function goBack(){
   if(p === 'ucret-genel'){
     _pageHistory = [];
     _updateBackBtn();
-    _showModuleSelect();
+    goToLogin();
     return;
   }
 
@@ -6978,18 +7013,16 @@ function savePayments(){
  let _tutatHata = false;
  AYLAR.forEach(a=>{
    const el = document.getElementById('pm-amt-'+a.key);
-   if(el && el.value !== ''){ const v = Number(el.value); if(v<0||v>999999){ el.style.borderColor='var(--red)'; setTimeout(()=>{el.style.borderColor='';},2000); _tutatHata=true; } }
+   if(el && el.value !== ''){ const v=Number(el.value); if(v<0||v>999999){ el.style.borderColor='var(--red)'; setTimeout(()=>{el.style.borderColor='';},2000); _tutatHata=true; } }
  });
  if(_tutatHata){ toast('Geçersiz tutar. Lütfen 1 ile 999.999 arasında bir değer girin.','error'); return; }
  if(!payments[_editingStudentId]) payments[_editingStudentId] = {};
  AYLAR.forEach(a=>{
    const chk = document.getElementById('pm-chk-'+a.key);
    const amt = document.getElementById('pm-amt-'+a.key);
-   payments[_editingStudentId][a.key] = { paid: chk?chk.checked:false, amount: amt?Number(amt.value||0):0 };
+   payments[_editingStudentId][a.key] = { paid:chk?chk.checked:false, amount:amt?Number(amt.value||0):0 };
  });
- // Tüm okulların localStorage'ına kaydet (çok okul sistemi)
  _saveAllSchoolsFromUcret();
- // Firebase'e doğru okul ile kaydet
  const _s = students.find(x=>x.id===_editingStudentId);
  const _doAfterSave = ()=>{
    closePaymentModal();
@@ -6999,17 +7032,22 @@ function savePayments(){
    flashSaveDot();
  };
  if(window._fbReady && _isOnline && _s){
-   const schKey = (SCHOOLS[_s.school]||SCHOOLS[0]).key;
+   const schIdx = _s._schIdx !== undefined ? _s._schIdx : _s.school;
+   const schKey = (SCHOOLS[schIdx]||SCHOOLS[0]).key;
+   const ID_OFFSET = schIdx * 100000;
    const schPay = {};
-   students.filter(st=>st.school===_s.school).forEach(st=>{ if(payments[st.id]) schPay[st.id]=payments[st.id]; });
-   window._fbSet(window._fbRef(window._fbDb, 'konseltur/'+schKey+'/payments'), schPay)
+   students.filter(st=>(st._schIdx===schIdx||st.school===schIdx)).forEach(st=>{
+     if(payments[st.id]){
+       const origId = st._origId !== undefined ? st._origId : (st.id - ID_OFFSET);
+       schPay[origId] = payments[st.id];
+     }
+   });
+   window._fbSet(window._fbRef(window._fbDb,'konseltur/'+schKey+'/payments'), schPay)
      .then(()=>{ _clearPendingPay(); _doAfterSave(); })
-     .catch(e=>{ console.warn('Firebase ödeme kayıt hatası:',e); _markPendingPay(); _doAfterSave(); });
- } else {
-   _markPendingPay();
-   _doAfterSave();
- }
+     .catch(e=>{ console.warn('Firebase ödeme kayıt:',e); _markPendingPay(); _doAfterSave(); });
+ } else { _markPendingPay(); _doAfterSave(); }
 }
+
 
 function closePaymentModal(){
  document.getElementById('payment-modal').classList.remove('open');
@@ -8781,30 +8819,33 @@ function filterUcretAddList(q){
 
 function ucretManualAdd(sid){
  if(payments[sid]) return;
- payments[sid] = {}; // boş ödeme kaydı
- // Kayıt ayını öğrenciye ekle
+ payments[sid] = {};
  const kayitAyEl = document.getElementById('ucret-add-kayit-ay');
  const kayitAy = kayitAyEl ? kayitAyEl.value : '';
  const s = students.find(x=>x.id===sid);
  if(s && kayitAy) s.kayitAy = kayitAy;
- // localStorage kaydet (tüm okullar için)
  _saveAllSchoolsFromUcret();
- // Firebase - öğrencinin okuluna göre doğru key ile kaydet
+ // Firebase: offset'siz orijinal ID ile kaydet
  if(window._fbReady && _isOnline && s){
-   const schKey = (SCHOOLS[s.school]||SCHOOLS[0]).key;
+   const schIdx = s._schIdx !== undefined ? s._schIdx : s.school;
+   const schKey = (SCHOOLS[schIdx]||SCHOOLS[0]).key;
+   const ID_OFFSET = schIdx * 100000;
    const schPay2 = {};
-   students.filter(st=>st.school===s.school).forEach(st=>{if(payments[st.id]) schPay2[st.id]=payments[st.id];});
-   const path2 = 'konseltur/' + schKey + '/payments';
-   window._fbSet(window._fbRef(window._fbDb, path2), schPay2)
+   students.filter(st=>(st._schIdx===schIdx||st.school===schIdx)).forEach(st=>{
+     if(payments[st.id]){
+       const origId = st._origId !== undefined ? st._origId : (st.id - ID_OFFSET);
+       schPay2[origId] = payments[st.id];
+     }
+   });
+   window._fbSet(window._fbRef(window._fbDb,'konseltur/'+schKey+'/payments'), schPay2)
      .then(()=>{ _clearPendingPay(); flashSaveDot(); })
-     .catch(e=>{ _markPendingPay(); console.warn('ucretManualAdd Firebase hatası:',e); });
- } else {
-   _markPendingPay();
- }
+     .catch(e=>{ _markPendingPay(); console.warn('ucretManualAdd Firebase:',e); });
+ } else { _markPendingPay(); }
  filterUcretAddList('');
  renderUcretGenel(); renderUcretOgrenci();
  toast('✅ ' + (s?s.name:'Öğrenci') + ' ücret listesine eklendi');
 }
+
 
 function ucretManualRemove(sid){
  const s = students.find(x=>x.id===sid);
