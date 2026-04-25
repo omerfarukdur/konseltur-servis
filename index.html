@@ -3922,7 +3922,7 @@ function renderUcretSoforList(){
   wrap.innerHTML = kadroSoforler.map(drv => {
     // Bu şoförün rotaları
     const drvRoutes = routes.filter(r => r.driverId === drv.id);
-    const studentIds = new Set(drvRoutes.flatMap(r => r.students || []));
+    const studentIds = new Set(drvRoutes.flatMap(r => (r.students || []).map(st => st.id ?? st)));
     const payStudents = [...studentIds].filter(id => payments[id] !== undefined);
     const total = payStudents.length;
     // Ödemeler özeti
@@ -5414,7 +5414,7 @@ function twoOptImprove(route, sch, startPt, maxIter){
  if(n < 4) return route.slice();
  const r = route.slice();
  let imp = true, it = 0;
- const _2optMax = maxIter || (n > 20 ? 60 : n > 14 ? 120 : 200);
+ const _2optMax = maxIter || (n > 20 ? 30 : n > 14 ? 60 : 120);
  while(imp && it++ < _2optMax){
  imp = false;
  for(let i=0; i<n-1; i++){
@@ -5436,7 +5436,7 @@ function orOptImprove(route, sch, startPt){
  if(route.length < 4) return route.slice();
  let r = route.slice();
  let imp = true, it = 0;
- const _orMaxIter = route.length > 20 ? 40 : route.length > 14 ? 80 : 150;
+ const _orMaxIter = route.length > 20 ? 20 : route.length > 14 ? 40 : 80;
  while(imp && it++ < _orMaxIter){
  imp = false;
  // Segment boyutu 1 ve 2
@@ -5468,7 +5468,7 @@ function orOptReversed(route, sch, startPt){
  if(route.length < 5) return route.slice();
  let r = route.slice();
  let imp=true, it=0;
- const _revMaxIter = route.length > 20 ? 20 : route.length > 14 ? 40 : 80;
+ const _revMaxIter = route.length > 20 ? 10 : route.length > 14 ? 20 : 40;
  while(imp && it++<_revMaxIter){
  imp=false;
  for(let i=0; i<r.length-2; i++){
@@ -5493,7 +5493,7 @@ function threeOptImprove(route, sch, startPt){
  if(route.length < 6) return route.slice();
  let r = route.slice();
  let bestLen = routeLength(r, sch, startPt);
- const maxIter = r.length > 18 ? 15 : r.length > 12 ? 25 : 40;
+ const maxIter = r.length > 18 ? 5 : r.length > 12 ? 10 : 20;
  let improved = true, it = 0;
  while(improved && it++ < maxIter){
  improved = false;
@@ -5539,7 +5539,7 @@ function simulatedAnnealingTSP(route, sch, startPt){
  var T = curLen * 0.3; // başlangıç sıcaklığı
  var coolingRate = 0.97;
  var minT = 0.001;
- var maxSteps = Math.min(route.length * route.length * 3, 2000);
+ var maxSteps = route.length > 15 ? Math.min(route.length * 20, 400) : Math.min(route.length * route.length * 2, 800);
  var step = 0;
  
  while(T >minT && step++ < maxSteps){
@@ -5613,8 +5613,8 @@ function tsp(stops, sch, startPt){
  return route;
  })();
 
- // Başlangıç 2: Farthest insertion
- const fiRoute = farthestInsertionInit(stops, sch, startPt);
+ // Başlangıç 2: Farthest insertion (sadece küçük rotada)
+ const fiRoute = stops.length <= 15 ? farthestInsertionInit(stops, sch, startPt) : greedyRoute;
 
  // Başlangıç 3: Okula en uzaktan en yakına sırala
  const sortedRoute = [...stops].sort((a,b)=>
@@ -5623,15 +5623,18 @@ function tsp(stops, sch, startPt){
 
  // Her başlangıç için 2-opt + or-opt uygula, en iyiyi seç
  // Büyük rotada (>20 kişi) sadece 2 başlangıç — performans/kalite dengesi
- const _starts = stops.length > 20 ? [greedyRoute, fiRoute] : [greedyRoute, fiRoute, sortedRoute];
+ const n = stops.length;
+ // Büyük rotada (>15): sadece greedy + 2-opt + SA (3-opt yok → 27x hız)
+ // Küçük rotada (≤15): tüm optimizasyon
+ const _starts = n > 15 ? [greedyRoute] : n > 8 ? [greedyRoute, fiRoute] : [greedyRoute, fiRoute, sortedRoute];
  for(const init of _starts){
- let r = twoOptImprove(init, sch, startPt);
- r = orOptImprove(r, sch, startPt);
- r = orOptReversed(r, sch, startPt);
- r = threeOptImprove(r, sch, startPt);
- r = simulatedAnnealingTSP(r, sch, startPt);
- r = twoOptImprove(r, sch, startPt, 60); // final polish
- const len = routeLength(r, sch, startPt);
+   let r = twoOptImprove(init, sch, startPt);
+   r = orOptImprove(r, sch, startPt);
+   r = orOptReversed(r, sch, startPt);
+   if(n <= 15) r = threeOptImprove(r, sch, startPt);
+   r = simulatedAnnealingTSP(r, sch, startPt);
+   r = twoOptImprove(r, sch, startPt, 40);
+   const len = routeLength(r, sch, startPt);
  if(len < bestLen){ bestLen=len; best=r; }
  }
  return best;
@@ -6768,11 +6771,12 @@ function renderUcretOgrenci(){
    if(!drvId){ wrap.innerHTML=''; return; }
 
    // Bu şoförün öğrencilerini bul - route üzerinden
+   // r.students = student nesneleri [{id,...}], ID'leri çıkar
    const driverRoutes = routes.filter(r => r.driverId === drvId);
-   const routeStudentIds = new Set(driverRoutes.flatMap(r => r.students || []));
+   const routeStudentIds = new Set(driverRoutes.flatMap(r => (r.students || []).map(st => st.id ?? st)));
 
-   // payments kaydı olan ve bu şoföre ait öğrenciler
-   let list = students.filter(s => payments[s.id] !== undefined && routeStudentIds.has(s.id));
+   // payments kaydı OLMASA DA bu şoföre ait öğrencileri göster
+   let list = students.filter(s => routeStudentIds.has(s.id));
 
    // Filtreler
    if(uFilter === 'unpaid') list = list.filter(s => calcStudentTotals(s.id).paidMonths < getAktifAylar(s).length);
