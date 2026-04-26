@@ -2348,7 +2348,7 @@ function _addManagedListener(target, event, handler, options) {
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Şoförlerden Personel Aktar
       </button>
-      <button class="btn btn-sm" style="background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#60a5fa;" onclick="openCariAddModal()">
+      <button id="btn-cari-yeni" class="btn btn-sm" style="background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.3);color:#60a5fa;" onclick="openCariAddModal()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Yeni Cari
       </button>
@@ -6953,16 +6953,22 @@ function openPaymentModal(sid){
    const a=AYLAR.find(x=>x.key===key)||{key,label:key};
    const mp=p[a.key]||{paid:false,amount:''};
    const isAktif = _aktifAylar.some(ay=>ay.key===key);
-   return`<div class="month-cell ${mp.paid?'paid':''}" id="mc-${a.key}" style="${!isAktif?'opacity:.35;pointer-events:none;':''}" title="${!isAktif?'Bu ay kayıt öncesi - pasif':''}">
- <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+   const _odeme = mp.odeme||(mp.paid?'nakit':'');
+   return`<div class="month-cell ${_odeme?'paid':''}" id="mc-${a.key}" data-odeme="${_odeme}" style="${!isAktif?'opacity:.35;pointer-events:none;':''}" title="${!isAktif?'Bu ay kayıt öncesi - pasif':''}">
+ <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
  <span style="font-weight:700;font-size:13px;">${a.label}</span>
- <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;">
- <input type="checkbox" id="pm-chk-${a.key}" ${mp.paid?'checked':''} onchange="onChkChange('${a.key}')">
- <span id="pm-lbl-${a.key}" style="color:${mp.paid?'var(--green)':'var(--muted2)'};font-weight:600;">${mp.paid?'Ödendi':'Bekliyor'}</span>
- </label>
+ <span id="pm-lbl-${a.key}" style="font-size:10px;font-weight:700;color:${_odeme==='eft'?'#60a5fa':_odeme==='nakit'?'var(--green)':'var(--muted2)'};">${_odeme==='eft'?'EFT':_odeme==='nakit'?'NAKİT':'Bekliyor'}</span>
  </div>
  <input type="number" id="pm-amt-${a.key}" value="${mp.amount||''}" placeholder="Tutar ₺" min="0" step="1" max="999999"
- oninput="updatePmSummary()" style="${mp.paid?'':'opacity:.5'}">
+ oninput="updatePmSummary()" style="margin-bottom:6px;${_odeme?'':'opacity:.6'}">
+ <div style="display:flex;gap:4px;">
+   <button onclick="setOdeme('${a.key}','eft')" id="pm-eft-${a.key}"
+     style="flex:1;padding:4px 6px;border-radius:6px;border:1px solid ${_odeme==='eft'?'rgba(96,165,250,.6)':'rgba(255,255,255,.08)'};background:${_odeme==='eft'?'rgba(59,130,246,.2)':'transparent'};color:${_odeme==='eft'?'#60a5fa':'rgba(255,255,255,.35)'};font-size:10px;font-weight:700;cursor:pointer;transition:.15s;">EFT</button>
+   <button onclick="setOdeme('${a.key}','nakit')" id="pm-nakit-${a.key}"
+     style="flex:1;padding:4px 6px;border-radius:6px;border:1px solid ${_odeme==='nakit'?'rgba(52,211,153,.6)':'rgba(255,255,255,.08)'};background:${_odeme==='nakit'?'rgba(52,211,153,.15)':'transparent'};color:${_odeme==='nakit'?'var(--green)':'rgba(255,255,255,.35)'};font-size:10px;font-weight:700;cursor:pointer;transition:.15s;">NAKİT</button>
+   <button onclick="setOdeme('${a.key}','')" id="pm-reset-${a.key}"
+     style="padding:4px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.06);background:transparent;color:rgba(255,255,255,.2);font-size:10px;cursor:pointer;transition:.15s;" title="Sıfırla">✕</button>
+ </div>
  </div>`;
   }).join('');
  }
@@ -6977,6 +6983,38 @@ function openPaymentModal(sid){
  if(legacyEl) legacyEl.innerHTML='';
  updatePmSummary();
  document.getElementById('payment-modal').classList.add('open');
+}
+
+
+function setOdeme(key, tip){
+ // tip: 'eft' | 'nakit' | '' (sıfırla)
+ const mc = document.getElementById('mc-'+key);
+ const lbl = document.getElementById('pm-lbl-'+key);
+ const eftBtn = document.getElementById('pm-eft-'+key);
+ const nakitBtn = document.getElementById('pm-nakit-'+key);
+ const amt = document.getElementById('pm-amt-'+key);
+ if(!mc) return;
+
+ // Aktif durumu güncelle
+ mc.classList.toggle('paid', tip !== '');
+ if(lbl){
+   lbl.textContent = tip==='eft'?'EFT':tip==='nakit'?'NAKİT':'Bekliyor';
+   lbl.style.color = tip==='eft'?'#60a5fa':tip==='nakit'?'var(--green)':'var(--muted2)';
+ }
+ if(eftBtn){
+   eftBtn.style.borderColor = tip==='eft'?'rgba(96,165,250,.6)':'rgba(255,255,255,.08)';
+   eftBtn.style.background  = tip==='eft'?'rgba(59,130,246,.2)':'transparent';
+   eftBtn.style.color       = tip==='eft'?'#60a5fa':'rgba(255,255,255,.35)';
+ }
+ if(nakitBtn){
+   nakitBtn.style.borderColor = tip==='nakit'?'rgba(52,211,153,.6)':'rgba(255,255,255,.08)';
+   nakitBtn.style.background  = tip==='nakit'?'rgba(52,211,153,.15)':'transparent';
+   nakitBtn.style.color       = tip==='nakit'?'var(--green)':'rgba(255,255,255,.35)';
+ }
+ if(amt) amt.style.opacity = tip?'1':'.6';
+ // Veriyi geçici olarak sakla (data attribute)
+ mc.dataset.odeme = tip;
+ updatePmSummary();
 }
 
 function onChkChange(key){
@@ -6997,9 +7035,10 @@ function updatePmSummary(){
  const aktifAylar = s ? getAktifAylar(s) : AYLAR;
  let total=0, paidCount=0;
  AYLAR.forEach(a=>{
-  const chk=document.getElementById('pm-chk-'+a.key);
-  const amt=document.getElementById('pm-amt-'+a.key);
-  if(chk&&chk.checked){ paidCount++; total+=Number(amt?.value||0); }
+  const mc  = document.getElementById('mc-'+a.key);
+  const amt = document.getElementById('pm-amt-'+a.key);
+  const odeme = mc ? (mc.dataset.odeme||'') : '';
+  if(odeme){ paidCount++; total+=Number(amt?.value||0); }
  });
  total=Math.round(total*100)/100;
  _setText('pm-total', '₺'+total.toLocaleString('tr-TR'));
@@ -8787,35 +8826,27 @@ function openUcretAddModal(){
 function filterUcretAddList(q){
  const lo = q.toLowerCase();
  const el = document.getElementById('ucret-add-list');
- // Aktif şoförün rotasındaki öğrencilerden payments kaydı olmayanlar
- const drvId = window._ucretActiveSoforId;
- let candidatePool = students;
- if(drvId){
-   const drvRoutes = routes.filter(r => r.driverId === drvId);
-   const drvStudentIds = new Set(drvRoutes.flatMap(r => (r.students||[]).map(st=>st.id??st)));
-   candidatePool = students.filter(s => drvStudentIds.has(s.id));
- }
- const candidates = candidatePool.filter(s=>
+ // Tüm sistemdeki öğrencilerden payments kaydı olmayanları göster
+ // (şoföre rotada olmayan öğrenciler de eklenebilsin)
+ const candidates = students.filter(s=>
    !payments[s.id] &&
    (!lo || s.name.toLowerCase().includes(lo) || (s.mah||'').toLowerCase().includes(lo) || (s.ilce||'').toLowerCase().includes(lo))
  );
  if(!candidates.length){
- const _noMsg = window._ucretActiveSoforId
-   ? 'Bu şoförün tüm rotadaki öğrencileri ücret listesine eklenmiş.'
-   : 'Tüm öğrenciler ücret listesinde ya da eşleşme yok.';
- el.innerHTML='<div style="font-size:13px;color:var(--muted2);padding:12px;">'+_noMsg+'</div>';
- return;
+   el.innerHTML='<div style="font-size:13px;color:var(--muted2);padding:12px;">Eklenebilecek öğrenci bulunamadı.</div>';
+   return;
  }
  el.innerHTML = candidates.map(s=>`
  <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:8px;border:1px solid var(--border);margin-bottom:6px;">
  <div style="flex:1;min-width:0;">
  <div style="font-size:13px;font-weight:600;color:var(--text);">${s.name}</div>
- <div style="font-size:11px;color:var(--muted2);">${SCHOOLS[s.school]?.short||''} · ${s.ilce||''} / ${s.mah||''}</div>
+ <div style="font-size:11px;color:var(--muted2);">${(SCHOOLS[s.school]||SCHOOLS[0]).short||''} · ${s.ilce||''} / ${s.mah||''}</div>
  </div>
  <button onclick="ucretManualAdd(${s.id})"
  style="flex-shrink:0;padding:5px 12px;border-radius:7px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.1);color:var(--green);font-size:12px;font-weight:600;cursor:pointer;">Ekle</button>
  </div>`).join('');
 }
+
 
 function ucretManualAdd(sid){
  if(payments[sid]) return;
@@ -10611,9 +10642,23 @@ function renderCariListe(){
   const countEl = document.getElementById('cari-list-count');
   if(!wrap) return;
 
-  // Personel veya Taşeron filtresi: Aktar butonu göster
+  // Kasa modu: başlık ve butonları güncelle
+  const _isKasaMod = window._kasaModOnly === true;
+  const _pageH2 = document.querySelector('#page-cari-liste h2');
+  const _pageSub = document.querySelector('#page-cari-liste h2 + div');
+  const _yeniBtn = document.getElementById('btn-cari-yeni');
+  if(_isKasaMod){
+    if(_pageH2) _pageH2.textContent = '💰 Kasa Cari';
+    if(_pageSub) _pageSub.textContent = 'Kasa giriş / çıkış hareketleri';
+    if(_yeniBtn){ _yeniBtn.textContent = '+ Kasa Hareketi'; }
+  } else {
+    if(_pageH2) _pageH2.textContent = 'Cari Hesaplar';
+    if(_pageSub) _pageSub.textContent = 'Alınan / Verilen takibi ve cari hesap yönetimi';
+    if(_yeniBtn){ _yeniBtn.textContent = '+ Yeni Cari'; }
+  }
+  // Kasa modunda aktar ve taşeron paneli gizle
   const _aktarBtn = document.getElementById('cari-sofor-aktar-btn');
-  if(_aktarBtn) _aktarBtn.style.display = (_cariFilter==='personel'||_cariFilter==='taseron') ? 'inline-flex' : 'none';
+  if(_aktarBtn) _aktarBtn.style.display = (!_isKasaMod && (_cariFilter==='personel'||_cariFilter==='taseron')) ? 'inline-flex' : 'none';
   // Taşeron filtresi: Aylık hesaplama paneli göster
   const _taseronPanel = document.getElementById('taseron-gun-panel');
   const _isTaseronFilter = (_cariFilter==='taseron');
@@ -10844,13 +10889,14 @@ function renderCariDetay(id){
 
 // Modal: Cari Ekle
 function openCariAddModal(){
-  document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> Yeni Cari Hesap';
+  document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> ' + (window._kasaModOnly ? 'Yeni Kasa Hareketi' : 'Yeni Cari Hesap');
   document.getElementById('cari-edit-id').value='';
   ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>document.getElementById(x).value='');
-  document.getElementById('cm-tur').value='personel';
+  document.getElementById('cm-tur').value = window._kasaModOnly ? 'kasa' : 'personel';
+  const _defaultTur = window._kasaModOnly ? 'kasa' : 'personel';
   const _rows2 = document.getElementById('cm-okul-rows');
   if(_rows2) _rows2.innerHTML = '';
-  _toggleCariYovmiye('personel');
+  _toggleCariYovmiye(_defaultTur);
   document.getElementById('cari-add-modal').classList.add('open');
 }
 function openCariEditModal(id){
