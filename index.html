@@ -3802,36 +3802,57 @@ function enterSchool(key){
 
 // === KASA CARİ ===
 function enterKasaDirect(){
-  if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
+  if(typeof _pwVerified!=='undefined'&&!_pwVerified){
+    document.getElementById('password-screen').style.display='flex'; return;
+  }
   window._cariDirectEntry = true;
   window._kasaModOnly = true;
+
+  // Indicator
   _setText('school-indicator','💰 Kasa Cari');
   const _si = document.getElementById('school-indicator');
   if(_si){ _si.style.color='#f59e0b'; _si.style.background='rgba(245,158,11,.12)'; }
+
+  // Veri yükle
+  loadCariData();
 
   // Ekranı hazırla
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('module-select-screen').style.display = 'none';
   document.getElementById('app-wrapper').style.display = 'flex';
+
+  // Cari tab göster, diğerleri gizle
   ['tabs-rota','tabs-ucret'].forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display='none'; });
   const tCari = document.getElementById('tabs-cari');
   if(tCari) tCari.style.display='flex';
-  switchApp('cari');
 
-  // Cari verisini yükle, sonra KASA kaydını bul/oluştur
-  loadCariData();
+  // Kasa modunda "Cari Liste" tab butonunu GİZLE
+  const ctabListe = document.getElementById('ctab-liste');
+  if(ctabListe) ctabListe.style.display = 'none';
 
-  // loadCariData async olabilir - setTimeout ile bekle
-  setTimeout(()=>{
-    // tur:'kasa' olan kayıtları bul
-    const kasaEntries = Object.entries(_cariData||{}).filter(([k,v])=>v.tur==='kasa');
+  // ÖNEMLİ: Cari liste'yi asla gösterme - direkt detay sayfasına geç
+  // Tüm sayfaları gizle, sadece cari-detay göster
+  document.querySelectorAll('.page-scroll').forEach(p=>p.classList.remove('active'));
+  const detayPage = document.getElementById('page-cari-detay');
+  if(detayPage) detayPage.classList.add('active');
+  currentPage = 'cari-detay';
+  _currentPage = 'cari-detay';
 
+  // currentApp güncelle
+  currentApp = 'cari';
+
+  // Filtre barını gizle
+  const fb = document.getElementById('cari-filter-bar');
+  if(fb) fb.style.display='none';
+  window._cariFilter = 'kasa';
+
+  // KASA cari kaydını bul ve aç
+  const _openKasa = ()=>{
+    const kasaEntries = Object.entries(_cariData||{}).filter(([k,v])=>v&&v.tur==='kasa');
     if(kasaEntries.length > 0){
-      // İlk kasa kaydının detayına git
       const [kasaId] = kasaEntries[0];
-      gotoC('cari-detay');
-      renderCariDetay(kasaId);
       window._activeCariId = kasaId;
+      renderCariDetay(kasaId);
       const dtab = document.getElementById('ctab-detay');
       if(dtab) dtab.style.display='flex';
       const dtabText = document.getElementById('ctab-detay-text');
@@ -3840,21 +3861,27 @@ function enterKasaDirect(){
       // KASA kaydı yok → otomatik oluştur
       const newId = 'kasa_' + Date.now();
       _cariData[newId] = {
-        id: newId, isim: 'KASA', tur: 'kasa',
-        servis: 'Konseltur', plaka: '', tel: '', not: '',
-        hareketler: {}, ts: Date.now()
+        id:newId, isim:'KASA', tur:'kasa',
+        servis:'Konseltur', plaka:'', tel:'', not:'',
+        hareketler:{}, ts:Date.now()
       };
       _saveCariToStorage();
-      setTimeout(()=>{
-        gotoC('cari-detay');
-        renderCariDetay(newId);
-        window._activeCariId = newId;
-        const dtab = document.getElementById('ctab-detay');
-        if(dtab) dtab.style.display='flex';
-        toast('✅ Kasa hesabı oluşturuldu');
-      }, 100);
+      window._activeCariId = newId;
+      renderCariDetay(newId);
+      const dtab = document.getElementById('ctab-detay');
+      if(dtab) dtab.style.display='flex';
+      toast('✅ Kasa hesabı oluşturuldu');
     }
-  }, 300);
+  };
+
+  // loadCariData senkron (localStorage) + async (Firebase)
+  // localStorage'dan anında yüklenmiş olmalı
+  if(Object.keys(_cariData||{}).length > 0){
+    _openKasa();
+  } else {
+    // Firebase yüklenmesini bekle
+    setTimeout(_openKasa, 400);
+  }
 }
 
 
@@ -4596,8 +4623,11 @@ function enterCariDirect(){
  switchApp('cari');
  gotoC('cari-liste');
  setTimeout(()=>{
+   window._kasaModOnly = false;
    const fb = document.getElementById('cari-filter-bar');
    if(fb) fb.style.display='';
+   const _ctL = document.getElementById('ctab-liste');
+   if(_ctL) _ctL.style.display='';
    filterCari('all', document.querySelector('#cari-filter-bar .filter-chip'));
  }, 200);
 }
@@ -4646,6 +4676,10 @@ function enterModule(mod){
 function goToLogin(){
  // pendingModule sıfırla
  window._pendingModule = null;
+ window._kasaModOnly = false;
+ // Cari Liste tab'ı geri göster
+ const _ctabL = document.getElementById('ctab-liste');
+ if(_ctabL) _ctabL.style.display='';
  // Her ekranı gizle, giriş ekranını göster
  document.getElementById('login-screen').style.display = 'flex';
  document.getElementById('module-select-screen').style.display = 'none';
@@ -4950,6 +4984,8 @@ function gotoS(p){
 }
 
 function _gotoCNoHistory(p){
+ // Kasa modunda cari-liste'ye gitmeyi engelle
+ if(window._kasaModOnly && p === 'cari-liste') return;
  _currentPage = p;
  try{ localStorage.setItem('_ks_lastPage', JSON.stringify({page:p, app:currentApp, school:_activeSchoolKey})); }catch(e){}
  ALL_PAGES.forEach(n=>{ const el=document.getElementById('page-'+n); if(el) el.classList.remove('active'); });
@@ -5245,7 +5281,7 @@ function addDriver(){
  document.getElementById('d-ilce').value='';
  document.getElementById('d-mahalle').innerHTML='<option>-- Önce İlçe --</option>';
  document.getElementById('d-sokak').innerHTML='<option>-- Önce Mahalle --</option>';
- renderDrivers(); updateDash(); updateRPanel(); saveData(); toast(' '+name+' eklendi');
+ renderDrivers(); updateDash(); updateRPanel(); saveData(); toast('✅ '+name+' eklendi');
 }
 
 const _DI_ADLAR=['Serkan','Emre','Taner','Cengiz','Burak','Oğuz','Kemal','Fatih','Ufuk','Selim','Erkan','Hakan','Volkan','Tarık','Cenk','Alper','Berk','Onur','Mert','Ege','Erdem','Tolga','Uğur','Deniz','Sinan'];
@@ -6064,7 +6100,7 @@ function startOptimize(){
    console.error('Optimizasyon hatası:', err);
    btn.innerHTML = '🧠 Rotaları Optimize Et';
    btn.disabled = false;
-   toast(' Optimizasyon hatası: ' + (err.message||'Bilinmeyen hata'), 'error');
+   toast('❌ Optimizasyon hatası: ' + (err.message||'Bilinmeyen hata'), 'error');
   }
  }, 50));
 });
@@ -7381,7 +7417,7 @@ function parseExcelFile(file){
  const wb=XLSX.read(e.target.result,{type:'array'});
  const ws=wb.Sheets[wb.SheetNames[0]];
  const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
- if(!rows.length){toast(' Dosya boş','error');return;}
+ if(!rows.length){toast('⚠️ Dosya boş','error');return;}
  const norm=k=>(k||'').toString().trim().toLowerCase()
  .replace(/[İI]/g,'i').replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ş/g,'s').replace(/ç/g,'c').replace(/ö/g,'o').replace(/ü/g,'u').replace(/\s+/g,' ');
  const COL={'ad soyad':['ad soyad','ad','isim','ogrenci adi','adi soyadi','ad-soyad','ogrenci','adsoyad','name'],'okul':['okul','school','kurum'],'sinif':['sinif','class','sinifi','snf'],'telefon':['telefon','tel','phone','gsm','cep','veli tel','veli telefon','veli telefonu'],'ilce':['ilce','district','ilcesi'],'mahalle':['mahalle','mah','mahallesi'],'sokak':['sokak','cadde','street','sok','cad','yol'],'adres':['adres','address','tam adres','full address','adress']};
@@ -7396,7 +7432,7 @@ function parseExcelFile(file){
  var _hasAdresCol = !!col['adres'];
  if(!col['ilce'] && !_hasAdresCol)missing.push('İlçe');
  if(!col['mahalle'] && !_hasAdresCol)missing.push('Mahalle');
- if(missing.length){toast(' Eksik sütunlar: '+missing.join(', ')+'\n(veya tek \'Adres\' sütunu kullanın)','error');return;}
+ if(missing.length){toast('⚠️ Eksik sütunlar: '+missing.join(', ')+'\n(veya tek \'Adres\' sütunu kullanın)','error');return;}
  _excelRows=[];
  let skip=0;
  for(const row of rows){
@@ -7441,13 +7477,13 @@ function parseExcelFile(file){
  _excelRows.push({name,school,ilce:fixedIlce,mah:fixedMah,sok,no:'–',cls,ph,...c,_origIlce:_wasFixed?ilce:null,_origMah:_wasFixed?mah:null});
  }
  showExcelPreview(skip);
- }catch(err){toast(' Dosya okunamadı: '+err.message,'error');}
+ }catch(err){toast('❌ Dosya okunamadı: '+err.message,'error');}
  };
  reader.readAsArrayBuffer(file);
 }
 
 function showExcelPreview(skip){
- if(!_excelRows.length){toast(' Geçerli satır yok','error');return;}
+ if(!_excelRows.length){toast('⚠️ Geçerli satır yok','error');return;}
  const shown=_excelRows.slice(0,6);
  document.getElementById('excel-preview-content').innerHTML=
  `<table class="tbl" style="font-size:11px;"><thead><tr><th>Ad Soyad</th><th>İlçe</th><th>Mahalle</th><th>Sokak</th></tr></thead><tbody>`+
@@ -7466,7 +7502,7 @@ function showExcelPreview(skip){
 }
 
 function importExcel(){
- if(!_excelRows.length){toast(' Yüklenecek öğrenci bulunamadı. Excel sütun adlarını kontrol edin.','error');return;}
+ if(!_excelRows.length){toast('⚠️ Yüklenecek öğrenci bulunamadı. Excel sütun adlarını kontrol edin.','error');return;}
  try{
  var count = _excelRows.length;
  for(var i=0; i<_excelRows.length; i++){
@@ -7475,9 +7511,9 @@ function importExcel(){
  }
  _excelRows = [];
  updateAll(); saveData(); closeExcelModal();
- toast(' ' + count + ' öğrenci yüklendi');
+ toast('✅ ' + count + ' öğrenci yüklendi');
  }catch(err){
- toast(' Yükleme hatası: ' + err.message, 'error');
+ toast('❌ Yükleme hatası: ' + err.message, 'error');
  console.error('importExcel hata:', err);
  }
 }
@@ -7552,7 +7588,7 @@ function saveStudentEdit(){
  });
  document.getElementById('student-edit-modal').classList.remove('open');
  renderSTable(); updateDash(); saveData();
- toast(' Öğrenci güncellendi');
+ toast('✅ Öğrenci güncellendi');
 }
 
 function openDriverEdit(id){
@@ -7598,7 +7634,7 @@ function saveDriverEdit(){
  }
  document.getElementById('driver-edit-modal').classList.remove('open');
  renderDrivers(); saveData();
- toast(' Şoför güncellendi');
+ toast('ℹ️ Şoför güncellendi');
 }
 
 
@@ -7763,7 +7799,7 @@ function exportOgrenciExcel(){
 
  const date = new Date().toLocaleDateString('tr-TR').replace(/\./g,'-');
  XLSX.writeFile(wb, `konseltur-ogrenciler-${date}.xlsx`);
- toast(' Öğrenci listesi Excel\'e aktarıldı');
+ toast('ℹ️ Öğrenci listesi Excel\'e aktarıldı');
 }
 
 
@@ -7895,7 +7931,7 @@ function exportUcretExcel(){
  const _expSch = SCHOOLS.find(s=>s.key===_activeSchoolKey);
  const schoolShort = (_expSch && (_expSch.short||_expSch.name)) ? (_expSch.short||_expSch.name).replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ]/g,'_').replace(/_+/g,'_').replace(/^_|_$/g,'') : _activeSchoolKey || 'Okul';
  XLSX.writeFile(wb, `konseltur-ucretler-${schoolShort}-${date}.xlsx`);
- toast(' Ücret tablosu Excel\'e aktarıldı');
+ toast('ℹ️ Ücret tablosu Excel\'e aktarıldı');
 }
 
 
@@ -7939,7 +7975,7 @@ function exportData(){
  const info = document.getElementById('backup-info');
  if(info) info.textContent = ' Yedek alındı: ' + now.toLocaleString('tr-TR')
  + ' (' + totalStudents + ' öğrenci, ' + totalDrivers + ' sürücü)';
- toast(' Veri yedeklendi','success');
+ toast('ℹ️ Veri yedeklendi','success');
 }
 
 function importData(event){
@@ -7948,11 +7984,11 @@ function importData(event){
 
  // Dosya boyutu ve tip kontrolü
  if(file.size > 50 * 1024 * 1024){
- toast(' Dosya çok büyük (' + Math.round(file.size/1024/1024) + ' MB). Max 50MB.', 'error');
+ toast('ℹ️ Dosya çok büyük (' + Math.round(file.size/1024/1024) + ' MB). Max 50MB.', 'error');
  event.target.value = ''; return;
  }
  if(!file.name.endsWith('.json')){
- toast(' Yalnızca .json uzantılı yedek dosyaları yüklenebilir.', 'error');
+ toast('ℹ️ Yalnızca .json uzantılı yedek dosyaları yüklenebilir.', 'error');
  event.target.value = ''; return;
  }
 
@@ -7963,7 +7999,7 @@ function importData(event){
 
  // v1 ve v2 her ikisi de kabul
  if(!payload || (payload.version !== 'konseltur_backup_v1' && payload.version !== 'konseltur_backup_v2')){
- toast(' Geçersiz yedek dosyası (version: ' + (payload?.version) + ')','error');
+ toast('ℹ️ Geçersiz yedek dosyası (version: ' + (payload?.version) + ')','error');
  event.target.value = ''; return;
  }
 
@@ -7983,7 +8019,7 @@ function importData(event){
  if(d.main) localStorage.setItem('konseltur_main_v2_' + key, JSON.stringify(d.main));
  if(d.pay) localStorage.setItem('konseltur_pay_v2_' + key, JSON.stringify(d.pay));
  } catch(lsErr){
- toast(' Depolama hatası (' + key + '): ' + lsErr.message
+ toast('ℹ️ Depolama hatası (' + key + '): ' + lsErr.message
  + (lsErr.name === 'QuotaExceededError' ? ' — Tarayıcı depolama dolu!' : ''), 'error');
  return;
  }
@@ -8029,7 +8065,7 @@ function importData(event){
 
  const info = document.getElementById('backup-info');
  if(info) info.textContent = ' Yedek yüklendi · ' + exportDate;
- toast(' Veri başarıyla yüklendi','success');
+ toast('ℹ️ Veri başarıyla yüklendi','success');
  } // end _doAppRestore
 
  // Checksum doğrulama — önce uyarı göster, sonra ana onay modal
@@ -8059,12 +8095,12 @@ function importData(event){
  _askMainConfirm();
 
  } catch(err) {
- toast(' Dosya okunamadı: ' + err.message, 'error');
+ toast('❌ Dosya okunamadı: ' + err.message, 'error');
  }
  event.target.value = '';
  };
 
- reader.onerror = () => { toast(' Dosya okunamadı','error'); event.target.value = ''; };
+ reader.onerror = () => { toast('❌ Dosya okunamadı','error'); event.target.value = ''; };
  reader.readAsText(file);
 }
 
@@ -8677,7 +8713,7 @@ function executeMoveStudent(toRouteId){
  
  renderRoutes(); updateDash(); saveData();
  if(typeof renderMapLayers==='function') renderMapLayers();
- toast(' Öğrenci taşındı — rotalar güncellendi');
+ toast('ℹ️ Öğrenci taşındı — rotalar güncellendi');
 }
 
 function closeMoveModal(){
@@ -9127,7 +9163,7 @@ function ucretManualRemove(sid){
        _markPendingPay();
      }
      renderUcretGenel(); renderUcretOgrenci();
-     toast(' Öğrenci ücret listesinden kaldırıldı');
+     toast('ℹ️ Öğrenci ücret listesinden kaldırıldı');
    }
  );
 }
