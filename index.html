@@ -1902,7 +1902,21 @@ function _addManagedListener(target, event, handler, options) {
         </div>
       </button>
 
-      <!-- SİSTEM -->
+      <!-- İş Başvuruları -->
+      <button onclick="openBasvuruModal()"
+        style="width:100%;background:#13171f;border:1px solid rgba(251,146,60,.15);border-radius:16px;padding:18px 20px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;margin-bottom:24px;"
+        onmouseover="this.style.borderColor='rgba(251,146,60,.4)';this.style.background='#171c26';this.style.transform='translateY(-1px)'"
+        onmouseout="this.style.borderColor='rgba(251,146,60,.15)';this.style.background='#13171f';this.style.transform='none'">
+        <div style="position:absolute;top:14px;right:16px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.2);border-radius:20px;padding:3px 10px;font-size:9px;font-weight:800;letter-spacing:1.5px;color:#fb923c;font-family:Outfit,sans-serif;">YENİ</div>
+        <div style="width:38px;height:38px;flex-shrink:0;border-radius:11px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.2);display:flex;align-items:center;justify-content:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:#fff;margin-bottom:2px;">İş Başvuruları</div>
+          <div style="font-size:10px;font-weight:700;color:#fb923c;margin-bottom:3px;font-family:Outfit,sans-serif;">Şoför Adayları</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:Outfit,sans-serif;" id="login-basvuru-count">Başvuruları görüntüle ve yönet</div>
+        </div>
+      </button>
       <div style="border-top:1px solid rgba(255,255,255,.05);padding-top:20px;">
         <div style="font-family:Outfit,sans-serif;font-size:10px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:14px;">SİSTEM</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
@@ -2068,6 +2082,8 @@ setInterval(updateLoginClock, 30000);
     <div style="padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.05);">
       <div style="display:flex;gap:8px;align-items:flex-start;">
         <div style="flex:1;">
+          <div id="notepad-input-wrap" style="border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:8px;transition:border-color .2s;">
+          <input id="notepad-tag" type="hidden" value="">
           <input id="notepad-title" placeholder="Not başlığı..." maxlength="80"
             style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#fff;font-size:13px;font-weight:600;padding:9px 12px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;margin-bottom:6px;"
             onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'"
@@ -2075,6 +2091,7 @@ setInterval(updateLoginClock, 30000);
           <textarea id="notepad-content" placeholder="Not içeriği..." maxlength="2000"
             style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#fff;font-size:12px;padding:9px 12px;font-family:Outfit,sans-serif;outline:none;resize:none;height:72px;box-sizing:border-box;"
             onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'"></textarea>
+          </div><!-- /notepad-input-wrap -->
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;padding-top:2px;">
           <button onclick="addNote()" style="padding:9px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,rgba(139,92,246,.9),rgba(109,40,217,.9));color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap;">Ekle</button>
@@ -2799,7 +2816,23 @@ setInterval(updateLoginClock, 30000);
   <div id="cdet-profil" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;"></div>
 
   <!-- Bakiye Özet -->
-  <div id="cdet-bakiye-ozet" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;"></div>
+  <!-- Bakiye Özet — gizli kutucuk, tıklayınca açılır -->
+  <div id="cdet-bakiye-toggle-wrap" style="margin-bottom:20px;">
+    <button onclick="_toggleBakiyeOzet()" id="cdet-bakiye-toggle-btn"
+      style="width:100%;padding:12px 18px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:'Outfit',sans-serif;transition:all .2s;"
+      onmouseover="this.style.borderColor='rgba(255,255,255,.15)';this.style.background='rgba(255,255,255,.05)'"
+      onmouseout="this.style.borderColor='rgba(255,255,255,.08)';this.style.background='rgba(255,255,255,.03)'">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:32px;height:32px;border-radius:9px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.7);">Bakiye Özeti</span>
+        <span id="cdet-bakiye-mini" style="font-size:11px;color:var(--muted);font-weight:500;">— görüntülemek için tıklayın</span>
+      </div>
+      <svg id="cdet-bakiye-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round" style="transition:transform .25s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div id="cdet-bakiye-ozet" style="display:none;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;"></div>
+  </div>
 
   <!-- Hareket Geçmişi -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -11356,7 +11389,7 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="field" id="cm-tur-field"><label>Cari Türü</label>
         <select id="cm-tur" onchange="_toggleCariYovmiye(this.value)">
           <option value="kasa">Kasa</option>
-          <option value="basvuru">Başvuru</option>
+          <!-- başvuru tipi kaldırıldı - İş Başvuruları modali kullanılıyor -->
           <option value="firma">Firma / Okul</option>
           <option value="personel">Personel</option>
           <option value="taseron">Taşeron</option>
@@ -12048,6 +12081,23 @@ function deleteCariHareket(cariId,hareketId){
   okBtn.onclick=function(){ delete _cariData[cariId].hareketler[hareketId]; _saveCariToStorage(); cm.style.display='none'; showToast('Hareket silindi','success'); renderCariDetay(cariId); };
   cm.style.display='flex';
 }
+
+function _toggleBakiyeOzet(){
+  const ozet = document.getElementById('cdet-bakiye-ozet');
+  const chevron = document.getElementById('cdet-bakiye-chevron');
+  const mini = document.getElementById('cdet-bakiye-mini');
+  if(!ozet) return;
+  const isOpen = ozet.style.display !== 'none';
+  if(isOpen){
+    ozet.style.display = 'none';
+    if(chevron) chevron.style.transform = '';
+    if(mini) mini.textContent = '— görüntülemek için tıklayın';
+  } else {
+    ozet.style.display = 'grid';
+    if(chevron) chevron.style.transform = 'rotate(180deg)';
+    if(mini) mini.textContent = '';
+  }
+}
 function deleteCari(id){
   if(!_cariData[id]) return;
   const cm=document.getElementById('confirm-modal');
@@ -12676,6 +12726,189 @@ function exportCariExcel(){
     </div>
   </div>
 </div>
+
+
+<!-- ══════════════════════════════════════════
+     İŞ BAŞVURULARI MODALI
+     ══════════════════════════════════════════ -->
+<div id="basvuru-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);align-items:center;justify-content:center;" onclick="if(event.target===this)closeBasvuruModal()">
+  <div style="background:#0d1018;border:1px solid rgba(251,146,60,.15);border-radius:22px;width:900px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 100px rgba(0,0,0,.85);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.2);display:flex;align-items:center;justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:900;color:#fff;">İş Başvuruları</div>
+          <div id="bsv-modal-count" style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px;"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button onclick="openYeniBasvuruForm()" style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;border:1px solid rgba(251,146,60,.35);background:rgba(251,146,60,.1);color:#fb923c;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(251,146,60,.18)'" onmouseout="this.style.background='rgba(251,146,60,.1)'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Yeni Başvuru
+        </button>
+        <button onclick="closeBasvuruModal()" style="width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='rgba(255,255,255,.5)'">×</button>
+      </div>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <div style="flex:1;overflow-y:auto;padding:16px 20px;border-right:1px solid rgba(255,255,255,.05);">
+        <div id="bsv-liste" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div id="bsv-bos" style="display:none;text-align:center;padding:60px 20px;color:rgba(255,255,255,.2);">
+          <div style="font-size:32px;margin-bottom:12px;">📋</div>
+          <div style="font-size:14px;font-weight:600;">Henüz başvuru yok</div>
+          <div style="font-size:12px;margin-top:6px;">Sağ taraftan yeni başvuru ekleyebilirsiniz</div>
+        </div>
+      </div>
+      <div id="bsv-form-wrap" style="width:320px;flex-shrink:0;overflow-y:auto;padding:16px 20px;background:rgba(255,255,255,.01);">
+        <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:rgba(255,255,255,.5);letter-spacing:.5px;margin-bottom:14px;" id="bsv-form-title">YENİ BAŞVURU</div>
+        <input type="hidden" id="bsv-edit-id" value="">
+        <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Ad Soyad *</label><input id="bsv-isim" maxlength="80" placeholder="Başvuran kişinin adı" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Yaş</label><input id="bsv-yas" type="number" min="18" max="70" placeholder="35" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"></div>
+          <div><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Cep No</label><input id="bsv-tel" maxlength="20" placeholder="0532..." style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"></div>
+        </div>
+        <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Başvuru Tarihi</label><input id="bsv-tarih" type="date" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"></div>
+        <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Ehliyet</label>
+          <select id="bsv-ehliyet" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;">
+            <option value="">Seçin...</option><option value="B">B</option><option value="C">C</option><option value="D">D (Otobüs)</option><option value="E">E</option><option value="B+D">B+D</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">SRC</label>
+            <select id="bsv-src" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:12px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;">
+              <option value="">—</option><option value="var">✅ Var</option><option value="yok">❌ Yok</option>
+            </select>
+          </div>
+          <div><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Psikoteknik</label>
+            <select id="bsv-psiko" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:12px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;">
+              <option value="">—</option><option value="var">✅ Var</option><option value="yok">❌ Yok</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Emeklilik</label>
+            <select id="bsv-emekli" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:12px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;">
+              <option value="">—</option><option value="evet">Emekli</option><option value="hayir">Aktif</option>
+            </select>
+          </div>
+          <div><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Tecrübe</label>
+            <select id="bsv-tecrube" onchange="document.getElementById('bsv-sure-wrap').style.display=this.value==='var'?'block':'none'" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:12px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;">
+              <option value="">—</option><option value="var">✅ Var</option><option value="yok">❌ Yok</option>
+            </select>
+          </div>
+        </div>
+        <div id="bsv-sure-wrap" style="display:none;margin-bottom:10px;"><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Kaç Yıl</label><input id="bsv-sure" type="number" min="0" max="50" placeholder="5" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"></div>
+        <div style="margin-bottom:10px;"><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Referans</label><input id="bsv-referans" maxlength="150" placeholder="Referans..." style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"></div>
+        <div style="margin-bottom:16px;"><label style="font-size:11px;color:var(--muted2);font-weight:700;display:block;margin-bottom:4px;">Not</label><textarea id="bsv-not" maxlength="300" placeholder="Ek bilgi..." style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:12px;font-family:Outfit,sans-serif;outline:none;resize:none;height:64px;box-sizing:border-box;"></textarea></div>
+        <button onclick="saveBasvuru()" style="width:100%;padding:11px;border-radius:11px;border:none;background:linear-gradient(135deg,rgba(251,146,60,.9),rgba(234,88,12,.9));color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif;">Kaydet</button>
+        <button onclick="resetBasvuruForm()" style="width:100%;padding:9px;border-radius:11px;border:1px solid rgba(255,255,255,.08);background:transparent;color:rgba(255,255,255,.4);font-size:12px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;margin-top:6px;">Temizle</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function _bsvLsKey(){ return 'konseltur_basvuru_v1'; }
+function _loadBasvurular(){ try{ return JSON.parse(localStorage.getItem(_bsvLsKey())||'[]'); }catch(e){ return []; } }
+function _saveBasvurular(list){ try{ localStorage.setItem(_bsvLsKey(), JSON.stringify(list)); }catch(e){} }
+function openBasvuruModal(){ const m=document.getElementById('basvuru-modal'); if(m){ m.style.display='flex'; renderBasvuruListe(); resetBasvuruForm(); _updateLoginBasvuruCount(); } }
+function closeBasvuruModal(){ const m=document.getElementById('basvuru-modal'); if(m) m.style.display='none'; }
+function openYeniBasvuruForm(){ resetBasvuruForm(); document.getElementById('bsv-tarih').value=new Date().toISOString().split('T')[0]; setTimeout(()=>document.getElementById('bsv-isim').focus(),50); }
+function resetBasvuruForm(){
+  document.getElementById('bsv-edit-id').value='';
+  document.getElementById('bsv-form-title').textContent='YENİ BAŞVURU';
+  ['bsv-isim','bsv-yas','bsv-tel','bsv-referans','bsv-not','bsv-sure'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['bsv-ehliyet','bsv-src','bsv-psiko','bsv-emekli','bsv-tecrube'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const sw=document.getElementById('bsv-sure-wrap'); if(sw) sw.style.display='none';
+  const dt=document.getElementById('bsv-tarih'); if(dt) dt.value=new Date().toISOString().split('T')[0];
+}
+function saveBasvuru(){
+  const isim=(document.getElementById('bsv-isim').value||'').trim();
+  if(!isim){ const el=document.getElementById('bsv-isim'); el.style.borderColor='var(--red)'; setTimeout(()=>el.style.borderColor='var(--border)',1500); if(typeof showToast==='function') showToast('Ad Soyad zorunlu','error'); return; }
+  const editId=document.getElementById('bsv-edit-id').value;
+  const list=_loadBasvurular();
+  const bsv={
+    id: editId||String(Date.now()), isim,
+    yas:document.getElementById('bsv-yas').value||'',
+    tel:document.getElementById('bsv-tel').value||'',
+    tarih:document.getElementById('bsv-tarih').value||'',
+    ehliyet:document.getElementById('bsv-ehliyet').value||'',
+    src:document.getElementById('bsv-src').value||'',
+    psiko:document.getElementById('bsv-psiko').value||'',
+    emekli:document.getElementById('bsv-emekli').value||'',
+    tecrube:document.getElementById('bsv-tecrube').value||'',
+    sure:document.getElementById('bsv-sure').value||'',
+    referans:document.getElementById('bsv-referans').value||'',
+    not:document.getElementById('bsv-not').value||'',
+    ts:Date.now(),
+  };
+  if(editId){ const idx=list.findIndex(b=>b.id===editId); if(idx>=0) list[idx]=bsv; else list.unshift(bsv); }
+  else list.unshift(bsv);
+  _saveBasvurular(list); resetBasvuruForm(); renderBasvuruListe(); _updateLoginBasvuruCount();
+  if(typeof showToast==='function') showToast('\u2705 Ba\u015fvuru kaydedildi','success');
+}
+function editBasvuru(id){
+  const b=_loadBasvurular().find(x=>x.id===id); if(!b) return;
+  document.getElementById('bsv-edit-id').value=b.id;
+  document.getElementById('bsv-form-title').textContent='BA\u015eVURU D\u00dcZENLE';
+  const _sv=(elId,val)=>{ const el=document.getElementById(elId); if(el) el.value=val||''; };
+  _sv('bsv-isim',b.isim); _sv('bsv-yas',b.yas); _sv('bsv-tel',b.tel); _sv('bsv-tarih',b.tarih);
+  _sv('bsv-ehliyet',b.ehliyet); _sv('bsv-src',b.src); _sv('bsv-psiko',b.psiko);
+  _sv('bsv-emekli',b.emekli); _sv('bsv-tecrube',b.tecrube); _sv('bsv-sure',b.sure);
+  _sv('bsv-referans',b.referans); _sv('bsv-not',b.not);
+  const sw=document.getElementById('bsv-sure-wrap'); if(sw) sw.style.display=b.tecrube==='var'?'block':'none';
+  setTimeout(()=>document.getElementById('bsv-isim').focus(),50);
+}
+function deleteBasvuru(id){
+  if(!confirm('Bu ba\u015fvuruyu silmek istedi\u011finize emin misiniz?')) return;
+  _saveBasvurular(_loadBasvurular().filter(b=>b.id!==id));
+  renderBasvuruListe(); _updateLoginBasvuruCount();
+  if(typeof showToast==='function') showToast('Ba\u015fvuru silindi','success');
+}
+function _updateLoginBasvuruCount(){
+  const count=_loadBasvurular().length;
+  const el=document.getElementById('login-basvuru-count'); if(el) el.textContent=count>0?count+' ba\u015fvuru kay\u0131tl\u0131':'Ba\u015fvurular\u0131 g\u00f6r\u00fcnt\u00fcle ve y\u00f6net';
+  const el2=document.getElementById('bsv-modal-count'); if(el2) el2.textContent=count+' ba\u015fvuru';
+}
+function renderBasvuruListe(){
+  const list=_loadBasvurular();
+  const liste=document.getElementById('bsv-liste');
+  const bos=document.getElementById('bsv-bos');
+  if(!liste) return;
+  if(!list.length){ liste.innerHTML=''; if(bos) bos.style.display='block'; return; }
+  if(bos) bos.style.display='none';
+  const _pill=(val,e,h)=>{
+    if(!val) return '';
+    if(val==='var'||val==='evet') return `<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:rgba(34,197,94,.1);color:#4ade80;border:1px solid rgba(34,197,94,.2);">\u2705 ${e}</span>`;
+    if(val==='yok'||val==='hayir') return `<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);">\u274c ${h}</span>`;
+    return '';
+  };
+  liste.innerHTML=list.map(b=>`
+    <div style="background:rgba(255,255,255,.025);border:1px solid rgba(251,146,60,.12);border-left:3px solid rgba(251,146,60,.45);border-radius:14px;padding:14px 16px;transition:border-color .18s;" onmouseover="this.style.borderColor='rgba(251,146,60,.3)'" onmouseout="this.style.borderColor='rgba(251,146,60,.12)'">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;">
+        <div>
+          <div style="font-weight:700;font-size:14px;color:#fff;">${b.isim||'\u0130simsiz'}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">${b.tarih||'\u2014'}${b.tel?' \u00b7 \ud83d\udcf1 '+b.tel:''}${b.yas?' \u00b7 \ud83c\udf82 '+b.yas+' ya\u015f':''}</div>
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0;">
+          <button onclick="editBasvuru('${b.id}')" style="width:28px;height:28px;border-radius:7px;border:1px solid rgba(96,165,250,.2);background:rgba(96,165,250,.07);color:#60a5fa;cursor:pointer;font-size:12px;" title="D\u00fczeenle">\u270f</button>
+          <button onclick="deleteBasvuru('${b.id}')" style="width:28px;height:28px;border-radius:7px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#f87171;cursor:pointer;font-size:14px;" title="Sil">\u00d7</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        ${b.ehliyet?`<span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(251,146,60,.1);color:#fb923c;border:1px solid rgba(251,146,60,.2);">\ud83e\udeb9 ${b.ehliyet}</span>`:''}
+        ${_pill(b.src,'SRC','SRC Yok')}
+        ${_pill(b.psiko,'Psiko','Psiko Yok')}
+        ${_pill(b.emekli,'Emekli','Aktif')}
+        ${b.tecrube==='var'?`<span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(139,92,246,.1);color:#a78bfa;border:1px solid rgba(139,92,246,.2);">\u2b50 ${b.sure?b.sure+'y':'Tec.'}</span>`:b.tecrube==='yok'?'<span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.3);">Tec. yok</span>':''}
+        ${b.referans?`<span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.45);">\ud83d\udcce ${b.referans}</span>`:''}
+      </div>
+      ${b.not?`<div style="margin-top:8px;font-size:11px;color:rgba(255,255,255,.35);font-style:italic;">${b.not}</div>`:''}
+    </div>`).join('');
+}
+try{ _updateLoginBasvuruCount(); }catch(e){}
+</script>
 
 </body>
 </html>
