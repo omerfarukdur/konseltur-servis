@@ -2796,7 +2796,7 @@ setInterval(updateLoginClock, 30000);
   </div>
 
   <!-- Dashboard Özet Kartları -->
-  <div id="cari-dash" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+  <div id="cari-dash" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;">
     <div class="dash-card">
       <div class="dash-card-glow" style="background:var(--blue);"></div>
       <div class="dash-card-icon">📒</div>
@@ -2804,22 +2804,35 @@ setInterval(updateLoginClock, 30000);
       <div class="dash-card-label">Toplam Cari</div>
     </div>
     <div class="dash-card">
-      <div class="dash-card-glow" style="background:var(--green);"></div>
-      <div class="dash-card-icon">📥</div>
-      <div class="dash-card-val" id="cd-toplam-borc" style="color:var(--green);">₺0</div>
-      <div class="dash-card-label">Toplam Alınan</div>
-    </div>
-    <div class="dash-card">
-      <div class="dash-card-glow" style="background:var(--red);"></div>
-      <div class="dash-card-icon">📤</div>
-      <div class="dash-card-val" id="cd-toplam-alacak" style="color:var(--red);">₺0</div>
-      <div class="dash-card-label">Toplam Verilen</div>
-    </div>
-    <div class="dash-card">
       <div class="dash-card-glow" style="background:var(--amber);"></div>
       <div class="dash-card-icon">⚖️</div>
       <div class="dash-card-val" id="cd-net-bakiye">₺0</div>
       <div class="dash-card-label">Net Bakiye</div>
+    </div>
+  </div>
+
+  <!-- Bakiye Özeti — gizli, tıklayınca açılır -->
+  <div id="cari-bakiye-toggle-wrap" style="margin-bottom:16px;">
+    <button onclick="_toggleCariBakiye()" id="cari-bakiye-toggle-btn"
+      style="width:100%;padding:11px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-family:'Outfit',sans-serif;transition:all .2s;"
+      onmouseover="this.style.borderColor='rgba(255,255,255,.14)';this.style.background='rgba(255,255,255,.05)'"
+      onmouseout="this.style.borderColor='rgba(255,255,255,.07)';this.style.background='rgba(255,255,255,.03)'">
+      <div style="display:flex;align-items:center;gap:9px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.6);">Bakiye Özeti</span>
+        <span id="cari-bakiye-mini" style="font-size:11px;color:var(--muted);font-weight:500;">— görüntülemek için tıklayın</span>
+      </div>
+      <svg id="cari-bakiye-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round" style="transition:transform .25s;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div id="cari-bakiye-detail" style="display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">
+      <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:13px;text-align:center;">
+        <div style="font-size:10px;color:var(--green);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Toplam Alınan</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);" id="cd-toplam-borc">₺0</div>
+      </div>
+      <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:12px;padding:13px;text-align:center;">
+        <div style="font-size:10px;color:var(--red);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Toplam Verilen</div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--red);" id="cd-toplam-alacak">₺0</div>
+      </div>
     </div>
   </div>
 
@@ -11751,6 +11764,13 @@ function renderCariListe(){
   _setText('cd-toplam-alacak', _fmtPara(topAlacak));
   const netEl = document.getElementById('cd-net-bakiye');
   if(netEl){ netEl.textContent = _fmtPara(net); netEl.style.color = net>=0?'var(--green)':'var(--red)'; }
+  // Bakiye detail'i kapalı tut (her render'da sıfırla)
+  const _bDet = document.getElementById('cari-bakiye-detail');
+  if(_bDet) _bDet.style.display = 'none';
+  const _bChev = document.getElementById('cari-bakiye-chevron');
+  if(_bChev) _bChev.style.transform = '';
+  const _bMini = document.getElementById('cari-bakiye-mini');
+  if(_bMini) _bMini.textContent = '— görüntülemek için tıklayın';
 
   if(!filtered.length){
     wrap.innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg></div>'+(_cariSearchTerm?'Eşleşen cari bulunamadı.':'Henüz cari hesap eklenmedi.')+'</div>';
@@ -12171,6 +12191,23 @@ function deleteCariHareket(cariId,hareketId){
   okBtn.textContent='Evet, Sil';
   okBtn.onclick=function(){ delete _cariData[cariId].hareketler[hareketId]; _saveCariToStorage(); cm.style.display='none'; showToast('Hareket silindi','success'); renderCariDetay(cariId); };
   cm.style.display='flex';
+}
+
+function _toggleCariBakiye(){
+  const detail = document.getElementById('cari-bakiye-detail');
+  const chevron = document.getElementById('cari-bakiye-chevron');
+  const mini = document.getElementById('cari-bakiye-mini');
+  if(!detail) return;
+  const isOpen = detail.style.display !== 'none';
+  if(isOpen){
+    detail.style.display = 'none';
+    if(chevron) chevron.style.transform = '';
+    if(mini) mini.textContent = '— görüntülemek için tıklayın';
+  } else {
+    detail.style.display = 'grid';
+    if(chevron) chevron.style.transform = 'rotate(180deg)';
+    if(mini) mini.textContent = '';
+  }
 }
 
 function _toggleBakiyeOzet(){
