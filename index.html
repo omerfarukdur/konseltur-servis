@@ -2361,7 +2361,7 @@ setInterval(updateLoginClock, 30000);
 <!-- DRIVERS -->
 <div class="page" id="page-drivers">
  <div class="sidebar">
- <div class="sidebar-header"><div class="sidebar-title">Şoför Ekle</div><div class="sidebar-sub">Şoför ve adres bilgilerini girin</div></div>
+ <div class="sidebar-header"><div class="sidebar-title">Şoför Ekle</div><div class="sidebar-sub">Şoför bilgilerini girin (adres opsiyonel)</div></div>
  <div class="sidebar-body">
  <div class="field"><label>Ad Soyad</label><input type="text" id="d-name" maxlength="80" placeholder="Şoför adı soyadı"></div>
  <div class="field"><label>Telefon</label><input type="text" id="d-phone" maxlength="20" placeholder="05XX XXX XX XX"></div>
@@ -4177,8 +4177,8 @@ function enterKasaDirect(){
   if(ctabListe) ctabListe.style.display = 'none';
 
   // ÖNEMLİ: Cari liste'yi asla gösterme - direkt detay sayfasına geç
-  // Tüm sayfaları gizle, sadece cari-detay göster
-  document.querySelectorAll('.page-scroll').forEach(p=>p.classList.remove('active'));
+  // Tüm sayfaları gizle (hem .page-scroll hem .page), sadece cari-detay göster
+  document.querySelectorAll('.page-scroll, .page').forEach(p=>p.classList.remove('active'));
   const detayPage = document.getElementById('page-cari-detay');
   if(detayPage) detayPage.classList.add('active');
   currentPage = 'cari-detay';
@@ -5245,6 +5245,7 @@ function goToLogin(){
  // pendingModule sıfırla
  window._pendingModule = null;
  window._kasaModOnly = false;
+ currentApp = 'rota'; // state'i sıfırla
  // Cari Liste tab'ı geri göster
  const _ctabL = document.getElementById('ctab-liste');
  if(_ctabL) _ctabL.style.display='';
@@ -5850,9 +5851,8 @@ function addDriver(){
  const note=document.getElementById('d-note').value.trim();
  function _hd(id){ const el=document.getElementById(id); if(el){el.style.borderColor='var(--red)';el.style.boxShadow='0 0 0 3px rgba(239,68,68,.12)';setTimeout(()=>{el.style.borderColor='';el.style.boxShadow='';},2000);} }
  if(!name){_hd('d-name');return toast('Şoför adı boş bırakılamaz. Lütfen ad ve soyadı girin.','error');}
- if(!ilce){_hd('d-ilce');return toast('İlçe seçilmedi. Lütfen listeden bir ilçe seçin.','error');}
- if(!mah){_hd('d-mahalle');return toast('Mahalle seçilmedi. Lütfen mahalle bilgisini girin.','error');}
- const c=getCoord(ilce,mah);
+ // Adres opsiyonel — koordinat sadece ilçe+mahalle varsa hesaplanır
+ const c = (ilce && mah) ? getCoord(ilce,mah) : {lat:37.87, lng:32.49};
  drivers.push({id:nDid++,name,ph,lic,veh,tip,plaka,ilce,mah,sok,no,note,...c,assignedRoute:null});
  ['d-name','d-phone','d-no','d-note','d-plaka'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
  document.getElementById('d-ilce').value='';
@@ -5954,7 +5954,7 @@ function renderDrivers(){
  <div style="width:40px;height:40px;border-radius:50%;background:${d.assignedRoute!==null?'rgba(34,197,94,.15)':'rgba(100,116,139,.12)'};border:1px solid ${d.assignedRoute!==null?'rgba(34,197,94,.3)':'rgba(255,255,255,.08)'};display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:${d.assignedRoute!==null?'var(--green)':'var(--muted2)'};flex-shrink:0;">${d.name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()}</div>
  <div style="flex:1">
  <div style="font-size:13px;font-weight:700">${escHtml(d.name)}${tipBadge}</div>
- <div style="font-size:11px;color:var(--muted2)">${escHtml(d.ilce)} / ${escHtml(d.mah)}${d.sok?' – '+escHtml(d.sok):''}</div>
+ <div style="font-size:11px;color:var(--muted2)">${d.ilce||d.mah ? escHtml(d.ilce||'')+(d.mah?' / '+escHtml(d.mah):'')+(d.sok?' – '+escHtml(d.sok):'') : '<span style="opacity:.5">Adres girilmemiş</span>'}</div>
  <div style="font-size:11px;color:var(--muted2);margin-top:1px">${d.lic} · ${d.veh}${d.plaka?' · 🚌 '+escHtml(d.plaka):''}${d.ph?' · '+d.ph:''}</div>
  </div>
  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
@@ -7114,7 +7114,7 @@ function renderRoutes(){
  w.innerHTML=incCard+L.map(r=>{
  const ad=r.driverId?drivers.find(d=>d.id===r.driverId):null;
  const sch=SCHOOLS[r.school];
- const opts=drivers.map(d=>`<option value="${d.id}" ${r.driverId===d.id?'selected':''}>${escHtml(d.name)} &middot; ${escHtml(d.ilce)}/${escHtml(d.mah)}</option>`).join('');
+ const opts=drivers.map(d=>`<option value="${d.id}" ${r.driverId===d.id?'selected':''}>${escHtml(d.name)}${d.ilce?' · '+escHtml(d.ilce)+(d.mah?'/'+escHtml(d.mah):''):''}</option>`).join('');
  const capColor=r.students.length>maxP?'var(--red)':r.students.length<MIN_STUDENTS?'var(--amber)':'var(--green)';
  const capWarning=r.students.length>maxP
  ?`<span style="font-size:10px;color:var(--red);margin-left:4px">&#x26A0;&#xFE0F; Kapasite a&#x15F;&#x131;ld&#x131;</span>`
