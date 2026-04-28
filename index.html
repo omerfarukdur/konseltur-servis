@@ -798,6 +798,233 @@ body.light .field select{
  }
 }
 
+/* ═══════════════════════════════════════════════
+   TASARIM İYİLEŞTİRMELERİ — NAV & DASHBOARD
+   ═══════════════════════════════════════════════ */
+
+/* NAV BAR — daha rafine görünüm */
+nav {
+  background: rgba(10,13,22,.97) !important;
+  border-bottom: 1px solid rgba(255,255,255,.05) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.03), 0 4px 24px rgba(0,0,0,.35) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+nav::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(200,55,26,.5) 40%, rgba(200,55,26,.3) 60%, transparent 100%);
+  pointer-events: none;
+}
+
+/* NAV TABS — daha modern pill görünümü */
+.nav-tab {
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 14px !important;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  color: rgba(255,255,255,.38);
+  transition: all .18s ease;
+  letter-spacing: .15px;
+  position: relative;
+}
+.nav-tab:hover {
+  color: rgba(255,255,255,.75);
+  background: rgba(255,255,255,.055);
+  border-color: rgba(255,255,255,.07);
+}
+.nav-tab.active {
+  color: #fff !important;
+  background: rgba(255,255,255,.08) !important;
+  border-color: rgba(255,255,255,.12) !important;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 20%; right: 20%;
+  height: 2px;
+  background: var(--brand);
+  border-radius: 2px 2px 0 0;
+  opacity: .9;
+}
+
+/* NAV ACTION BUTTONS */
+.nav-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .18s ease;
+  letter-spacing: .2px;
+}
+
+/* SCHOOL INDICATOR — daha belirgin */
+#school-indicator {
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  padding: 3px 10px !important;
+  border-radius: 20px !important;
+  letter-spacing: .5px !important;
+  background: rgba(200,55,26,.1) !important;
+  border: 1px solid rgba(200,55,26,.25) !important;
+  color: rgba(200,55,26,.9) !important;
+}
+
+/* DASHBOARD KARTLARI — daha şık */
+.dash-card {
+  background: rgba(255,255,255,.03) !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  border-radius: 18px !important;
+  padding: 20px 18px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: all .22s cubic-bezier(.4,0,.2,1);
+}
+.dash-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+}
+.dash-card:hover {
+  border-color: rgba(255,255,255,.13) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 16px 40px rgba(0,0,0,.3) !important;
+  background: rgba(255,255,255,.05) !important;
+}
+.dash-card-val {
+  font-family: 'Syne', sans-serif !important;
+  font-size: 34px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: -1px !important;
+}
+.dash-card-label {
+  font-size: 10px !important;
+  color: rgba(255,255,255,.35) !important;
+  font-weight: 700 !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+.dash-card-icon {
+  font-size: 20px !important;
+  line-height: 1 !important;
+  opacity: .85;
+}
+.dash-card-glow {
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  filter: blur(30px);
+  opacity: .14;
+}
+
+/* HERO BANNER — daha rafine */
+.hero {
+  background: linear-gradient(135deg, rgba(255,255,255,.025), rgba(200,55,26,.05)) !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 8px 40px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,55,26,.7), transparent);
+}
+
+/* TİPOGRAFİ İYİLEŞTİRMELERİ */
+.page-inner h2,
+.sidebar-title {
+  font-family: 'Syne', sans-serif !important;
+  letter-spacing: -.3px;
+}
+.sec-label {
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  letter-spacing: 2.5px !important;
+  text-transform: uppercase !important;
+  color: rgba(255,255,255,.18) !important;
+  margin: 16px 0 9px !important;
+}
+
+/* STAT KUTULARI */
+.stat-box {
+  border-radius: 18px !important;
+}
+.stat-val {
+  font-family: 'Syne', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 26px !important;
+  letter-spacing: -.5px !important;
+}
+
+/* CARD GENERIC */
+.card {
+  border-radius: 18px !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  background: rgba(255,255,255,.025) !important;
+}
+
+/* SCROLLBAR İYİLEŞTİRME */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.2); }
+
+/* ── BAŞVURU MODÜLÜ CSS ── */
+.basvuru-kart {
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(251,146,60,.15);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all .2s ease;
+  border-left: 3px solid rgba(251,146,60,.5);
+}
+.basvuru-kart:hover {
+  border-color: rgba(251,146,60,.35);
+  background: rgba(251,146,60,.04);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,0,0,.18);
+}
+.basvuru-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 10px;
+  letter-spacing: .3px;
+}
+.basvuru-evet { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+.basvuru-hayir { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.2); }
+.basvuru-field-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 0;
+}
+@media (max-width: 480px) {
+  .basvuru-field-group { grid-template-columns: 1fr; }
+}
+
 /* LIGHT TEMA */
 body.light{--bg:#f0f2f5;--surface:#ffffff;--card:#ffffff;--card2:#f5f6f8;--border:#e2e5ea;--border2:#d0d4db;--text:#111827;--muted:#94a3b8;--muted2:#64748b;}
 body.light::before{opacity:0;}
@@ -2560,8 +2787,8 @@ setInterval(updateLoginClock, 30000);
     </div>
     <div style="display:flex;gap:6px;">
       <button onclick="openCariEditModal(window._activeCariId)" style="padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--card2);color:var(--muted2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;" onmouseover="this.style.borderColor='rgba(59,130,246,.4)';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted2)'">Düzenle</button>
-      <button onclick="openCariHareketModal()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(59,130,246,.35);background:rgba(59,130,246,.1);color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;">+ Hareket</button>
-      <button onclick="exportCariDetayPDF()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;">
+      <button onclick="openCariHareketModal()" class="detay-hareket-btn" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(59,130,246,.35);background:rgba(59,130,246,.1);color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;">+ Hareket</button>
+      <button onclick="exportCariDetayPDF()" class="detay-pdf-btn" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         PDF'e Aktar
       </button>
@@ -11150,7 +11377,72 @@ document.addEventListener('DOMContentLoaded',function(){
       </div>
       <div id="cm-okul-rows" style="display:flex;flex-direction:column;gap:6px;"></div>
     </div>
-    <div class="field"><label>Not</label><input id="cm-not" maxlength="200" placeholder="Opsiyonel açıklama..."></div>
+
+    <!-- BAŞVURU ALANLARI — sadece başvuru türü seçiliyken görünür -->
+    <div id="cm-basvuru-wrap" style="display:none;">
+      <div style="display:flex;align-items:center;gap:8px;margin:14px 0 10px;padding-top:10px;border-top:1px solid rgba(251,146,60,.15);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span style="font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(251,146,60,.8);">Şoför Başvuru Bilgileri</span>
+      </div>
+      <!-- Satır 1: Yaş + Başvuru Tarihi -->
+      <div class="basvuru-field-group">
+        <div class="field"><label>Yaş</label><input id="cm-bsv-yas" type="number" min="18" max="70" placeholder="Örn: 35"></div>
+        <div class="field"><label>Başvuru Tarihi</label><input id="cm-bsv-tarih" type="date"></div>
+      </div>
+      <!-- Satır 2: Ehliyet + SRC -->
+      <div class="basvuru-field-group">
+        <div class="field"><label>Ehliyet Sınıfı</label>
+          <select id="cm-bsv-ehliyet">
+            <option value="">Seçin...</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D Sınıfı (Otobüs)</option>
+            <option value="E">E Sınıfı</option>
+            <option value="B+C">B+C</option>
+            <option value="B+D">B+D</option>
+          </select>
+        </div>
+        <div class="field"><label>SRC Belgesi</label>
+          <select id="cm-bsv-src">
+            <option value="">Seçin...</option>
+            <option value="var">✅ Var</option>
+            <option value="yok">❌ Yok</option>
+          </select>
+        </div>
+      </div>
+      <!-- Satır 3: Psikoteknik + Emekli -->
+      <div class="basvuru-field-group">
+        <div class="field"><label>Psikoteknik Belgesi</label>
+          <select id="cm-bsv-psiko">
+            <option value="">Seçin...</option>
+            <option value="var">✅ Var</option>
+            <option value="yok">❌ Yok</option>
+          </select>
+        </div>
+        <div class="field"><label>Emeklilik Durumu</label>
+          <select id="cm-bsv-emekli">
+            <option value="">Seçin...</option>
+            <option value="evet">Emekli</option>
+            <option value="hayir">Emekli Değil</option>
+          </select>
+        </div>
+      </div>
+      <!-- Satır 4: Tecrübe + Kaç Yıl -->
+      <div class="basvuru-field-group">
+        <div class="field"><label>Tecrübe</label>
+          <select id="cm-bsv-tecrube" onchange="_toggleTecrubeSure()">
+            <option value="">Seçin...</option>
+            <option value="var">✅ Tecrübeli</option>
+            <option value="yok">❌ Tecrübesi Yok</option>
+          </select>
+        </div>
+        <div class="field" id="cm-bsv-sure-wrap" style="display:none;"><label>Tecrübe Süresi (Yıl)</label><input id="cm-bsv-sure" type="number" min="0" max="50" placeholder="Örn: 5"></div>
+      </div>
+      <!-- Referans -->
+      <div class="field"><label>Referans</label><input id="cm-bsv-referans" maxlength="150" placeholder="Referans kişi veya kurum..."></div>
+    </div>
+
+    <div class="field"><label>Not / Açıklama</label><input id="cm-not" maxlength="200" placeholder="Opsiyonel açıklama..."></div>
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button class="btn btn-full" style="flex:1;background:linear-gradient(135deg,rgba(59,130,246,.25),rgba(59,130,246,.15));border:1px solid rgba(59,130,246,.45);color:#93c5fd;box-shadow:0 4px 18px rgba(59,130,246,.2);" onclick="saveCariModal()">Kaydet</button>
       <button class="btn btn-ghost" style="flex:1;" onclick="document.getElementById('cari-add-modal').classList.remove('open')">İptal</button>
@@ -11353,29 +11645,49 @@ function renderCariListe(){
   }
 
   const turLabel = {kasa:'Kasa',basvuru:'Başvuru',sofor:'Personel',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
-  const turColor = {kasa:'#fbbf24',sofor:'#a78bfa',taseron:'#f59e0b',okul:'#60a5fa',firma:'#60a5fa',personel:'#4ade80',diger:'var(--muted2)'};
-  const turIcon = {kasa:'💰',sofor:'👤',taseron:'🚌',okul:'🏫',firma:'🏢',personel:'👤',diger:'📋'};
+  const turColor = {kasa:'#fbbf24',sofor:'#a78bfa',taseron:'#f59e0b',okul:'#60a5fa',firma:'#60a5fa',personel:'#4ade80',basvuru:'#fb923c',diger:'var(--muted2)'};
+  const turIcon = {kasa:'💰',sofor:'👤',taseron:'🚌',okul:'🏫',firma:'🏢',personel:'👤',basvuru:'📋',diger:'📋'};
 
   let html = '';
   filtered.forEach(c=>{
     const harCount = Object.keys(c.hareketler||{}).length;
     const bColor = c.bakiye>0?'var(--green)':c.bakiye<0?'var(--red)':'var(--muted2)';
-    const bdrL = c.bakiye<0?'border-left:3px solid var(--red);':c.bakiye>0?'border-left:3px solid var(--green);':'border-left:3px solid rgba(59,130,246,.3);';
+    const isBasvuru = c.tur === 'basvuru';
+    const bdrL = isBasvuru ? 'border-left:3px solid rgba(251,146,60,.5);' : (c.bakiye<0?'border-left:3px solid var(--red);':c.bakiye>0?'border-left:3px solid var(--green);':'border-left:3px solid rgba(59,130,246,.3);');
     const icon = turIcon[c.tur]||'📋';
-    html += `<div onclick="openCariDetay('${c.id}')" style="display:flex;align-items:center;gap:14px;padding:15px 18px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:14px;margin-bottom:8px;cursor:pointer;transition:all var(--t-slow);${bdrL}" onmouseover="this.style.borderColor='rgba(59,130,246,.3)';this.style.boxShadow='0 6px 24px rgba(0,0,0,.18)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='rgba(255,255,255,.06)';this.style.boxShadow='none';this.style.transform='none'">
-      <div style="width:42px;height:42px;border-radius:12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">${icon}</div>
+    const iconBg = isBasvuru ? 'rgba(251,146,60,.1)' : 'rgba(59,130,246,.08)';
+    const iconBorder = isBasvuru ? 'rgba(251,146,60,.2)' : 'rgba(59,130,246,.15)';
+
+    // Başvuru özet bilgisi
+    let basvuruMeta = '';
+    if(isBasvuru && c.basvuru){
+      const bsv = c.basvuru;
+      const meta = [];
+      if(bsv.yas) meta.push('🎂 '+bsv.yas+' yaş');
+      if(bsv.ehliyet) meta.push('🪪 '+bsv.ehliyet);
+      if(bsv.src==='var') meta.push('📄 SRC ✅');
+      if(bsv.tecrube==='var') meta.push('⭐ '+(bsv.sure?bsv.sure+'y':'Tecrübeli'));
+      if(meta.length) basvuruMeta = `<div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;">${meta.map(m=>`<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:rgba(251,146,60,.08);color:#fb923c;border:1px solid rgba(251,146,60,.15);">${m}</span>`).join('')}</div>`;
+    }
+
+    html += `<div onclick="openCariDetay('${c.id}')" style="display:flex;align-items:center;gap:14px;padding:15px 18px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:14px;margin-bottom:8px;cursor:pointer;transition:all var(--t-slow);${bdrL}" onmouseover="this.style.borderColor='${isBasvuru?'rgba(251,146,60,.3)':'rgba(59,130,246,.3)'}';this.style.boxShadow='0 6px 24px rgba(0,0,0,.18)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='rgba(255,255,255,.06)';this.style.boxShadow='none';this.style.transform='none'">
+      <div style="width:42px;height:42px;border-radius:12px;background:${iconBg};border:1px solid ${iconBorder};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">${icon}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(c.isim||'İsimsiz')}</div>
         <div style="display:flex;gap:8px;align-items:center;margin-top:3px;flex-wrap:wrap;">
-          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:rgba(59,130,246,.08);color:${turColor[c.tur]||'var(--muted2)'};border:1px solid rgba(255,255,255,.06);">${turLabel[c.tur]||'Diğer'}</span>
-          ${c.plaka?`<span style="font-size:10px;color:var(--muted2);font-weight:600;">${_esc(c.plaka)}</span>`:''}
-          ${c.firma?`<span style="font-size:10px;color:var(--muted);">${_esc(c.firma)}</span>`:''}
-          <span style="font-size:10px;color:var(--muted);">${harCount} hrk</span>
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:${isBasvuru?'rgba(251,146,60,.1)':'rgba(59,130,246,.08)'};color:${turColor[c.tur]||'var(--muted2)'};border:1px solid ${isBasvuru?'rgba(251,146,60,.2)':'rgba(255,255,255,.06)'};">${turLabel[c.tur]||'Diğer'}</span>
+          ${c.tel?`<span style="font-size:10px;color:var(--muted2);font-weight:600;">📱 ${_esc(c.tel)}</span>`:''}
+          ${!isBasvuru && c.plaka?`<span style="font-size:10px;color:var(--muted2);font-weight:600;">${_esc(c.plaka)}</span>`:''}
+          ${!isBasvuru && c.firma?`<span style="font-size:10px;color:var(--muted);">${_esc(c.firma)}</span>`:''}
+          ${!isBasvuru ? `<span style="font-size:10px;color:var(--muted);">${harCount} hrk</span>` : ''}
         </div>
+        ${basvuruMeta}
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:${bColor};">${_fmtPara(c.bakiye)}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px;">bakiye</div>
+        ${isBasvuru
+          ? `<div style="font-size:11px;color:rgba(251,146,60,.7);font-weight:700;">${c.basvuru?.tarih||'—'}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">başvuru</div>`
+          : `<div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:${bColor};">${_fmtPara(c.bakiye)}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">bakiye</div>`
+        }
       </div>
     </div>`;
   });
@@ -11451,13 +11763,12 @@ function renderCariDetay(id){
     _detAlt += ' • Toplam yövmiye: ' + parseFloat(c.yovmiye).toLocaleString('tr-TR') + '₺/gün';
   }
   _setText('cdet-subtitle', _detAlt);
-  // Taşeron okul-yövmiye bilgisini profil kartına ekle
   window._activeDetayId = id;
 
   const profil = document.getElementById('cdet-profil');
   if(profil){
     profil.innerHTML = `<div style="display:flex;gap:14px;align-items:center;">
-      <div style="width:52px;height:52px;border-radius:14px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#60a5fa;">${(c.isim||'?')[0].toUpperCase()}</div>
+      <div style="width:52px;height:52px;border-radius:14px;background:${c.tur==='basvuru'?'rgba(251,146,60,.1)':'rgba(59,130,246,.1)'};border:1px solid ${c.tur==='basvuru'?'rgba(251,146,60,.25)':'rgba(59,130,246,.2)'};display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${c.tur==='basvuru'?'#fb923c':'#60a5fa'};">${(c.isim||'?')[0].toUpperCase()}</div>
       <div style="flex:1;">
         <div style="font-weight:700;font-size:16px;">${_esc(c.isim||'')}</div>
         <div style="font-size:12px;color:var(--muted2);margin-top:2px;">${c.firma?'🏢 '+_esc(c.firma)+' &nbsp; ':''}${c.tel?'📱 '+_esc(c.tel)+' &nbsp; ':''}${c.plaka?'🚗 '+_esc(c.plaka):''}</div>
@@ -11468,10 +11779,108 @@ function renderCariDetay(id){
     ${c.tur==='taseron' && Array.isArray(c.okulYovmiye) && c.okulYovmiye.length ? '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-wrap:wrap;gap:6px;">' + c.okulYovmiye.map(oy=>{ const sc=SCHOOLS.find(s=>s.key===oy.okulKey); return '<span style="font-size:11px;padding:3px 10px;border-radius:8px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:#fbbf24;">' + (sc?sc.short||sc.name:oy.okulKey) + ': ' + parseFloat(oy.yovmiye).toLocaleString('tr-TR') + '₺/gün</span>'; }).join('') + '</div>' : ''}`;
   }
 
-  const bOzet = document.getElementById('cdet-bakiye-ozet');
-  if(bOzet){
+  // Başvuru türü kontrolü
+  const hareketBtn = document.querySelector('#page-cari-detay .detay-hareket-btn');
+  const pdfBtn = document.querySelector('#page-cari-detay .detay-pdf-btn');
+  const bakiyeOzet = document.getElementById('cdet-bakiye-ozet');
+  const hList = document.getElementById('cdet-hareket-list');
+  const hCount = document.getElementById('cdet-hareket-count');
+  let bsvPanel = document.getElementById('cdet-basvuru-panel');
+
+  if(c.tur === 'basvuru'){
+    if(hareketBtn) hareketBtn.style.display = 'none';
+    if(pdfBtn) pdfBtn.style.display = 'none';
+    if(bakiyeOzet){ bakiyeOzet.style.display = 'none'; bakiyeOzet.innerHTML = ''; }
+    if(hList) hList.innerHTML = '';
+    if(hCount) hCount.textContent = '';
+    // Başlık altındaki hareket bölüm başlığını gizle
+    const hSecTitle = document.getElementById('cdet-hareket-section');
+    if(hSecTitle) hSecTitle.style.display = 'none';
+
+    if(!bsvPanel){
+      bsvPanel = document.createElement('div');
+      bsvPanel.id = 'cdet-basvuru-panel';
+      const pageInner = document.querySelector('#page-cari-detay .page-inner');
+      if(pageInner && bakiyeOzet && bakiyeOzet.parentNode){
+        bakiyeOzet.parentNode.insertBefore(bsvPanel, bakiyeOzet.nextSibling);
+      } else if(pageInner){
+        pageInner.appendChild(bsvPanel);
+      }
+    }
+    bsvPanel.style.display = 'block';
+
+    const bsv = c.basvuru || {};
+    const _pill = (val, evet, hayir) => {
+      if(!val) return '<span style="font-size:11px;color:var(--muted);">—</span>';
+      if(val==='var'||val==='evet') return `<span class="basvuru-badge basvuru-evet">✅ ${evet}</span>`;
+      if(val==='yok'||val==='hayir') return `<span class="basvuru-badge basvuru-hayir">❌ ${hayir}</span>`;
+      return `<span class="basvuru-badge" style="background:rgba(255,255,255,.07);color:var(--text);border:1px solid var(--border);">${_esc(val)}</span>`;
+    };
+
+    bsvPanel.innerHTML = `
+    <div style="background:linear-gradient(135deg,rgba(251,146,60,.07),rgba(251,146,60,.02));border:1px solid rgba(251,146,60,.2);border-radius:18px;padding:20px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(251,146,60,.12);">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(251,146,60,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fb923c;">Şoför Başvuru Bilgileri</div>
+          <div style="font-size:11px;color:var(--muted2);">${bsv.tarih ? 'Başvuru Tarihi: '+bsv.tarih : 'Başvuru tarihi girilmemiş'}</div>
+        </div>
+        <button onclick="openCariEditModal('${id}')" style="margin-left:auto;padding:7px 13px;border-radius:9px;border:1px solid rgba(251,146,60,.3);background:rgba(251,146,60,.08);color:#fb923c;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;">✏ Düzenle</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;text-align:center;">
+          <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">Yaş</div>
+          <div style="font-family:'Syne',sans-serif;font-size:26px;font-weight:900;color:var(--text);">${bsv.yas||'—'}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;text-align:center;">
+          <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">Ehliyet</div>
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:900;color:${bsv.ehliyet?'#fb923c':'var(--muted)'};">${bsv.ehliyet||'—'}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px 14px;text-align:center;">
+          <div style="font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;">Tecrübe</div>
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:900;color:${bsv.tecrube==='var'?'var(--green)':'var(--muted)'};">${bsv.tecrube==='var' ? (bsv.sure ? bsv.sure+' Yıl' : '✅ Var') : (bsv.tecrube==='yok' ? '❌ Yok' : '—')}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;">
+          <span style="font-size:12px;color:var(--muted2);font-weight:600;">SRC Belgesi</span>
+          ${_pill(bsv.src,'Var','Yok')}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;">
+          <span style="font-size:12px;color:var(--muted2);font-weight:600;">Psikoteknik</span>
+          ${_pill(bsv.psiko,'Var','Yok')}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;">
+          <span style="font-size:12px;color:var(--muted2);font-weight:600;">Emeklilik</span>
+          ${_pill(bsv.emekli,'Emekli','Aktif Çalışan')}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;">
+          <span style="font-size:12px;color:var(--muted2);font-weight:600;">Telefon</span>
+          <span style="font-size:12px;font-weight:600;color:var(--text);">${c.tel ? _esc(c.tel) : '—'}</span>
+        </div>
+      </div>
+      ${bsv.referans ? `<div style="padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:12px;color:var(--muted2);font-weight:600;flex-shrink:0;">Referans</span>
+        <span style="font-size:12px;font-weight:600;color:var(--text);">${_esc(bsv.referans)}</span>
+      </div>` : ''}
+      ${c.not ? `<div style="padding:10px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;font-size:12px;color:var(--muted2);font-style:italic;">${_esc(c.not)}</div>` : ''}
+    </div>`;
+    return;
+  }
+
+  // Başvuru değilse: normal para akışı
+  if(hareketBtn) hareketBtn.style.display = '';
+  if(pdfBtn) pdfBtn.style.display = '';
+  if(bakiyeOzet) bakiyeOzet.style.display = '';
+  if(bsvPanel){ bsvPanel.style.display = 'none'; bsvPanel.innerHTML = ''; }
+  const hSecTitle2 = document.getElementById('cdet-hareket-section');
+  if(hSecTitle2) hSecTitle2.style.display = '';
+
+  if(bakiyeOzet){
     const bColor = calc.bakiye>=0?'var(--green)':'var(--red)';
-    bOzet.innerHTML = `
+    bakiyeOzet.innerHTML = `
       <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:12px;padding:14px;text-align:center;">
         <div style="font-size:10px;color:var(--green);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Toplam Alınan</div>
         <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);">${_fmtPara(calc.borc)}</div>
@@ -11486,8 +11895,6 @@ function renderCariDetay(id){
       </div>`;
   }
 
-  const hList = document.getElementById('cdet-hareket-list');
-  const hCount = document.getElementById('cdet-hareket-count');
   const hareketler = Object.entries(c.hareketler||{}).map(([hid,h])=>({id:hid,...h}));
   if(hCount) hCount.textContent = hareketler.length + ' hareket';
 
@@ -11507,7 +11914,6 @@ function renderCariDetay(id){
   sorted.forEach(h=>{
     const b=parseFloat(h.borc||0), a=parseFloat(h.alacak||0);
     const bc = h._rb>=0?'var(--green)':'var(--red)';
-    // Düzenle butonu — taşeron otomatik hareket ise gün düzenleme, değilse normal hareket düzenleme
     const _editBtn = h.otomatik
       ? `<button onclick="event.stopPropagation();editTaseronGun('${id}','${h.id}')" title="Gün sayısını düzenle" style="width:22px;height:22px;border-radius:5px;border:1px solid rgba(245,158,11,.25);background:rgba(245,158,11,.07);color:#fbbf24;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;margin-bottom:2px;">✏</button>`
       : `<button onclick="event.stopPropagation();editCariHareket('${id}','${h.id}')" title="Düzenle" style="width:22px;height:22px;border-radius:5px;border:1px solid rgba(96,165,250,.2);background:rgba(96,165,250,.06);color:#60a5fa;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;margin-bottom:2px;">✏</button>`;
@@ -11523,7 +11929,6 @@ function renderCariDetay(id){
   hh += '</div>';
   if(hList) hList.innerHTML = hh;
 }
-
 // Modal: Cari Ekle
 function openCariAddModal(){
   document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> ' + (window._kasaModOnly ? 'Yeni Kasa Hareketi' : 'Yeni Cari Hesap');
@@ -11533,6 +11938,7 @@ function openCariAddModal(){
   const _defaultTur = window._kasaModOnly ? 'kasa' : 'personel';
   const _rows2 = document.getElementById('cm-okul-rows');
   if(_rows2) _rows2.innerHTML = '';
+  _cariSetBasvuruFields({}); // Başvuru alanlarını temizle
   _toggleCariYovmiye(_defaultTur);
   // Kasa modunda tur seçimini gizle (sadece kasa)
   const _turField = document.getElementById('cm-tur-field');
@@ -11558,6 +11964,8 @@ function openCariEditModal(id){
   if(c.tur==='taseron' && Array.isArray(c.okulYovmiye) && c.okulYovmiye.length){
     c.okulYovmiye.forEach(oy=>_cariAddOkulRow(oy.okulKey, oy.yovmiye));
   }
+  // Başvuru alanlarını doldur
+  if(c.tur==='basvuru') _cariSetBasvuruFields(c.basvuru||{});
   document.getElementById('cari-add-modal').classList.add('open');
 }
 function saveCariModal(){
@@ -11582,6 +11990,12 @@ function saveCariModal(){
   } else {
     _cariData[id].okulYovmiye = [];
     _cariData[id].yovmiye = 0;
+  }
+  // Başvuru alanlarını kaydet
+  if(_cariData[id].tur==='basvuru'){
+    _cariData[id].basvuru = _cariGetBasvuruFields();
+  } else {
+    _cariData[id].basvuru = null;
   }
   _saveCariToStorage();
   document.getElementById('cari-add-modal').classList.remove('open');
@@ -11653,6 +12067,46 @@ function _toggleCariYovmiye(tur){
     const rows = document.getElementById('cm-okul-rows');
     if(rows && !rows.children.length) _cariAddOkulRow(); // en az 1 satır
   }
+  // Başvuru alanlarını göster/gizle
+  const bw = document.getElementById('cm-basvuru-wrap');
+  if(bw) bw.style.display = tur==='basvuru' ? 'block' : 'none';
+  // Başvuru türü seçilince otomatik bugünün tarihini set et
+  if(tur==='basvuru'){
+    const td = document.getElementById('cm-bsv-tarih');
+    if(td && !td.value) td.value = new Date().toISOString().split('T')[0];
+  }
+}
+function _toggleTecrubeSure(){
+  const t = document.getElementById('cm-bsv-tecrube');
+  const w = document.getElementById('cm-bsv-sure-wrap');
+  if(w) w.style.display = (t && t.value==='var') ? 'block' : 'none';
+}
+function _cariGetBasvuruFields(){
+  return {
+    yas:      (document.getElementById('cm-bsv-yas')?.value||'').trim(),
+    tarih:    (document.getElementById('cm-bsv-tarih')?.value||'').trim(),
+    ehliyet:  (document.getElementById('cm-bsv-ehliyet')?.value||'').trim(),
+    src:      (document.getElementById('cm-bsv-src')?.value||'').trim(),
+    psiko:    (document.getElementById('cm-bsv-psiko')?.value||'').trim(),
+    emekli:   (document.getElementById('cm-bsv-emekli')?.value||'').trim(),
+    tecrube:  (document.getElementById('cm-bsv-tecrube')?.value||'').trim(),
+    sure:     (document.getElementById('cm-bsv-sure')?.value||'').trim(),
+    referans: (document.getElementById('cm-bsv-referans')?.value||'').trim(),
+  };
+}
+function _cariSetBasvuruFields(bsv){
+  if(!bsv) return;
+  const _sv = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
+  _sv('cm-bsv-yas',      bsv.yas||'');
+  _sv('cm-bsv-tarih',    bsv.tarih||'');
+  _sv('cm-bsv-ehliyet',  bsv.ehliyet||'');
+  _sv('cm-bsv-src',      bsv.src||'');
+  _sv('cm-bsv-psiko',    bsv.psiko||'');
+  _sv('cm-bsv-emekli',   bsv.emekli||'');
+  _sv('cm-bsv-tecrube',  bsv.tecrube||'');
+  _sv('cm-bsv-sure',     bsv.sure||'');
+  _sv('cm-bsv-referans', bsv.referans||'');
+  _toggleTecrubeSure();
 }
 
 function _cariAddOkulRow(okulKey, yovmiye){
