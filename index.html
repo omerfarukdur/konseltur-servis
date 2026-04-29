@@ -678,6 +678,7 @@ body.light .field select{
 }
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.school-entry-card{pointer-events:auto!important;}
 .page-scroll.active .page-inner{animation:fadeUp .3s ease;}
 
 
@@ -2796,18 +2797,12 @@ setInterval(updateLoginClock, 30000);
   </div>
 
   <!-- Dashboard Özet Kartları -->
-  <div id="cari-dash" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px;">
+  <div id="cari-dash" style="margin-bottom:12px;">
     <div class="dash-card">
       <div class="dash-card-glow" style="background:var(--blue);"></div>
       <div class="dash-card-icon">📒</div>
       <div class="dash-card-val" id="cd-toplam-cari">0</div>
       <div class="dash-card-label">Toplam Cari</div>
-    </div>
-    <div class="dash-card">
-      <div class="dash-card-glow" style="background:var(--amber);"></div>
-      <div class="dash-card-icon">⚖️</div>
-      <div class="dash-card-val" id="cd-net-bakiye">₺0</div>
-      <div class="dash-card-label">Net Bakiye</div>
     </div>
   </div>
 
@@ -2832,6 +2827,10 @@ setInterval(updateLoginClock, 30000);
       <div style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:12px;padding:13px;text-align:center;">
         <div style="font-size:10px;color:var(--red);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Toplam Verilen</div>
         <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--red);" id="cd-toplam-alacak">₺0</div>
+      </div>
+      <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:12px;padding:13px;text-align:center;grid-column:1/-1;">
+        <div style="font-size:10px;color:var(--amber);font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Net Bakiye</div>
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;" id="cd-net-bakiye">₺0</div>
       </div>
     </div>
   </div>
@@ -4235,6 +4234,7 @@ function enterSchool(key){
  if(typeof _pwVerified!=='undefined'&&!_pwVerified){document.getElementById('password-screen').style.display='flex';return;}
  _activeSchoolKey = key;
  students=[]; drivers=[]; routes=[]; nSid=1; nDid=1; payments={};
+ _gorevData = []; // Görevler okul bazlı — sıfırla
  // soforler ve soforPayments okul bağımsız — sıfırlanmaz
  window._incompatible=[];
  loadData(); loadPayments(); loadSoforData(); updateAll();
@@ -4257,6 +4257,9 @@ function enterSchool(key){
  document.getElementById('login-screen').style.display = 'none';
  document.getElementById('module-select-screen').style.display = 'flex';
  document.getElementById('app-wrapper').style.display = 'none';
+ // Okul kartlarını yeniden render et (animasyon state sıfırla)
+ window._schoolManageMode = false;
+ try{ renderLoginSchoolCards(); }catch(e){}
  // Modül kartlarını renklendir
  const color = SCHOOL_COLORS[key];
  _setText('ms-school-name', SCHOOL_ICONS[key] + ' ' + SCHOOL_NAMES[key]);
@@ -5158,7 +5161,7 @@ let _gorevFilter = 'all';
 let _gorevSearch = '';
 let _editingGorevId = null;
 
-const LS_GOREV = () => 'konseltur_gorev_v1_GLOBAL';
+const LS_GOREV = () => 'konseltur_gorev_v1_' + (_activeSchoolKey||'GLOBAL');
 
 function loadGorevData(){
   try{
@@ -5169,7 +5172,7 @@ function loadGorevData(){
   try{
     if(window._fbDb && window._fbRef && window._fbOnValue){
       if(window._fbGorevUnsub) try{ window._fbGorevUnsub(); }catch(_){}
-      const dbRef = window._fbRef(window._fbDb, 'konseltur/GLOBAL/gorev');
+      const dbRef = window._fbRef(window._fbDb, 'konseltur/' + (_activeSchoolKey||'GLOBAL') + '/gorev');
       window._fbGorevUnsub = window._fbOnValue(dbRef, snap=>{
         const val = snap.val();
         if(val && Array.isArray(val)){ _gorevData = val; }
@@ -5185,7 +5188,7 @@ function saveGorevData(){
   try{ localStorage.setItem(LS_GOREV(), JSON.stringify(_gorevData)); }catch(e){}
   try{
     if(window._fbDb && window._fbRef && window._fbSet){
-      window._fbSet(window._fbRef(window._fbDb, 'konseltur/GLOBAL/gorev'), _gorevData)
+      window._fbSet(window._fbRef(window._fbDb, 'konseltur/' + (_activeSchoolKey||'GLOBAL') + '/gorev'), _gorevData)
         .catch(e=>console.warn('Görev FB kayıt:', e));
     }
   }catch(e){}
@@ -5393,13 +5396,12 @@ function goToLogin(){
 }
 
 function goToModuleSelect(){
- // Eğer aktif okul yoksa (şoför direkt girişi), login'e git
- if(!_activeSchoolKey || _activeSchoolKey === SCHOOLS[0].key && currentApp==='sofor'){
-   // Şoför direkt girişinden geliyorsa login'e dön
- }
  // Uygulamadan modül seçimine dön
  document.getElementById('module-select-screen').style.display = 'flex';
  document.getElementById('app-wrapper').style.display = 'none';
+ // ÖNEMLİ: Okul kartlarını yeniden render et — animasyon state sıfırlanır, pointer-events düzelir
+ window._schoolManageMode = false;
+ try{ renderLoginSchoolCards(); }catch(e){}
 }
 
 function _updateStudentFilterChips(){
@@ -11827,25 +11829,10 @@ function renderCariListe(){
   wrap.innerHTML = html;
 }
 
-// SCHOOLS'dan okulları otomatik cari olarak ekle (yoksa)
+// Okul carilerini otomatik ekleme devre dışı
+// Her cari manuel olarak eklenip silinebilir
 function _ensureSchoolCaris(){
-  if(typeof SCHOOLS === 'undefined') return;
-  SCHOOLS.forEach(s=>{
-    const schoolCariId = 'school_' + s.key;
-    if(!_cariData[schoolCariId]){
-      _cariData[schoolCariId] = {
-        isim: s.short || s.name,
-        tur: 'firma',
-        servis: '',
-        plaka: '',
-        firma: s.name,
-        tel: '',
-        not: 'Ücret sisteminden otomatik eklendi',
-        hareketler: {},
-        _schoolKey: s.key
-      };
-    }
-  });
+  // Kasıtlı devre dışı bırakıldı — okullar artık cari oluşturmuyor
 }
 
 // Diğer alt menüsünü aç/kapat
@@ -12378,8 +12365,8 @@ function taseronAylikHesapla(){
       _cariData[id].hareketler[hid] = {
         tarih:      ay + '-01',
         aciklama:   ay.replace('-','/') + ' · ' + gun + ' gün × ' + yov.toLocaleString('tr-TR') + '₺',
-        borc:       toplam,
-        alacak:     0,
+        borc:       0,
+        alacak:     toplam,
         ts:         Date.now(),
         gunKey:     hareketKey,
         otomatik:   true
@@ -12698,15 +12685,15 @@ td{border-bottom:1px solid #f0f0f0;}
 <!-- ÖZET -->
 <div class="summary">
   <div class="sum-cell">
-    <div class="sum-val" style="color:#16a34a;">₺${calc.borc.toLocaleString('tr-TR')}</div>
+    <div class="sum-val" style="color:#16a34a;">₺${calc.borc.toLocaleString('tr-TR',{minimumFractionDigits:0,maximumFractionDigits:2})}</div>
     <div class="sum-lbl">Toplam Alınan</div>
   </div>
   <div class="sum-cell">
-    <div class="sum-val" style="color:#dc2626;">₺${calc.alacak.toLocaleString('tr-TR')}</div>
+    <div class="sum-val" style="color:#dc2626;">₺${calc.alacak.toLocaleString('tr-TR',{minimumFractionDigits:0,maximumFractionDigits:2})}</div>
     <div class="sum-lbl">Toplam Verilen</div>
   </div>
   <div class="sum-cell">
-    <div class="sum-val" style="color:${calc.bakiye>=0?'#16a34a':'#dc2626'};">₺${Math.abs(calc.bakiye).toLocaleString('tr-TR')}</div>
+    <div class="sum-val" style="color:${calc.bakiye>=0?'#16a34a':'#dc2626'};">₺${Math.abs(calc.bakiye).toLocaleString('tr-TR',{minimumFractionDigits:0,maximumFractionDigits:2})}</div>
     <div class="sum-lbl">Net Bakiye ${calc.bakiye>=0?'(Alacak)':'(Borç)'}</div>
   </div>
 </div>
