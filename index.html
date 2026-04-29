@@ -1407,7 +1407,7 @@ try{
 <div id="password-screen" style="display:flex;position:fixed;inset:0;z-index:9999;background:var(--bg);align-items:center;justify-content:center;overflow:hidden;">
   <!-- arka plan -->
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(200,55,26,.07) 0%,transparent 65%);pointer-events:none;"></div>
-  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 15%,rgba(200,55,26,.8) 50%,transparent 85%);"></div>
+  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 15%,rgba(200,55,26,.8) 50%,transparent 85%);pointer-events:none;"></div>
   <!-- ince grid doku -->
   <div style="position:absolute;inset:0;opacity:.03;background-image:linear-gradient(rgba(255,255,255,.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.5) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;"></div>
 
@@ -2140,7 +2140,7 @@ setInterval(updateLoginClock, 30000);
 <!-- OKUL SEÇİM EKRANI (Modüller için) -->
 <div id="module-select-screen" style="display:none;height:100vh;background:var(--bg);position:relative;overflow:hidden;">
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(200,55,26,.06) 0%,transparent 60%);pointer-events:none;"></div>
-  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(200,55,26,.8) 30%,rgba(200,55,26,.9) 50%,rgba(200,55,26,.8) 70%,transparent 100%);"></div>
+  <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(200,55,26,.8) 30%,rgba(200,55,26,.9) 50%,rgba(200,55,26,.8) 70%,transparent 100%);pointer-events:none;"></div>
 
   <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;">
     <div style="text-align:center;margin-bottom:40px;">
@@ -5416,12 +5416,7 @@ function goToLogin(){
 }
 
 function goToModuleSelect(){
- // Uygulamadan modül seçimine dön
- document.getElementById('module-select-screen').style.display = 'flex';
- document.getElementById('app-wrapper').style.display = 'none';
- // ÖNEMLİ: Okul kartlarını yeniden render et — animasyon state sıfırlanır, pointer-events düzelir
- window._schoolManageMode = false;
- try{ renderLoginSchoolCards(); }catch(e){}
+  _showModuleSelect();
 }
 
 function _updateStudentFilterChips(){
@@ -5619,21 +5614,26 @@ function goBack(){
 }
 
 function _showModuleSelect(){
-  const appWrapper = document.getElementById('app-wrapper');
-  const moduleScreen = document.getElementById('module-select-screen');
-  const loginScreen = document.getElementById('login-screen');
+  // TÜM ekranları gizle
+  const ids = ['app-wrapper','login-screen','module-select-screen'];
+  ids.forEach(function(id){
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+
   if(window._soforDirectEntry || window._cariDirectEntry){
-    if(appWrapper) appWrapper.style.display='none';
-    if(loginScreen){ loginScreen.style.display='flex'; }
     window._soforDirectEntry = false;
     window._cariDirectEntry = false;
+    const ls = document.getElementById('login-screen');
+    if(ls) ls.style.display = 'flex';
   } else {
-    if(appWrapper) appWrapper.style.display='none';
-    if(moduleScreen) moduleScreen.style.display='flex';
+    const ms = document.getElementById('module-select-screen');
+    if(ms) ms.style.display = 'flex';
   }
-  // HER ZAMAN okul kartlarını yeniden render et — tıklanabilirlik garantisi
+
+  // Okul kartlarını sıfırdan render et
   window._schoolManageMode = false;
-  try{ renderLoginSchoolCards(); }catch(e){}
+  try{ renderLoginSchoolCards(); }catch(e){ console.error('renderSchools err',e); }
 }
 
 function _updateRotaTabs(p){
@@ -8607,7 +8607,7 @@ function printUcretGenel(){
  <thead><tr><th>Öğrenci</th>${ayHeaders}<th style="text-align:right">Ödenen</th><th style="text-align:center">%</th></tr></thead>
  <tbody>${rows}</tbody>
  </table>
- <script>window.onload=function(){window.print();}<\/script>
+ <scr'+'ipt>window.onload=function(){window.print();}<\/script>
  </body></html>`);
  printWin.document.close();
 }
@@ -12418,7 +12418,7 @@ function deleteCari(id){
   if(!_cariData[id]) return;
   const cm=document.getElementById('confirm-modal');
   _setText('confirm-title','Cari Hesabı Sil');
-  _setText('confirm-msg','"'+(_cariData[id].isim||'')+'" cari hesabı ve tüm hareketleri silinecek. Son Silinenler'den geri alabilirsiniz.');
+  _setText('confirm-msg','"'+(_cariData[id].isim||'')+'" cari hesabı ve tüm hareketleri silinecek. Son Silinenlerden geri alabilirsiniz.');
   const okBtn=document.getElementById('confirm-ok-btn');
   okBtn.textContent='Evet, Sil';
   okBtn.onclick=function(){
@@ -12426,7 +12426,7 @@ function deleteCari(id){
     delete _cariData[id];
     _saveCariToStorage();
     cm.style.display='none';
-    showToast('Cari hesap silindi. <b>Geri Al</b> için Son Silinenler'i kontrol edin.','success');
+    showToast('Cari hesap silindi. <b>Geri Al</b> için Son Silinenlerden geri alabilirsiniz.','success');
     gotoC('cari-liste');
   };
   cm.style.display='flex';
