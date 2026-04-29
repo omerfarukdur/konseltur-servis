@@ -1135,7 +1135,8 @@ body.light .sd-ay-card{background:#f5f6f8;border-color:#e2e5ea;}
   overflow: hidden;
   position: relative;
   transition: border-color .2s, transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
-  animation: cardFadeUp .35s ease both;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 .school-entry-card:hover {
   transform: translateY(-3px);
@@ -1918,6 +1919,16 @@ function _addManagedListener(target, event, handler, options) {
           <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:Outfit,sans-serif;" id="login-basvuru-count">Başvuruları görüntüle ve yönet</div>
         </div>
       </button>
+      <!-- Son Silinenler -->
+      <button onclick="openTrashModal()" style="width:100%;background:#13171f;border:1px solid rgba(239,68,68,.15);border-radius:16px;padding:16px 20px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;margin-bottom:14px;" onmouseover="this.style.borderColor='rgba(239,68,68,.4)';this.style.background='#171c26'" onmouseout="this.style.borderColor='rgba(239,68,68,.15)';this.style.background='#13171f'">
+        <div style="width:38px;height:38px;flex-shrink:0;border-radius:11px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);display:flex;align-items:center;justify-content:center;font-size:18px;">🗑️</div>
+        <div style="flex:1;">
+          <div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:#fff;margin-bottom:2px;">Son Silinenler</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:Outfit,sans-serif;">Cari, öğrenci, şoför geri alma</div>
+        </div>
+        <div id="trash-badge" style="display:none;min-width:22px;height:22px;border-radius:11px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;align-items:center;justify-content:center;flex-shrink:0;padding:0 5px;">0</div>
+      </button>
+
       <div style="border-top:1px solid rgba(255,255,255,.05);padding-top:20px;">
         <div style="font-family:Outfit,sans-serif;font-size:10px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:14px;">SİSTEM</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
@@ -2259,6 +2270,15 @@ setInterval(updateLoginClock, 30000);
    onmouseover="this.style.background='rgba(255,255,255,.08)';this.style.color='rgba(255,255,255,.8)'" onmouseout="this.style.background='rgba(255,255,255,.03)';this.style.color='rgba(255,255,255,.45)'">
    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
    Geri
+ </button>
+
+ <!-- Son Silinenler -->
+ <button onclick="openTrashModal()" title="Son Silinenler" class="nav-action-btn"
+   style="border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#f87171;position:relative;"
+   onmouseover="this.style.background='rgba(239,68,68,.14)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">
+   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+   <span class="nav-btn-text">Geri Al</span>
+   <span id="trash-badge-nav" style="display:none;position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;align-items:center;justify-content:center;padding:0 3px;">0</span>
  </button>
  </div>
 
@@ -3894,7 +3914,7 @@ function renderLoginSchoolCards(){
  return `<div onclick="enterSchool('${escHtml(s.key)}')"
  data-school-key="${escHtml(s.key)}"
  class="school-entry-card"
- style="--card-bar-gradient:linear-gradient(180deg,${rgba('0')} 0%,${rgba('.9')} 40%,${rgba('.9')} 60%,${rgba('0')} 100%);animation-delay:${delay}ms;">
+ style="--card-bar-gradient:linear-gradient(180deg,${rgba('0')} 0%,${rgba('.9')} 40%,${rgba('.9')} 60%,${rgba('0')} 100%);">
  <div class="card-accent-bar"></div>
  <div class="card-inner">
  <div class="card-avatar" style="background:${rgba('.13')};border:1px solid ${rgba('.28')};color:${col};">
@@ -12176,7 +12196,15 @@ function deleteCariHareket(cariId,hareketId){
   _setText('confirm-msg','Bu hareket kalıcı olarak silinecek. Emin misiniz?');
   const okBtn=document.getElementById('confirm-ok-btn');
   okBtn.textContent='Evet, Sil';
-  okBtn.onclick=function(){ delete _cariData[cariId].hareketler[hareketId]; _saveCariToStorage(); cm.style.display='none'; showToast('Hareket silindi','success'); renderCariDetay(cariId); };
+  okBtn.onclick=function(){
+    const _hObj = _cariData[cariId]?.hareketler?.[hareketId];
+    if(_hObj) _trashAdd('hareket', hareketId, {..._hObj, _cariId: cariId});
+    delete _cariData[cariId].hareketler[hareketId];
+    _saveCariToStorage();
+    cm.style.display='none';
+    showToast('Hareket silindi','success');
+    renderCariDetay(cariId);
+  };
   cm.style.display='flex';
 }
 
@@ -12217,10 +12245,17 @@ function deleteCari(id){
   if(!_cariData[id]) return;
   const cm=document.getElementById('confirm-modal');
   _setText('confirm-title','Cari Hesabı Sil');
-  _setText('confirm-msg','"'+(_cariData[id].isim||'')+'" cari hesabı ve tüm hareketleri silinecek.');
+  _setText('confirm-msg','"'+(_cariData[id].isim||'')+'" cari hesabı ve tüm hareketleri silinecek. Son Silinenler'den geri alabilirsiniz.');
   const okBtn=document.getElementById('confirm-ok-btn');
   okBtn.textContent='Evet, Sil';
-  okBtn.onclick=function(){ delete _cariData[id]; _saveCariToStorage(); cm.style.display='none'; showToast('Cari hesap silindi','success'); gotoC('cari-liste'); };
+  okBtn.onclick=function(){
+    _trashAdd('cari', id, _cariData[id]);
+    delete _cariData[id];
+    _saveCariToStorage();
+    cm.style.display='none';
+    showToast('Cari hesap silindi. <b>Geri Al</b> için Son Silinenler'i kontrol edin.','success');
+    gotoC('cari-liste');
+  };
   cm.style.display='flex';
 }
 
@@ -12951,6 +12986,202 @@ function renderBasvuruListe(){
     </div>`).join('');
 }
 try{ _updateLoginBasvuruCount(); }catch(e){}
+</script>
+
+
+<!-- ════════════════════════════════════════
+     SON SİLİNENLER MODELİ
+     ════════════════════════════════════════ -->
+<div id="trash-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;" onclick="if(event.target===this)closeTrashModal()">
+  <div style="background:#0d1018;border:1px solid rgba(239,68,68,.15);border-radius:22px;width:620px;max-width:96vw;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 100px rgba(0,0,0,.85);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:34px;height:34px;border-radius:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);display:flex;align-items:center;justify-content:center;">🗑️</div>
+        <div>
+          <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:900;color:#fff;">Son Silinenler</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.3);">Son 30 silinen kayıt — geri alabilirsiniz</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="_trashClearAll()" style="padding:7px 12px;border-radius:9px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.07);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">Tümünü Sil</button>
+        <button onclick="closeTrashModal()" style="width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='rgba(255,255,255,.5)'">×</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:8px;">
+      <div id="trash-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="trash-empty" style="display:none;text-align:center;padding:50px 20px;color:rgba(255,255,255,.2);">
+        <div style="font-size:40px;margin-bottom:12px;">🗑️</div>
+        <div style="font-size:14px;font-weight:600;">Çöp kutusu boş</div>
+        <div style="font-size:12px;margin-top:6px;">Silinen kayıtlar burada görünür</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// SON SİLİNENLER (TRASH BIN) SİSTEMİ
+// ═══════════════════════════════════════════════════
+window._trash = [];
+const TRASH_MAX = 30; // Max 30 kayıt sakla
+
+function _trashAdd(type, id, data) {
+  window._trash.unshift({
+    type, id, data,
+    ts: Date.now(),
+    label: _trashLabel(type, data)
+  });
+  if (window._trash.length > TRASH_MAX) window._trash.pop();
+  _trashSave();
+  _trashUpdateBadge();
+}
+
+function _trashLabel(type, data) {
+  if (type === 'cari')    return data.isim || 'İsimsiz Cari';
+  if (type === 'hareket') return (data.aciklama || 'Hareket') + ' · ' + (data._cariId ? '' : '');
+  if (type === 'student') return data.name || 'İsimsiz Öğrenci';
+  if (type === 'driver')  return data.name || 'İsimsiz Şoför';
+  return 'Kayıt';
+}
+
+function _trashSave() {
+  try { localStorage.setItem('konseltur_trash_v1', JSON.stringify(window._trash)); } catch(e) {}
+}
+
+function _trashLoad() {
+  try {
+    const raw = localStorage.getItem('konseltur_trash_v1');
+    window._trash = raw ? JSON.parse(raw) : [];
+  } catch(e) { window._trash = []; }
+  _trashUpdateBadge();
+}
+
+function _trashUpdateBadge() {
+  const count = (window._trash || []).length;
+  // Login ekranı badge
+  const badge = document.getElementById('trash-badge');
+  if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
+  // Nav bar badge
+  const navBadge = document.getElementById('trash-badge-nav');
+  if (navBadge) { navBadge.textContent = count; navBadge.style.display = count > 0 ? 'flex' : 'none'; }
+}
+
+function openTrashModal() {
+  _trashLoad();
+  const modal = document.getElementById('trash-modal');
+  if (modal) { modal.style.cssText = 'display:flex!important;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;'; }
+  _trashRender();
+}
+
+function closeTrashModal() {
+  const modal = document.getElementById('trash-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function _trashTypeLabel(type) {
+  return {cari:'Cari', hareket:'Hareket', student:'Öğrenci', driver:'Şoför'}[type] || type;
+}
+function _trashTypeColor(type) {
+  return {cari:'#60a5fa', hareket:'#a78bfa', student:'#4ade80', driver:'#fb923c'}[type] || '#888';
+}
+function _trashTimeAgo(ts) {
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 60) return diff + ' sn önce';
+  if (diff < 3600) return Math.floor(diff/60) + ' dk önce';
+  if (diff < 86400) return Math.floor(diff/3600) + ' sa önce';
+  return Math.floor(diff/86400) + ' gün önce';
+}
+
+function _trashRender() {
+  const list = document.getElementById('trash-list');
+  const empty = document.getElementById('trash-empty');
+  if (!list) return;
+  const trash = window._trash || [];
+  if (!trash.length) {
+    list.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  list.innerHTML = trash.map((item, idx) => `
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:13px 16px;display:flex;align-items:center;gap:12px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='rgba(255,255,255,.03)'">
+      <div style="width:36px;height:36px;border-radius:9px;background:${_trashTypeColor(item.type)}22;border:1px solid ${_trashTypeColor(item.type)}44;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;">
+        ${{cari:'💳',hareket:'💸',student:'🎒',driver:'🚗'}[item.type]||'📄'}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.label}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">
+          <span style="padding:1px 7px;border-radius:6px;background:${_trashTypeColor(item.type)}18;color:${_trashTypeColor(item.type)};font-weight:700;font-size:10px;">${_trashTypeLabel(item.type)}</span>
+          &nbsp;${_trashTimeAgo(item.ts)}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button onclick="_trashRestore(${idx})" style="padding:7px 12px;border-radius:8px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.08);color:#34d399;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(52,211,153,.18)'" onmouseout="this.style.background='rgba(52,211,153,.08)'">↩ Geri Al</button>
+        <button onclick="_trashDelete(${idx})" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#f87171;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function _trashRestore(idx) {
+  const item = window._trash[idx];
+  if (!item) return;
+  let msg = '';
+  try {
+    if (item.type === 'cari') {
+      if (!_cariData) return;
+      _cariData[item.id] = item.data;
+      _saveCariToStorage();
+      msg = '"' + item.label + '" cari hesabı geri alındı';
+      if (typeof renderCariListe === 'function') renderCariListe();
+    } else if (item.type === 'hareket') {
+      const cariId = item.data._cariId;
+      if (!cariId || !_cariData || !_cariData[cariId]) { showToast('Cari hesap artık mevcut değil','error'); return; }
+      if (!_cariData[cariId].hareketler) _cariData[cariId].hareketler = {};
+      const {_cariId, ...hData} = item.data;
+      _cariData[cariId].hareketler[item.id] = hData;
+      _saveCariToStorage();
+      msg = 'Hareket geri alındı';
+      if (typeof renderCariDetay === 'function') renderCariDetay(cariId);
+    } else if (item.type === 'student') {
+      if (!students) return;
+      students.push(item.data);
+      if (typeof saveData === 'function') saveData();
+      if (typeof renderStudents === 'function') renderStudents();
+      msg = '"' + item.label + '" öğrenci geri alındı';
+    } else if (item.type === 'driver') {
+      if (!drivers) return;
+      drivers.push(item.data);
+      if (typeof saveData === 'function') saveData();
+      if (typeof renderDrivers === 'function') renderDrivers();
+      msg = '"' + item.label + '" şoför geri alındı';
+    }
+    window._trash.splice(idx, 1);
+    _trashSave();
+    _trashUpdateBadge();
+    _trashRender();
+    if (msg && typeof showToast === 'function') showToast('✅ ' + msg, 'success');
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Geri alma hatası: ' + e.message, 'error');
+  }
+}
+
+function _trashDelete(idx) {
+  window._trash.splice(idx, 1);
+  _trashSave();
+  _trashUpdateBadge();
+  _trashRender();
+}
+
+function _trashClearAll() {
+  if (!confirm('Tüm geçici kayıtları kalıcı olarak silmek istediğinize emin misiniz?')) return;
+  window._trash = [];
+  _trashSave();
+  _trashUpdateBadge();
+  _trashRender();
+}
+
+// Sayfa yüklenince trash yükle
+try { _trashLoad(); } catch(e) {}
 </script>
 
 </body>
