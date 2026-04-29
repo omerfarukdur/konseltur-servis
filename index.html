@@ -5623,17 +5623,17 @@ function _showModuleSelect(){
   const moduleScreen = document.getElementById('module-select-screen');
   const loginScreen = document.getElementById('login-screen');
   if(window._soforDirectEntry || window._cariDirectEntry){
-    // Şoför cüzdanı veya Cari direkt girişi — login'e dön
     if(appWrapper) appWrapper.style.display='none';
     if(loginScreen){ loginScreen.style.display='flex'; }
     window._soforDirectEntry = false;
     window._cariDirectEntry = false;
-    renderLoginSchoolCards();
   } else {
-    // Okul seçilerek girildi — modül seçimine dön
     if(appWrapper) appWrapper.style.display='none';
     if(moduleScreen) moduleScreen.style.display='flex';
   }
+  // HER ZAMAN okul kartlarını yeniden render et — tıklanabilirlik garantisi
+  window._schoolManageMode = false;
+  try{ renderLoginSchoolCards(); }catch(e){}
 }
 
 function _updateRotaTabs(p){
@@ -12225,6 +12225,179 @@ function _toggleCariBakiye(){
   }
 }
 
+// ═══════════════════════════════════════════════════
+// SON SİLİNENLER (TRASH BIN) SİSTEMİ
+// ═══════════════════════════════════════════════════
+window._trash = [];
+const TRASH_MAX = 30; // Max 30 kayıt sakla
+
+function _trashAdd(type, id, data) {
+  window._trash.unshift({
+    type, id, data,
+    ts: Date.now(),
+    label: _trashLabel(type, data)
+  });
+  if (window._trash.length > TRASH_MAX) window._trash.pop();
+  _trashSave();
+  _trashUpdateBadge();
+}
+
+function _trashLabel(type, data) {
+  if (type === 'cari')    return data.isim || 'İsimsiz Cari';
+  if (type === 'hareket') return (data.aciklama || 'Hareket') + ' · ' + (data._cariId ? '' : '');
+  if (type === 'student') return data.name || 'İsimsiz Öğrenci';
+  if (type === 'driver')  return data.name || 'İsimsiz Şoför';
+  return 'Kayıt';
+}
+
+function _trashSave() {
+  try { localStorage.setItem('konseltur_trash_v1', JSON.stringify(window._trash)); } catch(e) {}
+}
+
+function _trashLoad() {
+  try {
+    const raw = localStorage.getItem('konseltur_trash_v1');
+    window._trash = raw ? JSON.parse(raw) : [];
+  } catch(e) { window._trash = []; }
+  _trashUpdateBadge();
+}
+
+function _trashUpdateBadge() {
+  const count = (window._trash || []).length;
+  // Login ekranı badge
+  const badge = document.getElementById('trash-badge');
+  if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
+  // Nav bar badge
+  const navBadge = document.getElementById('trash-badge-nav');
+  if (navBadge) { navBadge.textContent = count; navBadge.style.display = count > 0 ? 'flex' : 'none'; }
+}
+
+function openTrashModal() {
+  _trashLoad();
+  const modal = document.getElementById('trash-modal');
+  if (modal) { modal.style.cssText = 'display:flex!important;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;'; }
+  _trashRender();
+}
+
+function closeTrashModal() {
+  const modal = document.getElementById('trash-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function _trashTypeLabel(type) {
+  return {cari:'Cari', hareket:'Hareket', student:'Öğrenci', driver:'Şoför'}[type] || type;
+}
+function _trashTypeColor(type) {
+  return {cari:'#60a5fa', hareket:'#a78bfa', student:'#4ade80', driver:'#fb923c'}[type] || '#888';
+}
+function _trashTimeAgo(ts) {
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 60) return diff + ' sn önce';
+  if (diff < 3600) return Math.floor(diff/60) + ' dk önce';
+  if (diff < 86400) return Math.floor(diff/3600) + ' sa önce';
+  return Math.floor(diff/86400) + ' gün önce';
+}
+
+function _trashRender() {
+  const list = document.getElementById('trash-list');
+  const empty = document.getElementById('trash-empty');
+  if (!list) return;
+  const trash = window._trash || [];
+  if (!trash.length) {
+    list.innerHTML = '';
+    list.style.display = 'none';
+    if (empty) { empty.style.display = 'flex'; }
+    return;
+  }
+  list.style.display = 'flex';
+  if (empty) empty.style.display = 'none';
+  const icons = {cari:'💳', hareket:'💸', student:'🎒', driver:'🚗'};
+  const labels = {cari:'Cari Hesap', hareket:'Hareket', student:'Öğrenci', driver:'Şoför'};
+  const colors = {cari:'59,130,246', hareket:'139,92,246', student:'34,197,94', driver:'251,146,60'};
+  list.innerHTML = trash.map((item, idx) => {
+    const c = colors[item.type] || '255,255,255';
+    const ago = _trashTimeAgo(item.ts);
+    return `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(${c},.15);border-left:3px solid rgba(${c},.5);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;transition:background .15s;" onmouseover="this.style.background='rgba(${c},.06)'" onmouseout="this.style.background='rgba(255,255,255,.03)'">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(${c},.12);border:1px solid rgba(${c},.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;">${icons[item.type]||'📄'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.label}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;background:rgba(${c},.15);color:rgba(${c},1);">${labels[item.type]||item.type}</span>
+          <span style="font-size:11px;color:rgba(255,255,255,.3);">${ago}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+        <button onclick="_trashRestore(${idx})" style="padding:9px 18px;border-radius:10px;border:1px solid rgba(52,211,153,.4);background:rgba(52,211,153,.12);color:#34d399;font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px;" onmouseover="this.style.background='rgba(52,211,153,.25)';this.style.transform='scale(1.02)'" onmouseout="this.style.background='rgba(52,211,153,.12)';this.style.transform='scale(1)'">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Geri Al
+        </button>
+        <button onclick="_trashDelete(${idx})" style="padding:6px 12px;border-radius:9px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:rgba(239,68,68,.7);font-size:11px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;text-align:center;" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">Kalıcı Sil</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _trashRestore(idx) {
+  const item = window._trash[idx];
+  if (!item) return;
+  let msg = '';
+  try {
+    if (item.type === 'cari') {
+      if (!_cariData) return;
+      _cariData[item.id] = item.data;
+      _saveCariToStorage();
+      msg = '"' + item.label + '" cari hesabı geri alındı';
+      if (typeof renderCariListe === 'function') renderCariListe();
+    } else if (item.type === 'hareket') {
+      const cariId = item.data._cariId;
+      if (!cariId || !_cariData || !_cariData[cariId]) { showToast('Cari hesap artık mevcut değil','error'); return; }
+      if (!_cariData[cariId].hareketler) _cariData[cariId].hareketler = {};
+      const {_cariId, ...hData} = item.data;
+      _cariData[cariId].hareketler[item.id] = hData;
+      _saveCariToStorage();
+      msg = 'Hareket geri alındı';
+      if (typeof renderCariDetay === 'function') renderCariDetay(cariId);
+    } else if (item.type === 'student') {
+      if (!students) return;
+      students.push(item.data);
+      if (typeof saveData === 'function') saveData();
+      if (typeof renderStudents === 'function') renderStudents();
+      msg = '"' + item.label + '" öğrenci geri alındı';
+    } else if (item.type === 'driver') {
+      if (!drivers) return;
+      drivers.push(item.data);
+      if (typeof saveData === 'function') saveData();
+      if (typeof renderDrivers === 'function') renderDrivers();
+      msg = '"' + item.label + '" şoför geri alındı';
+    }
+    window._trash.splice(idx, 1);
+    _trashSave();
+    _trashUpdateBadge();
+    _trashRender();
+    if (msg && typeof showToast === 'function') showToast('✅ ' + msg, 'success');
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Geri alma hatası: ' + e.message, 'error');
+  }
+}
+
+function _trashDelete(idx) {
+  window._trash.splice(idx, 1);
+  _trashSave();
+  _trashUpdateBadge();
+  _trashRender();
+}
+
+function _trashClearAll() {
+  if (!confirm('Tüm geçici kayıtları kalıcı olarak silmek istediğinize emin misiniz?')) return;
+  window._trash = [];
+  _trashSave();
+  _trashUpdateBadge();
+  _trashRender();
+}
+
+// Sayfa yüklenince trash yükle
+try { _trashLoad(); } catch(e) {}
+
 function _toggleBakiyeOzet(){
   const ozet = document.getElementById('cdet-bakiye-ozet');
   const chevron = document.getElementById('cdet-bakiye-chevron');
@@ -12993,196 +13166,34 @@ try{ _updateLoginBasvuruCount(); }catch(e){}
      SON SİLİNENLER MODELİ
      ════════════════════════════════════════ -->
 <div id="trash-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;" onclick="if(event.target===this)closeTrashModal()">
-  <div style="background:#0d1018;border:1px solid rgba(239,68,68,.15);border-radius:22px;width:620px;max-width:96vw;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 100px rgba(0,0,0,.85);">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:34px;height:34px;border-radius:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);display:flex;align-items:center;justify-content:center;">🗑️</div>
+  <div style="background:#0e1120;border:1px solid rgba(239,68,68,.2);border-radius:22px;width:680px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.9);">
+    
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;background:rgba(239,68,68,.04);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);display:flex;align-items:center;justify-content:center;font-size:18px;">🗑️</div>
         <div>
-          <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:900;color:#fff;">Son Silinenler</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.3);">Son 30 silinen kayıt — geri alabilirsiniz</div>
+          <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:900;color:#fff;">Son Silinenler</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:1px;">Son 30 silinen kayıt — dilediğinizi geri alabilirsiniz</div>
         </div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <button onclick="_trashClearAll()" style="padding:7px 12px;border-radius:9px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.07);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">Tümünü Sil</button>
-        <button onclick="closeTrashModal()" style="width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='rgba(255,255,255,.5)'">×</button>
+        <button onclick="_trashClearAll()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.2)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">Tümünü Temizle</button>
+        <button onclick="closeTrashModal()" style="width:36px;height:36px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all .15s;" onmouseover="this.style.color='#fff';this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.color='rgba(255,255,255,.5)';this.style.background='rgba(255,255,255,.04)'">×</button>
       </div>
     </div>
-    <div style="flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:8px;">
-      <div id="trash-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-      <div id="trash-empty" style="display:none;text-align:center;padding:50px 20px;color:rgba(255,255,255,.2);">
-        <div style="font-size:40px;margin-bottom:12px;">🗑️</div>
-        <div style="font-size:14px;font-weight:600;">Çöp kutusu boş</div>
-        <div style="font-size:12px;margin-top:6px;">Silinen kayıtlar burada görünür</div>
-      </div>
+
+    <!-- Liste -->
+    <div style="flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;" id="trash-list"></div>
+
+    <!-- Boş durum -->
+    <div id="trash-empty" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:rgba(255,255,255,.2);">
+      <div style="font-size:48px;margin-bottom:14px;">🗑️</div>
+      <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;">Çöp kutusu boş</div>
+      <div style="font-size:12px;margin-top:6px;">Silinen kayıtlar burada görünür</div>
     </div>
   </div>
 </div>
-
-<script>
-// ═══════════════════════════════════════════════════
-// SON SİLİNENLER (TRASH BIN) SİSTEMİ
-// ═══════════════════════════════════════════════════
-window._trash = [];
-const TRASH_MAX = 30; // Max 30 kayıt sakla
-
-function _trashAdd(type, id, data) {
-  window._trash.unshift({
-    type, id, data,
-    ts: Date.now(),
-    label: _trashLabel(type, data)
-  });
-  if (window._trash.length > TRASH_MAX) window._trash.pop();
-  _trashSave();
-  _trashUpdateBadge();
-}
-
-function _trashLabel(type, data) {
-  if (type === 'cari')    return data.isim || 'İsimsiz Cari';
-  if (type === 'hareket') return (data.aciklama || 'Hareket') + ' · ' + (data._cariId ? '' : '');
-  if (type === 'student') return data.name || 'İsimsiz Öğrenci';
-  if (type === 'driver')  return data.name || 'İsimsiz Şoför';
-  return 'Kayıt';
-}
-
-function _trashSave() {
-  try { localStorage.setItem('konseltur_trash_v1', JSON.stringify(window._trash)); } catch(e) {}
-}
-
-function _trashLoad() {
-  try {
-    const raw = localStorage.getItem('konseltur_trash_v1');
-    window._trash = raw ? JSON.parse(raw) : [];
-  } catch(e) { window._trash = []; }
-  _trashUpdateBadge();
-}
-
-function _trashUpdateBadge() {
-  const count = (window._trash || []).length;
-  // Login ekranı badge
-  const badge = document.getElementById('trash-badge');
-  if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
-  // Nav bar badge
-  const navBadge = document.getElementById('trash-badge-nav');
-  if (navBadge) { navBadge.textContent = count; navBadge.style.display = count > 0 ? 'flex' : 'none'; }
-}
-
-function openTrashModal() {
-  _trashLoad();
-  const modal = document.getElementById('trash-modal');
-  if (modal) { modal.style.cssText = 'display:flex!important;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;'; }
-  _trashRender();
-}
-
-function closeTrashModal() {
-  const modal = document.getElementById('trash-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-function _trashTypeLabel(type) {
-  return {cari:'Cari', hareket:'Hareket', student:'Öğrenci', driver:'Şoför'}[type] || type;
-}
-function _trashTypeColor(type) {
-  return {cari:'#60a5fa', hareket:'#a78bfa', student:'#4ade80', driver:'#fb923c'}[type] || '#888';
-}
-function _trashTimeAgo(ts) {
-  const diff = Math.floor((Date.now() - ts) / 1000);
-  if (diff < 60) return diff + ' sn önce';
-  if (diff < 3600) return Math.floor(diff/60) + ' dk önce';
-  if (diff < 86400) return Math.floor(diff/3600) + ' sa önce';
-  return Math.floor(diff/86400) + ' gün önce';
-}
-
-function _trashRender() {
-  const list = document.getElementById('trash-list');
-  const empty = document.getElementById('trash-empty');
-  if (!list) return;
-  const trash = window._trash || [];
-  if (!trash.length) {
-    list.innerHTML = '';
-    if (empty) empty.style.display = 'block';
-    return;
-  }
-  if (empty) empty.style.display = 'none';
-  list.innerHTML = trash.map((item, idx) => `
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:13px 16px;display:flex;align-items:center;gap:12px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='rgba(255,255,255,.03)'">
-      <div style="width:36px;height:36px;border-radius:9px;background:${_trashTypeColor(item.type)}22;border:1px solid ${_trashTypeColor(item.type)}44;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;">
-        ${{cari:'💳',hareket:'💸',student:'🎒',driver:'🚗'}[item.type]||'📄'}
-      </div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.label}</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">
-          <span style="padding:1px 7px;border-radius:6px;background:${_trashTypeColor(item.type)}18;color:${_trashTypeColor(item.type)};font-weight:700;font-size:10px;">${_trashTypeLabel(item.type)}</span>
-          &nbsp;${_trashTimeAgo(item.ts)}
-        </div>
-      </div>
-      <div style="display:flex;gap:6px;flex-shrink:0;">
-        <button onclick="_trashRestore(${idx})" style="padding:7px 12px;border-radius:8px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.08);color:#34d399;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(52,211,153,.18)'" onmouseout="this.style.background='rgba(52,211,153,.08)'">↩ Geri Al</button>
-        <button onclick="_trashDelete(${idx})" style="width:30px;height:30px;border-radius:8px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:#f87171;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;" onmouseover="this.style.background='rgba(239,68,68,.18)'" onmouseout="this.style.background='rgba(239,68,68,.06)'">×</button>
-      </div>
-    </div>`).join('');
-}
-
-function _trashRestore(idx) {
-  const item = window._trash[idx];
-  if (!item) return;
-  let msg = '';
-  try {
-    if (item.type === 'cari') {
-      if (!_cariData) return;
-      _cariData[item.id] = item.data;
-      _saveCariToStorage();
-      msg = '"' + item.label + '" cari hesabı geri alındı';
-      if (typeof renderCariListe === 'function') renderCariListe();
-    } else if (item.type === 'hareket') {
-      const cariId = item.data._cariId;
-      if (!cariId || !_cariData || !_cariData[cariId]) { showToast('Cari hesap artık mevcut değil','error'); return; }
-      if (!_cariData[cariId].hareketler) _cariData[cariId].hareketler = {};
-      const {_cariId, ...hData} = item.data;
-      _cariData[cariId].hareketler[item.id] = hData;
-      _saveCariToStorage();
-      msg = 'Hareket geri alındı';
-      if (typeof renderCariDetay === 'function') renderCariDetay(cariId);
-    } else if (item.type === 'student') {
-      if (!students) return;
-      students.push(item.data);
-      if (typeof saveData === 'function') saveData();
-      if (typeof renderStudents === 'function') renderStudents();
-      msg = '"' + item.label + '" öğrenci geri alındı';
-    } else if (item.type === 'driver') {
-      if (!drivers) return;
-      drivers.push(item.data);
-      if (typeof saveData === 'function') saveData();
-      if (typeof renderDrivers === 'function') renderDrivers();
-      msg = '"' + item.label + '" şoför geri alındı';
-    }
-    window._trash.splice(idx, 1);
-    _trashSave();
-    _trashUpdateBadge();
-    _trashRender();
-    if (msg && typeof showToast === 'function') showToast('✅ ' + msg, 'success');
-  } catch(e) {
-    if (typeof showToast === 'function') showToast('Geri alma hatası: ' + e.message, 'error');
-  }
-}
-
-function _trashDelete(idx) {
-  window._trash.splice(idx, 1);
-  _trashSave();
-  _trashUpdateBadge();
-  _trashRender();
-}
-
-function _trashClearAll() {
-  if (!confirm('Tüm geçici kayıtları kalıcı olarak silmek istediğinize emin misiniz?')) return;
-  window._trash = [];
-  _trashSave();
-  _trashUpdateBadge();
-  _trashRender();
-}
-
-// Sayfa yüklenince trash yükle
-try { _trashLoad(); } catch(e) {}
-</script>
 
 </body>
 </html>
