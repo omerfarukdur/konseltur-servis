@@ -5566,6 +5566,10 @@ function goBack(){
   if(p === 'dashboard'){
     _pageHistory = [];
     _updateBackBtn();
+    // Hangi modülden geldiğimizi hatırla — okul yeniden seçilince doğru modüle girilsin
+    if(typeof currentApp !== 'undefined' && currentApp && currentApp !== 'cari'){
+      window._pendingModule = currentApp; // 'rota' veya 'ucret'
+    }
     _showModuleSelect();
     return;
   }
@@ -5629,6 +5633,12 @@ function _showModuleSelect(){
   } else {
     const ms = document.getElementById('module-select-screen');
     if(ms) ms.style.display = 'flex';
+    // Modül etiketi güncelle
+    if(window._pendingModule){
+      const label = window._pendingModule === 'rota' ? 'Rota Yönetimi' : 'Öğrenci Ücret Yönetimi';
+      const el = document.getElementById('ms-module-name');
+      if(el) el.textContent = label;
+    }
   }
 
   // Okul kartlarını sıfırdan render et
