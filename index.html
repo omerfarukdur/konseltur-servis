@@ -9965,7 +9965,7 @@ function loadSoforData(){
   } catch(e){}
   // Firebase sync
   if(window._fbReady && window._fbDb){
-    const path = 'konseltur/' + (_activeSchoolKey||'GLOBAL') + '/sofor';
+    const path = 'konseltur/GLOBAL/sofor';
     window._fbOnValue(window._fbRef(window._fbDb, path), snap=>{
       const d = snap.val();
       if(d){
@@ -9985,7 +9985,7 @@ function saveSoforData(){
   try{ localStorage.setItem(LS_SOFOR(), JSON.stringify({soforler, nSid2})); }catch(e){}
   try{ localStorage.setItem(LS_SOFORPAY(), JSON.stringify(soforPayments)); }catch(e){}
   if(window._fbReady && _isOnline){
-    const path = 'konseltur/' + (_activeSchoolKey||'GLOBAL') + '/sofor';
+    const path = 'konseltur/GLOBAL/sofor';
     window._fbSet(window._fbRef(window._fbDb, path), payload)
       .then(()=>{ _clearPendingSofor&&_clearPendingSofor(); flashSaveDot(); })
       .catch(e=>{ console.warn('Şoför Firebase kayıt hatası:',e); _markPendingSofor&&_markPendingSofor(); toast('⚠️ Şoför verisi yerel olarak kaydedildi. Bağlantı gelince senkronize edilecek.','info'); });
