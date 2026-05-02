@@ -8581,9 +8581,7 @@ function printUcretGenel(){
 
  const ayHeaders = AYLAR.map(ay=>`<th style="font-size:10px;padding:2px 4px;">${ay.label.slice(0,3)}</th>`).join('');
 
- const printWin = window.open('','_blank','width=900,height=700');
-  if(!printWin){ toast('⚠️ PDF penceresi açılamadı. Popup engelleyicisini kapatın.','warning'); return; }
- printWin.document.write(`<!DOCTYPE html><html><head>
+ _showPdfOverlay(`<!DOCTYPE html><html><head>
  <meta charset="UTF-8">
  <title>Ücret Raporu — ${sName}</title>
  <style>
@@ -8604,17 +8602,15 @@ function printUcretGenel(){
  <h1>Ücret Raporu</h1>
  <div class="meta">${sName} · ${today} · ${totalS} öğrenci</div>
  <div class="stats">
- <div class="stat"><div class="stat-val" style="color:var(--green)">${paidC}</div><div class="stat-lbl">Güncel Ödeme</div></div>
- <div class="stat"><div class="stat-val" style="color:var(--red)">${unpaidC}</div><div class="stat-lbl">Bekleyen</div></div>
+ <div class="stat"><div class="stat-val" style="color:#22c55e">${paidC}</div><div class="stat-lbl">Güncel Ödeme</div></div>
+ <div class="stat"><div class="stat-val" style="color:#ef4444">${unpaidC}</div><div class="stat-lbl">Bekleyen</div></div>
  <div class="stat"><div class="stat-val" style="color:#8b5cf6">${totalA}</div><div class="stat-lbl">Toplam Tahsilat</div></div>
  </div>
  <table>
  <thead><tr><th>Öğrenci</th>${ayHeaders}<th style="text-align:right">Ödenen</th><th style="text-align:center">%</th></tr></thead>
  <tbody>${rows}</tbody>
  </table>
- <scr'+'ipt>window.onload=function(){window.print();}<\/script>
  </body></html>`);
- printWin.document.close();
 }
 
 function exportUcretExcel(){
@@ -9219,9 +9215,7 @@ function printDriverSheet(){
  });
  }
 
- const win = window.open('', '_blank', 'width=760,height=900');
-  if(!win){ toast('⚠️ PDF penceresi açılamadı. Popup engelleyicisini kapatın.','warning'); return; }
- win.document.write(`<!DOCTYPE html>
+ _showPdfOverlay(`<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -9321,9 +9315,6 @@ function printDriverSheet(){
 
 </body>
 </html>`);
- win.document.close();
- win.focus();
- setTimeout(()=>win.print(), 500);
 }
 
 // Rota kartlarına "Şoför Sayfası" butonu ekle — renderRoutes çağrıldıktan sonra inject et
@@ -12310,10 +12301,11 @@ function _showPdfOverlay(htmlContent) {
   overlay.appendChild(iframe);
   document.body.appendChild(overlay);
 
-  // İçeriği yaz
-  iframe.contentDocument.open();
-  iframe.contentDocument.write(htmlContent);
-  iframe.contentDocument.close();
+  // srcdoc ile yaz — contentDocument null sorununu önler (mobil dahil)
+  const blob = new Blob([htmlContent], {type:'text/html'});
+  const blobUrl = URL.createObjectURL(blob);
+  iframe.onload = function(){ URL.revokeObjectURL(blobUrl); };
+  iframe.src = blobUrl;
 }
 
 function openTrashModal() {
