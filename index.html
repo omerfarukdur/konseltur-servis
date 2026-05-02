@@ -8441,9 +8441,7 @@ function exportRotalarPDF(){
  </div>`;
  });
 
- const win = window.open('', '_blank', 'width=900,height=700');
-  if(!win){ toast('⚠️ PDF penceresi açılamadı. Popup engelleyicisini kapatın.','warning'); return; }
- win.document.write(`<!DOCTYPE html>
+ _showPdfOverlay(`<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -8501,9 +8499,6 @@ function exportRotalarPDF(){
 
 </body>
 </html>`);
- win.document.close();
- win.focus();
- setTimeout(()=>win.print(), 500);
 }
 
 
@@ -12282,10 +12277,52 @@ function _trashUpdateBadge() {
   if (navBadge) { navBadge.textContent = count; navBadge.style.display = count > 0 ? 'flex' : 'none'; }
 }
 
+// ─── PDF OVERLAY — window.open yerine uygulama içi tam ekran ───────────────
+function _showPdfOverlay(htmlContent) {
+  // Varsa eskiyi kaldır
+  const old = document.getElementById('pdf-overlay');
+  if (old) old.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'pdf-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999999;background:#1a1a2e;display:flex;flex-direction:column;';
+
+  // Üst toolbar
+  const toolbar = document.createElement('div');
+  toolbar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#111;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;';
+  toolbar.innerHTML = `
+    <button onclick="document.getElementById('pdf-overlay').remove()" style="display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Programa Dön
+    </button>
+    <span style="font-size:12px;color:rgba(255,255,255,.4);font-family:Outfit,sans-serif;">PDF Önizleme</span>
+    <button onclick="document.getElementById('pdf-iframe').contentWindow.print()" style="display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:10px;border:1px solid rgba(99,102,241,.4);background:rgba(99,102,241,.15);color:#a5b4fc;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Yazdır / PDF
+    </button>`;
+
+  // iframe
+  const iframe = document.createElement('iframe');
+  iframe.id = 'pdf-iframe';
+  iframe.style.cssText = 'flex:1;border:none;background:#fff;';
+
+  overlay.appendChild(toolbar);
+  overlay.appendChild(iframe);
+  document.body.appendChild(overlay);
+
+  // İçeriği yaz
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(htmlContent);
+  iframe.contentDocument.close();
+}
+
 function openTrashModal() {
   _trashLoad();
   const modal = document.getElementById('trash-modal');
-  if (modal) { modal.style.cssText = 'display:flex!important;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;'; }
+  if (modal) {
+    if (modal.parentNode !== document.body) document.body.appendChild(modal);
+    modal.style.cssText = 'display:flex!important;position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;';
+  }
   _trashRender();
 }
 
@@ -12583,8 +12620,8 @@ function taseronAylikHesapla(){
       _cariData[id].hareketler[hid] = {
         tarih:      ay + '-01',
         aciklama:   ay.replace('-','/') + ' · ' + gun + ' gün × ' + yov.toLocaleString('tr-TR') + '₺',
-        borc:       0,
-        alacak:     toplam,
+        borc:       toplam,
+        alacak:     0,
         ts:         Date.now(),
         gunKey:     hareketKey,
         otomatik:   true
@@ -12855,9 +12892,7 @@ function exportCariDetayPDF(){
     </tr>`;
   }).join('');
 
-  const win = window.open('','_blank','width=900,height=700');
-  if(!win){ toast('⚠️ PDF penceresi açılamadı. Lütfen tarayıcınızın popup engelleyicisini kapatın.','warning'); return; }
-  win.document.write(`<!DOCTYPE html>
+  _showPdfOverlay(`<!DOCTYPE html>
 <html lang="tr"><head>
 <meta charset="UTF-8">
 <title>${c.isim||'Cari'} — Hesap Ekstresi</title>
@@ -12933,9 +12968,6 @@ td{border-bottom:1px solid #f0f0f0;}
   <span>Bu belge sistem tarafından otomatik oluşturulmuştur.</span>
 </div>
 </body></html>`);
-  win.document.close();
-  win.focus();
-  setTimeout(()=>win.print(), 500);
 }
 
 
