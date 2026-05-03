@@ -5490,17 +5490,19 @@ function loadPayments(){
 
 function _loadPaymentsFromFirebase(){
  const path = 'konseltur/' + _activeSchoolKey + '/payments';
- const reqTime = Date.now();
- window._fbGet(window._fbRef(window._fbDb, path)).then(snapshot=>{
- if(_lastClearedAt >reqTime || _lastLocalSaveAt >reqTime){ return; }
+ // Gerçek zamanlı dinleme — tek seferlik get değil
+ window._fbOnValue(window._fbRef(window._fbDb, path), snapshot=>{
  if(!snapshot.exists()) return;
  const d = snapshot.val();
  if(d && typeof d==='object'){
  payments = d;
+ try{ localStorage.setItem(LS_PAY(), JSON.stringify(payments)); }catch(e){}
  renderUcretOgrenci();
+ _renderOverduePanel();
  if(currentApp==='ucret') renderUcretGenel();
+ if(currentApp==='sofor') renderSoforListe();
  }
- }).catch(e=>{ console.warn('Firebase ödeme yükleme hatası:', e); });
+ });
 }
 
 let _saveDotTimer=null;
@@ -7734,40 +7736,43 @@ function renderUcretGenel(){
  try {
 
  const el=id=>document.getElementById(id);
- const totalS=students.length;
+
+ // Sadece aktif okuldaki öğrencileri say — tüm okullar değil
+ const _ugSchIdx=getSchoolIdx(_activeSchoolKey);
+ const _ugSch=SCHOOLS[_ugSchIdx]; const _ugCol=SC[_ugSchIdx];
+ const schoolStudents=students.filter(x=>x.school===_ugSchIdx);
+
+ const totalS=schoolStudents.length;
  let paidCount=0, totalAmount=0, unpaidCount=0;
- students.forEach(s=>{
- const t=calcStudentTotals(s.id);
+ schoolStudents.forEach(s=>{
+ const aktifAylar=getAktifAylar(s);
+ const t=calcStudentTotalsForAylar(s.id, aktifAylar);
  totalAmount+=t.totalAmount;
- if(t.paidMonths===AYLAR.length) paidCount++;
- if(t.paidMonths<AYLAR.length) unpaidCount++;
+ if(aktifAylar.length>0 && t.paidMonths>=aktifAylar.length) paidCount++;
+ else unpaidCount++;
  });
  if(el('u-total-s')) el('u-total-s').textContent=totalS;
  if(el('u-paid-count')) el('u-paid-count').textContent=paidCount;
  if(el('u-unpaid-count')) el('u-unpaid-count').textContent=unpaidCount;
  if(el('u-total-amount')) el('u-total-amount').textContent='₺'+totalAmount.toLocaleString('tr-TR');
 
- const _ugSchIdx=getSchoolIdx(_activeSchoolKey);
  const sc=el('u-school-cards');
- const _ugSch=SCHOOLS[_ugSchIdx]; const _ugCol=SC[_ugSchIdx];
- const _ugSl=students.filter(x=>x.school===_ugSchIdx);
- let _ugAmt=0; _ugSl.forEach(x=>_ugAmt+=calcStudentTotals(x.id).totalAmount);
  if(sc) sc.innerHTML=`<div style="background:var(--card);border:1px solid ${_ugCol}22;border-top:3px solid ${_ugCol};border-radius:var(--radius);padding:16px;display:inline-block;min-width:200px;">
  <div style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">${_ugSch.short}</div>
- <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${_ugCol};">₺${_ugAmt.toLocaleString('tr-TR')}</div>
- <div style="font-size:10px;color:var(--muted2);margin-top:4px;">${_ugSl.length} öğrenci</div>
+ <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${_ugCol};">₺${totalAmount.toLocaleString('tr-TR')}</div>
+ <div style="font-size:10px;color:var(--muted2);margin-top:4px;">${totalS} öğrenci</div>
  </div>`;
 
  const mb=el('u-month-bars');
  if(mb){
  const maxAmt=Math.max(...AYLAR.map(a=>{
  let t=0;
- students.forEach(s=>{ const p=getStudentPayment(s.id); if(p[a.key]&&p[a.key].paid) t+=Number(p[a.key].amount||0); });
+ schoolStudents.forEach(s=>{ const p=getStudentPayment(s.id); if(p[a.key]&&p[a.key].paid) t+=Number(p[a.key].amount||0); });
  return t;
  }),1);
  mb.innerHTML=AYLAR.map(a=>{
  let monthAmt=0;
- students.forEach(s=>{ const p=getStudentPayment(s.id); if(p[a.key]&&p[a.key].paid) monthAmt+=Number(p[a.key].amount||0); });
+ schoolStudents.forEach(s=>{ const p=getStudentPayment(s.id); if(p[a.key]&&p[a.key].paid) monthAmt+=Number(p[a.key].amount||0); });
  const pct=Math.round(monthAmt/maxAmt*100);
  return`<div class="ay-bar-row">
  <div class="ay-bar-label">${a.label}</div>
