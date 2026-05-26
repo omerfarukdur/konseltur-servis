@@ -8160,7 +8160,15 @@ function renderUcretGenel(){
 
 function openPaymentModal(sid){
  _editingStudentId=sid;
- const s=students.find(x=>x.id===sid);
+ let s=students.find(x=>x.id===sid);
+ // students'ta yoksa sofor-ogrenci map'inden bak ve students'a ekle
+ if(!s){
+   const drvId = window._ucretActiveSoforId;
+   if(drvId){
+     const fromMap = _getSoforOgrenciListesi(drvId).find(o=>o.id===sid);
+     if(fromMap){ students.push(fromMap); s=fromMap; }
+   }
+ }
  if(!s)return;
  const p=getStudentPayment(sid);
  _setText('pm-title', s.name);
