@@ -1525,63 +1525,60 @@ function adminSwitchTab(tab){
   });
 }
 
-// Firebase REST API — kullanıcı listesi (Identity Toolkit)
+// Kullanıcı listesi — Firebase DB'deki konseltur/GLOBAL/users kaydından okur
 async function adminLoadUsers(){
   const listEl = document.getElementById('admin-user-list');
   const msgEl  = document.getElementById('admin-user-msg');
   if(!listEl) return;
   listEl.innerHTML = '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.2);font-size:13px;">Yükleniyor...</div>';
+  if(msgEl) msgEl.textContent = '';
 
   try {
     const user = window._fbAuth && window._fbAuth.currentUser;
-    if(!user){ listEl.innerHTML='<div style="color:var(--red);text-align:center;padding:20px;">Oturum bulunamadı.</div>'; return; }
-    const token = await user.getIdToken(true);
-    const apiKey = 'AIzaSyDYZhw_ETJhgu31A16QwMLHFfeB0IPF8vY';
-    const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key='+apiKey, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({idToken: token})
-    });
-    // Önce kendi bilgilerini göster, tüm kullanıcıları listelemek Admin SDK gerektirir
-    // Client tarafında sadece mevcut kullanıcı görülebilir, diğerleri Firebase'de admin gerektirir
-    // Firebase'de kullanıcıları konseltur/GLOBAL/users path'inde de tutuyoruz
-    const meData = await res.json();
-    const me = meData.users && meData.users[0];
-
-    // Firebase'deki kayıtlı kullanıcı listesini çek
-    const usersSnap = await window._fbGet(window._fbRef(window._fbDb, 'konseltur/GLOBAL/users'));
-    const usersDb = usersSnap.exists() ? (usersSnap.val()||{}) : {};
-
-    // Mevcut kullanıcıyı da kaydet
-    if(me && me.localId){
-      const existing = usersDb[me.localId];
-      if(!existing){
-        usersDb[me.localId] = { email: me.email, displayName: me.displayName||'', createdAt: me.createdAt||Date.now() };
-        await window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/users/'+me.localId), usersDb[me.localId]);
-      }
+    if(!user){
+      listEl.innerHTML='<div style="color:var(--red);text-align:center;padding:20px;font-size:13px;">Oturum bulunamadı. Lütfen yeniden giriş yapın.</div>';
+      return;
     }
 
+    // Mevcut kullanıcıyı DB'ye kaydet (ilk kez)
+    const meUid = user.uid;
+    const meRef = window._fbRef(window._fbDb, 'konseltur/GLOBAL/users/' + meUid);
+    const meSnap = await window._fbGet(meRef);
+    if(!meSnap.exists()){
+      await window._fbSet(meRef, {
+        email: user.email||'', displayName: user.displayName||'',
+        createdAt: Date.now()
+      });
+    }
+
+    // Tüm kullanıcı listesini çek
+    const usersSnap = await window._fbGet(window._fbRef(window._fbDb, 'konseltur/GLOBAL/users'));
+    const usersDb = usersSnap.exists() ? (usersSnap.val()||{}) : {};
     const entries = Object.entries(usersDb);
+
     if(!entries.length){
       listEl.innerHTML='<div style="text-align:center;padding:30px;color:rgba(255,255,255,.2);font-size:13px;">Henüz kayıtlı kullanıcı yok.</div>';
       return;
     }
 
-    const currentUid = me ? me.localId : null;
     listEl.innerHTML = entries.map(([uid, u])=>{
-      const isMe = uid === currentUid;
-      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid ${isMe?'rgba(139,92,246,.3)':'rgba(255,255,255,.06)'};border-radius:12px;">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:14px;font-weight:900;color:#a78bfa;flex-shrink:0;">${(u.email||'?').charAt(0).toUpperCase()}</div>
+      const isMe = uid === meUid;
+      const initial = (u.email||'?').charAt(0).toUpperCase();
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid ${isMe?'rgba(139,92,246,.3)':'rgba(255,255,255,.06)'};border-radius:12px;margin-bottom:6px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:15px;font-weight:900;color:#a78bfa;flex-shrink:0;">${initial}</div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.displayName||'—'} ${isMe?'<span style="font-size:9px;background:rgba(139,92,246,.2);color:#a78bfa;padding:1px 6px;border-radius:6px;font-weight:700;">SİZ</span>':''}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:1px;">${u.email||''}</div>
+          <div style="font-size:13px;font-weight:600;color:#fff;">${u.displayName||'İsimsiz'} ${isMe?'<span style="font-size:9px;background:rgba(139,92,246,.2);color:#a78bfa;padding:2px 7px;border-radius:6px;font-weight:700;margin-left:4px;">SİZ</span>':''}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px;">${u.email||''}</div>
         </div>
         ${!isMe?`<button onclick="adminDeleteUser('${uid}','${(u.email||'').replace(/'/g,"\'")}',this)"
-          style="flex-shrink:0;padding:5px 10px;border-radius:7px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;"
-          onmouseover="this.style.background='rgba(239,68,68,.2)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">Sil</button>`:''}
+          style="flex-shrink:0;padding:6px 12px;border-radius:7px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;"
+          onmouseover="this.style.background='rgba(239,68,68,.2)'" onmouseout="this.style.background='rgba(239,68,68,.08)'">🗑 Sil</button>`
+        :`<span style="font-size:10px;color:rgba(139,92,246,.6);padding:4px 8px;">Aktif</span>`}
       </div>`;
     }).join('');
   } catch(e){
-    listEl.innerHTML = `<div style="color:var(--red);text-align:center;padding:20px;font-size:12px;">Hata: ${e.message}</div>`;
+    console.error('adminLoadUsers hata:', e);
+    listEl.innerHTML = `<div style="color:var(--red);text-align:center;padding:20px;font-size:12px;">Hata: ${e.message||e}</div>`;
   }
 }
 
@@ -1738,13 +1735,33 @@ function _onLoginSuccess(){
   var _ls = document.getElementById('login-screen');
   var _ms = document.getElementById('module-select-screen');
   var _aw = document.getElementById('app-wrapper');
-  // Hangi ekran görünmeli? Hepsi kapalıysa login-screen'i aç
-  const anyVisible = (_ls && _ls.style.display !== 'none') ||
-                     (_ms && _ms.style.display !== 'none') ||
-                     (_aw && _aw.style.display !== 'none');
-  if(!anyVisible && _ls) _ls.style.display = 'flex';
   var errEl = document.getElementById('pw-error');
   if(errEl) errEl.textContent = '';
+
+  // Son sayfa kaydı varsa oraya dön
+  try {
+    const lastPageRaw = localStorage.getItem('_ks_lastPage');
+    if(lastPageRaw){
+      const lp = JSON.parse(lastPageRaw);
+      if(lp && lp.app){
+        // Uygulama içindeydi — app-wrapper'ı aç ve doğru uygulamaya yönlendir
+        if(_ls) _ls.style.display = 'none';
+        if(_ms) _ms.style.display = 'none';
+        if(_aw){ _aw.style.display = 'flex'; }
+        if(typeof switchApp === 'function') switchApp(lp.app);
+        if(lp.page && typeof gotoU === 'function' && lp.app === 'ucret') gotoU(lp.page);
+        else if(lp.page && typeof goto === 'function' && lp.app === 'rota') goto(lp.page);
+        return;
+      }
+    }
+  } catch(e){}
+
+  // Kayıt yoksa: hangi ekran görünüyor?
+  const anyVisible = (_ls && _ls.style.display !== 'none') ||
+                     (_ms && _ms.style.display !== 'none') ||
+                     (_aw && _aw.style.display !== 'none' && _aw.style.display !== '');
+  // Hiçbiri yoksa login-screen'i aç
+  if(!anyVisible && _ls) _ls.style.display = 'flex';
 }
 
 function checkPassword(){
