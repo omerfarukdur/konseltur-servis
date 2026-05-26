@@ -8919,7 +8919,7 @@ function exportSoforOgrenciExcel(){
     const aktifAylar = getAktifAylar(s);
     const ayOdemeleri = AYLAR.map(a => {
       if(!aktifAylar.find(x=>x.key===a.key)) return '—';
-      return (p[a.key] && p[a.key].paid) ? '✓ ₺'+(p[a.key].amount||0) : '✗';
+      return (p[a.key] && p[a.key].paid) ? '✓ ₺'+(p[a.key].amount||0) : '';
     });
     const t = calcStudentTotalsForAylar(s.id, aktifAylar);
     return [
@@ -8957,50 +8957,120 @@ function printSoforOgrenci(){
 
   let list = sogrList.map(o => students.find(s=>s.id===o.id) || o);
   if(_okulFil !== '' && _okulFil != null) list = list.filter(s => String(s.school||s._schIdx||0) === String(_okulFil));
-  if(_ayFil) list = list.filter(s => { const p=payments[s.id]||{}; return !p[_ayFil]; });
+  if(_ayFil) list = list.filter(s => { const p=payments[s.id]||{}; return !p[_ayFil] || !p[_ayFil].paid; });
 
   const tarih = new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
   const okulAdi = _okulFil !== '' && _okulFil != null ? (SCHOOLS[+_okulFil]||{}).name||'' : 'Tüm Okullar';
 
+  // Her öğrenci için tüm ay sütunları
+  const ayBasliklari = AYLAR.map(a => `<th>${a.label}</th>`).join('');
   const satirlar = list.map((s,i) => {
     const p = payments[s.id] || {};
     const aktifAylar = getAktifAylar(s);
-    const t = calcStudentTotalsForAylar(s.id, aktifAylar);
-    const odenmeyenAylar = aktifAylar.filter(a => !p[a.key] || !p[a.key].paid).map(a=>a.label).join(', ') || '—';
     const sch = SCHOOLS[s.school||s._schIdx||0] || {};
-    return `<tr style="border-bottom:1px solid #eee;">
-      <td style="padding:7px 8px;text-align:center;color:#888;">${i+1}</td>
-      <td style="padding:7px 8px;font-weight:600;">${s.name||''}</td>
-      <td style="padding:7px 8px;font-size:11px;color:#555;">${sch.short||''}</td>
-      <td style="padding:7px 8px;font-size:11px;color:#c00;">${odenmeyenAylar}</td>
-      <td style="padding:7px 8px;font-size:12px;font-weight:700;color:#1a7a3a;">₺${t.totalAmount.toLocaleString('tr-TR')}</td>
+    const t = calcStudentTotalsForAylar(s.id, aktifAylar);
+    const aySutunlari = AYLAR.map(a => {
+      if(!aktifAylar.find(x=>x.key===a.key)) return '<td style="background:#f5f5f5;"></td>';
+      const paid = p[a.key] && p[a.key].paid;
+      return paid
+        ? '<td style="text-align:center;color:#1a7a3a;font-weight:700;">✓</td>'
+        : '<td style="text-align:center;"></td>';
+    }).join('');
+    const zemin = i%2===0 ? '#fff' : '#f9f9f9';
+    return `<tr style="background:${zemin};">
+      <td style="text-align:center;color:#888;">${i+1}</td>
+      <td style="font-weight:600;">${s.name||''}</td>
+      <td style="color:#555;">${sch.short||''}</td>
+      ${aySutunlari}
+      <td style="text-align:right;font-weight:700;color:#1a7a3a;">₺${t.totalAmount.toLocaleString('tr-TR')}</td>
     </tr>`;
   }).join('');
 
   const html = `<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8">
-  <title>${soforAdi} — Öğrenci Ödeme Listesi</title>
+  <title>${soforAdi} — Ödeme Listesi</title>
   <style>
-    body{font-family:Arial,sans-serif;padding:20px;color:#222;font-size:13px;}
-    h2{margin:0 0 4px;font-size:18px;} .sub{color:#666;font-size:12px;margin-bottom:16px;}
-    table{width:100%;border-collapse:collapse;} th{background:#1B2B5E;color:#fff;padding:8px;font-size:12px;text-align:left;}
-    tr:nth-child(even){background:#f7f7f7;}
-    .footer{margin-top:20px;font-size:11px;color:#aaa;text-align:right;}
-    @media print{body{padding:10px;}}
-  </style></head><body>
-  <h2>🚌 ${soforAdi} — Öğrenci Ödeme Listesi</h2>
-  <div class="sub">${okulAdi} · Filtre: ${_ayLabel} · ${tarih} · Toplam ${list.length} öğrenci</div>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:Arial,sans-serif;font-size:10px;color:#111;background:#fff;padding:14mm 12mm;}
+    /* ANTET */
+    .antet{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1B2B5E;padding-bottom:8px;margin-bottom:8px;}
+    .antet-sol{display:flex;align-items:center;gap:10px;}
+    .antet-logo{font-family:Arial,sans-serif;font-size:20px;font-weight:900;color:#c8371a;letter-spacing:-1px;}
+    .antet-logo span{color:#1B2B5E;}
+    .antet-bilgi{font-size:9px;color:#555;line-height:1.5;}
+    .antet-bilgi strong{color:#1B2B5E;font-size:10px;}
+    .antet-sag{text-align:right;font-size:9px;color:#555;line-height:1.6;}
+    /* BAŞLIK */
+    .baslik{display:flex;justify-content:space-between;align-items:flex-end;margin:6px 0 8px;}
+    .baslik-sol h2{font-size:13px;color:#1B2B5E;font-weight:900;margin-bottom:2px;}
+    .baslik-sol p{font-size:9px;color:#777;}
+    .baslik-sag{font-size:9px;color:#555;text-align:right;line-height:1.6;}
+    /* TABLO */
+    table{width:100%;border-collapse:collapse;table-layout:fixed;}
+    th{background:#1B2B5E;color:#fff;padding:5px 4px;font-size:8.5px;text-align:center;border:1px solid #0f1f4a;}
+    th.ad{text-align:left;}
+    td{padding:4px 4px;font-size:9px;border:1px solid #ccc;vertical-align:middle;}
+    tr:nth-child(even) td{background:#f5f7fb;}
+    /* FOOTER */
+    .footer{margin-top:10px;display:flex;justify-content:space-between;font-size:8px;color:#aaa;border-top:1px solid #ddd;padding-top:6px;}
+    @media print{
+      body{padding:8mm 8mm;}
+      @page{size:A4 landscape;margin:8mm;}
+    }
+  </style>
+  </head><body>
+  <!-- ANTET -->
+  <div class="antet">
+    <div class="antet-sol">
+      <div class="antet-logo">KONSEL<span>TUR</span></div>
+      <div class="antet-bilgi">
+        <strong>Konseltur Taşımacılık</strong><br>
+        www.konseltur.com &nbsp;|&nbsp; Tel: 0332 235 55 30<br>
+        Konya
+      </div>
+    </div>
+    <div class="antet-sag">
+      Belge Tarihi: <strong>${tarih}</strong><br>
+      Şoför: <strong>${soforAdi}</strong><br>
+      Okul: <strong>${okulAdi}</strong>
+    </div>
+  </div>
+  <!-- BAŞLIK -->
+  <div class="baslik">
+    <div class="baslik-sol">
+      <h2>Öğrenci Ödeme Takip Listesi</h2>
+      <p>Filtre: ${_ayLabel} &nbsp;·&nbsp; Toplam ${list.length} öğrenci</p>
+    </div>
+    <div class="baslik-sag">
+      ✓ = Ödendi &nbsp;|&nbsp; Boş = Ödenmedi
+    </div>
+  </div>
+  <!-- TABLO -->
   <table>
-    <tr>
-      <th style="width:30px">#</th><th>Ad Soyad</th><th>Okul</th>
-      <th>Ödenmeyen Aylar</th><th>Toplam</th>
-    </tr>
-    ${satirlar}
+    <colgroup>
+      <col style="width:22px">
+      <col style="width:120px">
+      <col style="width:55px">
+      ${AYLAR.map(()=>'<col style="width:auto">').join('')}
+      <col style="width:52px">
+    </colgroup>
+    <thead><tr>
+      <th>#</th>
+      <th class="ad">Ad Soyad</th>
+      <th>Okul</th>
+      ${ayBasliklari}
+      <th>Toplam</th>
+    </tr></thead>
+    <tbody>${satirlar}</tbody>
   </table>
-  <div class="footer">Konseltur Taşımacılık · Konya — ${tarih}</div>
-  <script>window.onload=()=>window.print();<\/script>
+  <!-- FOOTER -->
+  <div class="footer">
+    <span>Konseltur Taşımacılık &copy; ${new Date().getFullYear()}</span>
+    <span>${tarih} tarihinde oluşturuldu</span>
+  </div>
+  <script>window.onload=()=>{ setTimeout(()=>window.print(),400); };<\/script>
   </body></html>`;
 
-  const w = window.open('','_blank','width=900,height=700');
+  const w = window.open('','_blank');
   if(w){ w.document.write(html); w.document.close(); }
 }
 
