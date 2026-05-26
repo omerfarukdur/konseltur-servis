@@ -1287,7 +1287,7 @@ body.light .pm-group-label { color: rgba(0,0,0,.3); border-bottom-color: rgba(0,
 <script type="module">
  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
  import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
- import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+ import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
  // ÖNEMLİ: Firebase Console → Realtime Database → Rules ayarlayın!
  const firebaseConfig = {
@@ -1313,6 +1313,7 @@ body.light .pm-group-label { color: rgba(0,0,0,.3); border-bottom-color: rgba(0,
  window._fbDb     = _fbDb;
  window._fbAuth   = _fbAuth;
  window._fbSignIn = (email, password) => signInWithEmailAndPassword(_fbAuth, email, password);
+  window._fbResetPassword = (email) => sendPasswordResetEmail(_fbAuth, email);
  window._fbSignOut = () => signOut(_fbAuth);
  window._fbReady  = true;
 
@@ -1462,6 +1463,16 @@ try{
         onmouseout="this.style.transform='none';this.style.boxShadow='0 6px 24px rgba(200,55,26,.35),inset 0 1px 0 rgba(255,255,255,.12)'">
         GİRİŞ YAP
       </button>
+
+      <!-- Şifremi Unuttum -->
+      <div style="text-align:center;margin-top:14px;">
+        <button onclick="forgotPassword()"
+          style="background:none;border:none;color:rgba(255,255,255,.35);font-size:12px;font-family:'Outfit',sans-serif;cursor:pointer;padding:4px 8px;border-radius:6px;transition:color .15s;"
+          onmouseover="this.style.color='rgba(200,55,26,.9)'"
+          onmouseout="this.style.color='rgba(255,255,255,.35)'">
+          Şifremi unuttum
+        </button>
+      </div>
     </div>
 
     <div style="text-align:center;margin-top:22px;font-size:11px;color:rgba(255,255,255,.2);letter-spacing:1.5px;">KONSELTUR TAŞIMACILIK · KONYA</div>
@@ -1475,6 +1486,49 @@ try{
 // Kullanıcıları Firebase Console → Authentication → Users bölümünden ekleyin.
 
 let _pwVerified = false;
+
+function forgotPassword(){
+  const email = (document.getElementById('pw-email').value||'').trim();
+  const errEl = document.getElementById('pw-error');
+  if(!email){
+    errEl.style.color='var(--amber)';
+    errEl.textContent='Lütfen önce e-posta adresinizi girin.';
+    document.getElementById('pw-email').focus();
+    setTimeout(()=>{ errEl.textContent=''; errEl.style.color='var(--red)'; },3000);
+    return;
+  }
+  if(!window._fbResetPassword){
+    errEl.style.color='var(--amber)';
+    errEl.textContent='Bağlantı kurulamadı, lütfen tekrar deneyin.';
+    return;
+  }
+  const btn = event.target;
+  btn.textContent='Gönderiliyor...';
+  btn.disabled=true;
+  window._fbResetPassword(email)
+    .then(()=>{
+      errEl.style.color='var(--green)';
+      errEl.textContent='✅ Şifre sıfırlama bağlantısı e-postanıza gönderildi.';
+      btn.textContent='Gönderildi ✓';
+      setTimeout(()=>{
+        errEl.textContent='';
+        errEl.style.color='var(--red)';
+        btn.textContent='Şifremi unuttum';
+        btn.disabled=false;
+      },5000);
+    })
+    .catch(err=>{
+      btn.textContent='Şifremi unuttum';
+      btn.disabled=false;
+      const msg = err.code==='auth/user-not-found'    ? 'Bu e-posta adresi kayıtlı değil.'
+                : err.code==='auth/invalid-email'     ? 'Geçersiz e-posta adresi.'
+                : err.code==='auth/too-many-requests' ? 'Çok fazla deneme. Lütfen bekleyin.'
+                : 'Bir hata oluştu: '+err.message;
+      errEl.style.color='var(--red)';
+      errEl.textContent=msg;
+      setTimeout(()=>{ errEl.textContent=''; },5000);
+    });
+}
 
 function _onLoginSuccess(){
   _pwVerified = true;
