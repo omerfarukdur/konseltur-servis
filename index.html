@@ -7668,8 +7668,24 @@ function renderUcretOgrenci(){
    const driverRoutes = routes.filter(r => r.driverId === drvId);
    const routeStudentIds = new Set(driverRoutes.flatMap(r => (r.students || []).map(st => st.id ?? st)));
 
-   // Sadece bu şoförün rotasındaki öğrenciler
-   let list = students.filter(s => routeStudentIds.has(s.id));
+   // Rotadaki öğrenciler + payments'ta olan ama henüz rotaya atanmamış öğrenciler
+   // (yeni eklenen öğrenciler rota ataması başarısız olsa bile görünsün)
+   const paymentStudentIds = new Set(
+     students.filter(s => payments[s.id] !== undefined).map(s => s.id)
+   );
+   const combinedIds = new Set([...routeStudentIds, ...paymentStudentIds]);
+   // Sadece şoföre ait olanlar: rotadakiler kesin şoföre ait;
+   // payments'takiler için şoför seçiliyse tüm payments'lıları göster (şoförsüz olanlar)
+   // Ama payments'ta herkes olabilir — sadece rotası olmayan YENİ eklenenleri ekle
+   // Güvenli yol: routeStudentIds + son 60sn içinde eklenenler
+   const now = Date.now();
+   const yeniEklenenIds = new Set(
+     students.filter(s => payments[s.id] !== undefined && !routeStudentIds.has(s.id) && s._addedAt && (now - s._addedAt) < 60000).map(s => s.id)
+   );
+   const allIds = new Set([...routeStudentIds, ...yeniEklenenIds]);
+
+   // Sadece bu şoförün rotasındaki + yeni eklenen öğrenciler
+   let list = students.filter(s => allIds.has(s.id));
 
    // Filtreler
    if(uFilter === 'unpaid') list = list.filter(s => calcStudentTotals(s.id).paidMonths < getAktifAylar(s).length);
@@ -9733,7 +9749,7 @@ function ucretYeniOgrenciEkle(){
   const newStudent = {
     id: newGlobalId, _origId: newOrigId, _schIdx: okulIdx, school: okulIdx,
     name: ad, ilce, mah, cls: sinif, kayitAy,
-    lat: null, lng: null, ph: ''
+    lat: null, lng: null, ph: '', _addedAt: Date.now()
   };
 
   students.push(newStudent);
@@ -9757,27 +9773,32 @@ function ucretYeniOgrenciEkle(){
   ['yeni-ogrenci-ad','yeni-ogrenci-ilce','yeni-ogrenci-mah','yeni-ogrenci-sinif'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
+
   // Öğrenciyi aktif şoförün ilk rotasına ekle
   const _drvId = window._ucretActiveSoforId;
+  let rotayaEklendi = false;
   if(_drvId){
     const _drvRoutes = routes.filter(r => r.driverId === _drvId);
     if(_drvRoutes.length > 0){
-      // İlk rotaya ekle
       const targetRoute = _drvRoutes[0];
       if(!targetRoute.students) targetRoute.students = [];
       targetRoute.students.push(newStudent);
-      // Rotayı da localStorage'a kaydet
-      const _schKey2 = (SCHOOLS[okulIdx]||SCHOOLS[0]).key;
+      rotayaEklendi = true;
+      // Rotanın ait olduğu okul schIdx'ini kullan (formdan seçilen okul değil!)
+      const routeSchIdx = targetRoute._schIdx !== undefined ? targetRoute._schIdx : (targetRoute.school || 0);
+      const _schKey2 = (SCHOOLS[routeSchIdx]||SCHOOLS[okulIdx]||SCHOOLS[0]).key;
       const rawMain2 = localStorage.getItem('konseltur_main_v2_' + _schKey2);
       try{
         const d2 = rawMain2 ? JSON.parse(rawMain2) : {students:[], routes:[], nSid:1};
-        // Rotaları da orijinal ID ile güncelle
-        const origRouteId = targetRoute._origId || targetRoute.id;
+        const origRouteId = targetRoute._origId !== undefined ? targetRoute._origId : targetRoute.id;
         const rIdx = (d2.routes||[]).findIndex(r=>r.id===origRouteId);
         if(rIdx >= 0){
           if(!d2.routes[rIdx].students) d2.routes[rIdx].students = [];
-          d2.routes[rIdx].students.push({id:newOrigId, name:ad, ilce, mah, cls:sinif, kayitAy, lat:null, lng:null, ph:''});
-          localStorage.setItem('konseltur_main_v2_' + _schKey2, JSON.stringify(d2));
+          const zatenVar = d2.routes[rIdx].students.some(st=>(st.id||st)===newOrigId);
+          if(!zatenVar){
+            d2.routes[rIdx].students.push({id:newOrigId, name:ad, ilce, mah, cls:sinif, kayitAy, lat:null, lng:null, ph:''});
+            localStorage.setItem('konseltur_main_v2_' + _schKey2, JSON.stringify(d2));
+          }
         }
       }catch(e){ console.error('Rota güncelleme hatası:',e); }
     }
@@ -9786,7 +9807,8 @@ function ucretYeniOgrenciEkle(){
   document.getElementById('ucret-add-modal').classList.remove('open');
   renderUcretOgrenci();
   renderUcretSoforList();
-  toast('✅ '+ad+' öğrenci olarak eklendi');
+  const mesaj = rotayaEklendi ? '✅ '+ad+' eklendi ve rotaya atandı' : '✅ '+ad+' ödeme listesine eklendi';
+  toast(mesaj);
 }
 
 function openUcretAddModal(){
