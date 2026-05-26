@@ -1317,14 +1317,22 @@ body.light .pm-group-label { color: rgba(0,0,0,.3); border-bottom-color: rgba(0,
  window._fbSignOut = () => signOut(_fbAuth);
  window._fbReady  = true;
 
- // Auth durum değişikliği — oturum kapanırsa şifre ekranına dön
+ // Auth durum değişikliği
+ let _authInitialized = false;
  onAuthStateChanged(_fbAuth, (user) => {
    window._fbUser = user || null;
-   if(!user){
-     // Oturum kapandı — şifre ekranını göster
+   if(!user && _authInitialized){
+     // Oturum gerçekten kapandı (ilk yüklenme değil) — şifre ekranına dön
      const ps = document.getElementById('password-screen');
      if(ps && ps.style.display === 'none'){
        if(typeof doLogout === 'function') doLogout();
+     }
+   }
+   if(!_authInitialized){
+     _authInitialized = true;
+     // İlk auth kontrolü: oturum varsa direkt giriş yap
+     if(user && typeof _onLoginSuccess === 'function'){
+       _onLoginSuccess();
      }
    }
    window.dispatchEvent(new CustomEvent('fb-auth-changed', { detail: { user } }));
@@ -1824,21 +1832,10 @@ function doLogout(){
   if(errEl) errEl.textContent = '';
 }
 
-// Sayfa yüklenince: Firebase Auth oturumu zaten açıksa direkt giriş yap
+// _checkRemembered: onAuthStateChanged halleder, burada sadece sync kontrol
 function _checkRemembered(){
-  // onAuthStateChanged zaten Firebase Auth persistence'ı halleder.
-  // Kullanıcı önceden giriş yaptıysa token otomatik restore edilir.
-  // Burada sadece Firebase'in hazır olmasını bekliyoruz.
-  if(window._fbAuth && window._fbAuth.currentUser){
-    _onLoginSuccess();
-    return;
-  }
-  // Firebase modülü asenkron — fb-auth-changed event'ini dinle
-  window.addEventListener('fb-auth-changed', function(e){
-    if(e.detail && e.detail.user){
-      _onLoginSuccess();
-    }
-  }, { once: true });
+  // onAuthStateChanged ilk tetiklenişinde oturum varsa _onLoginSuccess çağırıyor.
+  // Ek bir şey yapmaya gerek yok.
 }
 
 if(document.readyState === 'loading'){
