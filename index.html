@@ -3027,14 +3027,13 @@ setInterval(updateLoginClock, 30000);
     </div>
 
     <!-- Filtre + Arama + Sıralama -->
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
       <div class="filter-bar" style="margin:0;flex:1;min-width:200px;">
         <div class="filter-chip active" onclick="filterUcret('all',this)">Tümü</div>
         <div class="filter-chip" onclick="filterUcret('unpaid',this)" style="border-color:rgba(239,68,68,.3);color:var(--red);">Bekleyenler</div>
         <div class="filter-chip" onclick="filterUcret('paid',this)" style="border-color:rgba(34,197,94,.3);color:var(--green);">Tam Ödedi</div>
       </div>
       <div style="display:flex;gap:6px;">
-        <!-- Sıralama -->
         <button id="sort-btn-name" onclick="ucretSort('name')" title="Ada göre sırala"
           style="padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;display:flex;align-items:center;gap:5px;transition:.15s;">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
@@ -3046,7 +3045,38 @@ setInterval(updateLoginClock, 30000);
           Okul <span id="sort-arrow-okul"></span>
         </button>
       </div>
-      <input class="search-box" placeholder="Öğrenci ara..." oninput="searchUcret(this.value)" style="width:160px;" id="ucret-search-inp">
+      <input class="search-box" placeholder="Öğrenci ara..." oninput="searchUcret(this.value)" style="width:140px;" id="ucret-search-inp">
+    </div>
+
+    <!-- Ek Filtreler: Okul + Ay -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <select id="ucret-filter-okul" onchange="renderUcretOgrenci()"
+        style="padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:11px;font-family:Outfit,sans-serif;outline:none;cursor:pointer;">
+        <option value="">🏫 Tüm Okullar</option>
+      </select>
+      <select id="ucret-filter-ay" onchange="renderUcretOgrenci()"
+        style="padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:11px;font-family:Outfit,sans-serif;outline:none;cursor:pointer;">
+        <option value="">📅 Tüm Aylar</option>
+        <option value="eylul">Eylül</option><option value="ekim">Ekim</option>
+        <option value="kasim">Kasım</option><option value="aralik">Aralık</option>
+        <option value="ocak">Ocak</option><option value="subat">Şubat</option>
+        <option value="mart">Mart</option><option value="nisan">Nisan</option>
+        <option value="mayis">Mayıs</option><option value="haziran">Haziran</option>
+      </select>
+      <div style="margin-left:auto;display:flex;gap:6px;">
+        <button onclick="exportSoforOgrenciExcel()"
+          style="display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.07);color:var(--green);font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;"
+          onmouseover="this.style.background='rgba(34,197,94,.15)'" onmouseout="this.style.background='rgba(34,197,94,.07)'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          Excel
+        </button>
+        <button onclick="printSoforOgrenci()"
+          style="display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;border:1px solid rgba(59,130,246,.3);background:rgba(59,130,246,.07);color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;"
+          onmouseover="this.style.background='rgba(59,130,246,.15)'" onmouseout="this.style.background='rgba(59,130,246,.07)'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Yazdır
+        </button>
+      </div>
     </div>
 
     <div id="u-student-list"></div>
@@ -4832,11 +4862,9 @@ function ucretGoOgrenciler(soforId){
   const ov = document.getElementById('ucret-ogrenci-view');
   if(sv) sv.style.display = 'none';
   if(ov) ov.style.display = 'block';
-  // Şoför adını göster
   const drv = soforler.find(d => d.id === soforId);
   const nameEl = document.getElementById('ucret-sofor-adi');
   if(nameEl && drv) nameEl.textContent = '🚌 ' + drv.name;
-  // Sıralama sıfırla
   window._ucretSortKey = null; window._ucretSortDir = {};
   _updateSortBtns();
   uFilter = 'all';
@@ -4846,6 +4874,19 @@ function ucretGoOgrenciler(soforId){
   document.querySelectorAll('#page-ucret-ogrenci .filter-chip').forEach((c,i)=>{
     c.classList.toggle('active', i===0);
   });
+  // Okul filtresini doldur
+  const okulSel = document.getElementById('ucret-filter-okul');
+  if(okulSel){
+    okulSel.innerHTML = '<option value="">🏫 Tüm Okullar</option>';
+    SCHOOLS.forEach((s,i) => {
+      const opt = document.createElement('option');
+      opt.value = i; opt.textContent = s.short || s.name;
+      okulSel.appendChild(opt);
+    });
+    okulSel.value = '';
+  }
+  const aySel = document.getElementById('ucret-filter-ay');
+  if(aySel) aySel.value = '';
   renderUcretOgrenci();
 }
 
@@ -7987,6 +8028,17 @@ function renderUcretOgrenci(){
    if(uFilter === 'unpaid') list = list.filter(s => calcStudentTotals(s.id).paidMonths < getAktifAylar(s).length);
    if(uFilter === 'paid')   list = list.filter(s => { const t=calcStudentTotals(s.id); return t.paidMonths > 0 && t.paidMonths >= getAktifAylar(s).length; });
    if(uSearch) list = list.filter(s => s.name.toLowerCase().includes(uSearch));
+   // Okul filtresi
+   const _okulFil = (document.getElementById('ucret-filter-okul')||{}).value;
+   if(_okulFil !== '' && _okulFil != null) list = list.filter(s => String(s.school||s._schIdx||0) === String(_okulFil));
+   // Ay filtresi — o ay ödemesi yapılmamış olanlar
+   const _ayFil = (document.getElementById('ucret-filter-ay')||{}).value;
+   if(_ayFil){
+     list = list.filter(s => {
+       const p = payments[s.id] || {};
+       return !p[_ayFil]; // O ay ödenmemiş
+     });
+   }
 
    // Sıralama
    const _sortDir = window._ucretSortDir || {};
@@ -8818,6 +8870,124 @@ function exportRotalarPDF(){
 </html>`);
 }
 
+
+
+// ── Şoför Öğrenci Excel Döküm ──────────────────────────────
+function exportSoforOgrenciExcel(){
+  const drvId = window._ucretActiveSoforId;
+  const drv = soforler.find(d => d.id === drvId);
+  const soforAdi = drv ? drv.name : 'Sofor';
+  const sogrList = _getSoforOgrenciListesi(drvId);
+  if(!sogrList.length){ toast('Bu şoföre kayıtlı öğrenci yok','error'); return; }
+
+  // Aktif filtreyi uygula
+  const _okulFil = (document.getElementById('ucret-filter-okul')||{}).value;
+  const _ayFil   = (document.getElementById('ucret-filter-ay')||{}).value;
+  const _ayLabel = _ayFil ? (AYLAR.find(a=>a.key===_ayFil)||{label:_ayFil}).label : '';
+
+  let list = sogrList.map(o => students.find(s=>s.id===o.id) || o);
+  if(_okulFil !== '' && _okulFil != null) list = list.filter(s => String(s.school||s._schIdx||0) === String(_okulFil));
+  if(_ayFil) list = list.filter(s => { const p=payments[s.id]||{}; return !p[_ayFil]; });
+
+  toast('Excel hazırlanıyor...', 'info');
+
+  // Başlık
+  const aylar = AYLAR.map(a=>a.label);
+  const header = ['#','Ad Soyad','Okul','Sınıf','İlçe','Mahalle','Telefon','Kayıt Ayı', ...aylar, 'Toplam Ödenen'];
+
+  const rows = list.map((s,i) => {
+    const p = payments[s.id] || {};
+    const sch = SCHOOLS[s.school||s._schIdx||0] || {};
+    const aktifAylar = getAktifAylar(s);
+    const ayOdemeleri = AYLAR.map(a => {
+      if(!aktifAylar.find(x=>x.key===a.key)) return '—';
+      return p[a.key] ? '✓ ₺'+(p[a.key].amount||0) : '✗';
+    });
+    const t = calcStudentTotalsForAylar(s.id, aktifAylar);
+    return [
+      i+1, s.name||'', sch.short||sch.name||'', s.cls||'',
+      s.ilce||'', s.mah||'', s.ph||'',
+      s.kayitAy ? (AYLAR.find(a=>a.key===s.kayitAy)||{label:s.kayitAy}).label : 'Eylül',
+      ...ayOdemeleri,
+      '₺'+t.totalAmount.toLocaleString('tr-TR')
+    ];
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
+  ws['!cols'] = [
+    {wch:4},{wch:24},{wch:16},{wch:8},{wch:12},{wch:18},{wch:14},{wch:10},
+    ...AYLAR.map(()=>({wch:12})),{wch:14}
+  ];
+  const wb = XLSX.utils.book_new();
+  const sheetName = (soforAdi + (_ayLabel?' - '+_ayLabel:'')).slice(0,31);
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  const date = new Date().toLocaleDateString('tr-TR').replace(/\./g,'-');
+  XLSX.writeFile(wb, `odeme-${soforAdi.replace(/\s/g,'-')}-${date}.xlsx`);
+  toast('✅ Excel dökümü indirildi');
+}
+
+// ── Şoför Öğrenci Yazdır ──────────────────────────────────
+function printSoforOgrenci(){
+  const drvId = window._ucretActiveSoforId;
+  const drv = soforler.find(d => d.id === drvId);
+  const soforAdi = drv ? drv.name : '—';
+  const sogrList = _getSoforOgrenciListesi(drvId);
+  if(!sogrList.length){ toast('Bu şoföre kayıtlı öğrenci yok','error'); return; }
+
+  const _okulFil = (document.getElementById('ucret-filter-okul')||{}).value;
+  const _ayFil   = (document.getElementById('ucret-filter-ay')||{}).value;
+  const _ayLabel = _ayFil ? (AYLAR.find(a=>a.key===_ayFil)||{label:_ayFil}).label : 'Tüm Aylar';
+
+  let list = sogrList.map(o => students.find(s=>s.id===o.id) || o);
+  if(_okulFil !== '' && _okulFil != null) list = list.filter(s => String(s.school||s._schIdx||0) === String(_okulFil));
+  if(_ayFil) list = list.filter(s => { const p=payments[s.id]||{}; return !p[_ayFil]; });
+
+  const tarih = new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
+  const okulAdi = _okulFil !== '' && _okulFil != null ? (SCHOOLS[+_okulFil]||{}).name||'' : 'Tüm Okullar';
+
+  const satirlar = list.map((s,i) => {
+    const p = payments[s.id] || {};
+    const aktifAylar = getAktifAylar(s);
+    const t = calcStudentTotalsForAylar(s.id, aktifAylar);
+    const odenmeyenAylar = aktifAylar.filter(a => !p[a.key]).map(a=>a.label).join(', ') || '—';
+    const sch = SCHOOLS[s.school||s._schIdx||0] || {};
+    return `<tr style="border-bottom:1px solid #eee;">
+      <td style="padding:7px 8px;text-align:center;color:#888;">${i+1}</td>
+      <td style="padding:7px 8px;font-weight:600;">${s.name||''}</td>
+      <td style="padding:7px 8px;font-size:11px;color:#555;">${sch.short||''}</td>
+      <td style="padding:7px 8px;font-size:11px;">${s.cls||''}</td>
+      <td style="padding:7px 8px;font-size:11px;">${s.ilce||''} / ${s.mah||''}</td>
+      <td style="padding:7px 8px;font-size:11px;color:#c00;">${odenmeyenAylar}</td>
+      <td style="padding:7px 8px;font-size:12px;font-weight:700;color:#1a7a3a;">₺${t.totalAmount.toLocaleString('tr-TR')}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8">
+  <title>${soforAdi} — Öğrenci Ödeme Listesi</title>
+  <style>
+    body{font-family:Arial,sans-serif;padding:20px;color:#222;font-size:13px;}
+    h2{margin:0 0 4px;font-size:18px;} .sub{color:#666;font-size:12px;margin-bottom:16px;}
+    table{width:100%;border-collapse:collapse;} th{background:#1B2B5E;color:#fff;padding:8px;font-size:12px;text-align:left;}
+    tr:nth-child(even){background:#f7f7f7;}
+    .footer{margin-top:20px;font-size:11px;color:#aaa;text-align:right;}
+    @media print{body{padding:10px;}}
+  </style></head><body>
+  <h2>🚌 ${soforAdi} — Öğrenci Ödeme Listesi</h2>
+  <div class="sub">${okulAdi} · Filtre: ${_ayLabel} · ${tarih} · Toplam ${list.length} öğrenci</div>
+  <table>
+    <tr>
+      <th style="width:30px">#</th><th>Ad Soyad</th><th>Okul</th><th>Sınıf</th>
+      <th>Adres</th><th>Ödenmeyen Aylar</th><th>Toplam</th>
+    </tr>
+    ${satirlar}
+  </table>
+  <div class="footer">Konseltur Taşımacılık · Konya — ${tarih}</div>
+  <script>window.onload=()=>window.print();<\/script>
+  </body></html>`;
+
+  const w = window.open('','_blank','width=900,height=700');
+  if(w){ w.document.write(html); w.document.close(); }
+}
 
 function exportOgrenciExcel(){
  if(!students.length){ toast('Öğrenci bulunamadı','error'); return; }
