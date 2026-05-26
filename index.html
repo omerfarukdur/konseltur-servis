@@ -1729,16 +1729,14 @@ function _onLoginSuccess(){
   if(ps) ps.style.display = 'none';
   var errEl = document.getElementById('pw-error');
   if(errEl) errEl.textContent = '';
-  // Hiçbir ekran görünmüyorsa login-screen'i aç
+  // app-wrapper veya module-select açıksa onları göster, yoksa login-screen'i aç
   var _ls = document.getElementById('login-screen');
   var _ms = document.getElementById('module-select-screen');
   var _aw = document.getElementById('app-wrapper');
-  var anyVisible = (_ls && _ls.style.display !== 'none') ||
-                   (_ms && _ms.style.display !== 'none') ||
-                   (_aw && _aw.style.display !== 'none');
-  if(!anyVisible){
-    if(_ls){ _ls.style.display = 'flex'; }
-  }
+  if(_aw && _aw.style.display !== 'none') return; // uygulama zaten açık
+  if(_ms && _ms.style.display !== 'none') return; // okul seçim ekranı açık
+  // Hiçbiri açık değil — login-screen'i aç
+  if(_ls) _ls.style.display = 'flex';
 }
 
 function checkPassword(){
@@ -1756,8 +1754,14 @@ function checkPassword(){
   if(errEl) errEl.textContent = '';
   if(btn){ btn.disabled = true; btn.textContent = 'Giriş yapılıyor...'; }
 
-  // Firebase Auth hazır mı?
-  if(window._fbSignIn){
+  // Firebase hazır olana kadar bekle, sonra giriş yap
+  function _doSignIn(){
+    if(!window._fbSignIn){
+      if(errEl) errEl.textContent = 'Firebase bağlanıyor...';
+      setTimeout(_doSignIn, 300);
+      return;
+    }
+    if(errEl) errEl.textContent = '';
     window._fbSignIn(email, pw)
       .then(function(){
         if(btn){ btn.disabled = false; btn.textContent = 'GİRİŞ YAP'; }
@@ -1773,21 +1777,14 @@ function checkPassword(){
         } else if(err.code === 'auth/network-request-failed'){
           msg = 'İnternet bağlantısı yok';
         }
-        if(errEl) errEl.textContent = msg + (err.code ? ' ('+err.code+')' : '');
+        if(errEl) errEl.textContent = msg + ' (' + (err.code||'?') + ')';
         var inp = document.getElementById('pw-input');
         if(inp){ inp.value = ''; inp.focus(); }
         if(btn){ btn.disabled = false; btn.textContent = 'GİRİŞ YAP'; }
         console.error('Firebase Auth hatası:', err.code, err.message);
       });
-  } else {
-    // Firebase henüz yüklenmediyse bekle
-    if(errEl) errEl.textContent = 'Bağlanıyor, lütfen bekleyin...';
-    window.addEventListener('firebase-ready', function(){
-      if(btn){ btn.disabled = false; btn.textContent = 'GİRİŞ YAP'; }
-      if(errEl) errEl.textContent = '';
-      checkPassword();
-    }, { once: true });
   }
+  _doSignIn();
 }
 
 function doLogout(){
