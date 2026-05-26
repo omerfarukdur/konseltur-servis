@@ -8893,7 +8893,7 @@ function exportSoforOgrenciExcel(){
 
   // Başlık
   const aylar = AYLAR.map(a=>a.label);
-  const header = ['#','Ad Soyad','Okul','Sınıf','İlçe','Mahalle','Telefon','Kayıt Ayı', ...aylar, 'Toplam Ödenen'];
+  const header = ['#','Ad Soyad','Okul','Kayıt Ayı', ...aylar, 'Toplam Ödenen'];
 
   const rows = list.map((s,i) => {
     const p = payments[s.id] || {};
@@ -8905,8 +8905,7 @@ function exportSoforOgrenciExcel(){
     });
     const t = calcStudentTotalsForAylar(s.id, aktifAylar);
     return [
-      i+1, s.name||'', sch.short||sch.name||'', s.cls||'',
-      s.ilce||'', s.mah||'', s.ph||'',
+      i+1, s.name||'', sch.short||sch.name||'',
       s.kayitAy ? (AYLAR.find(a=>a.key===s.kayitAy)||{label:s.kayitAy}).label : 'Eylül',
       ...ayOdemeleri,
       '₺'+t.totalAmount.toLocaleString('tr-TR')
@@ -8915,7 +8914,7 @@ function exportSoforOgrenciExcel(){
 
   const ws = XLSX.utils.aoa_to_sheet([header, ...rows]);
   ws['!cols'] = [
-    {wch:4},{wch:24},{wch:16},{wch:8},{wch:12},{wch:18},{wch:14},{wch:10},
+    {wch:4},{wch:28},{wch:16},{wch:10},
     ...AYLAR.map(()=>({wch:12})),{wch:14}
   ];
   const wb = XLSX.utils.book_new();
@@ -8955,8 +8954,6 @@ function printSoforOgrenci(){
       <td style="padding:7px 8px;text-align:center;color:#888;">${i+1}</td>
       <td style="padding:7px 8px;font-weight:600;">${s.name||''}</td>
       <td style="padding:7px 8px;font-size:11px;color:#555;">${sch.short||''}</td>
-      <td style="padding:7px 8px;font-size:11px;">${s.cls||''}</td>
-      <td style="padding:7px 8px;font-size:11px;">${s.ilce||''} / ${s.mah||''}</td>
       <td style="padding:7px 8px;font-size:11px;color:#c00;">${odenmeyenAylar}</td>
       <td style="padding:7px 8px;font-size:12px;font-weight:700;color:#1a7a3a;">₺${t.totalAmount.toLocaleString('tr-TR')}</td>
     </tr>`;
@@ -8976,8 +8973,8 @@ function printSoforOgrenci(){
   <div class="sub">${okulAdi} · Filtre: ${_ayLabel} · ${tarih} · Toplam ${list.length} öğrenci</div>
   <table>
     <tr>
-      <th style="width:30px">#</th><th>Ad Soyad</th><th>Okul</th><th>Sınıf</th>
-      <th>Adres</th><th>Ödenmeyen Aylar</th><th>Toplam</th>
+      <th style="width:30px">#</th><th>Ad Soyad</th><th>Okul</th>
+      <th>Ödenmeyen Aylar</th><th>Toplam</th>
     </tr>
     ${satirlar}
   </table>
