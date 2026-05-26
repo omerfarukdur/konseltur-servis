@@ -1577,9 +1577,7 @@ async function adminLoadUsers(){
 }
 
 async function adminDeleteUser(uid, email, btn){
-  if(!confirm(email + ' kullanıcısını silmek istediğinize emin misiniz?
-
-Bu işlem geri alınamaz.')) return;
+  if(!confirm(email + ' kullanıcısını silmek istediğinize emin misiniz?\n\nBu işlem geri alınamaz.')) return;
   btn.textContent='Siliniyor...'; btn.disabled=true;
   const msgEl = document.getElementById('admin-user-msg');
   try {
