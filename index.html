@@ -1738,29 +1738,9 @@ function _onLoginSuccess(){
   var errEl = document.getElementById('pw-error');
   if(errEl) errEl.textContent = '';
 
-  // Son sayfa kaydı varsa oraya dön
-  try {
-    const lastPageRaw = localStorage.getItem('_ks_lastPage');
-    if(lastPageRaw){
-      const lp = JSON.parse(lastPageRaw);
-      if(lp && lp.app){
-        // Uygulama içindeydi — app-wrapper'ı aç ve doğru uygulamaya yönlendir
-        if(_ls) _ls.style.display = 'none';
-        if(_ms) _ms.style.display = 'none';
-        if(_aw){ _aw.style.display = 'flex'; }
-        if(typeof switchApp === 'function') switchApp(lp.app);
-        if(lp.page && typeof gotoU === 'function' && lp.app === 'ucret') gotoU(lp.page);
-        else if(lp.page && typeof goto === 'function' && lp.app === 'rota') goto(lp.page);
-        return;
-      }
-    }
-  } catch(e){}
-
-  // Kayıt yoksa: hangi ekran görünüyor?
   const anyVisible = (_ls && _ls.style.display !== 'none') ||
                      (_ms && _ms.style.display !== 'none') ||
-                     (_aw && _aw.style.display !== 'none' && _aw.style.display !== '');
-  // Hiçbiri yoksa login-screen'i aç
+                     (_aw && _aw.style.display !== 'none');
   if(!anyVisible && _ls) _ls.style.display = 'flex';
 }
 
@@ -1783,9 +1763,16 @@ function checkPassword(){
   if(window._fbSignIn){
     window._fbSignIn(email, pw)
       .then(function(){
-        _onLoginSuccess();
-        // "Hatırla" seçiliyse token Firebase tarafından otomatik saklanır (persistence)
         if(btn){ btn.disabled = false; btn.textContent = 'GİRİŞ YAP'; }
+        _onLoginSuccess();
+        // Hiçbir ekran açık değilse login-screen'e git
+        var _ls = document.getElementById('login-screen');
+        var _ms = document.getElementById('module-select-screen');
+        var _aw = document.getElementById('app-wrapper');
+        const anyVisible = (_ls && _ls.style.display !== 'none') ||
+                           (_ms && _ms.style.display !== 'none') ||
+                           (_aw && _aw.style.display !== 'none');
+        if(!anyVisible && _ls) _ls.style.display = 'flex';
       })
       .catch(function(err){
         var msg = 'Giriş başarısız';
