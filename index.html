@@ -1317,24 +1317,10 @@ body.light .pm-group-label { color: rgba(0,0,0,.3); border-bottom-color: rgba(0,
  window._fbSignOut = () => signOut(_fbAuth);
  window._fbReady  = true;
 
- // Auth durum değişikliği
- let _authInitialized = false;
+ // Auth durum değişikliği — sadece user bilgisini sakla ve event gönder
  onAuthStateChanged(_fbAuth, (user) => {
    window._fbUser = user || null;
-   if(!user && _authInitialized){
-     // Oturum gerçekten kapandı (ilk yüklenme değil) — şifre ekranına dön
-     const ps = document.getElementById('password-screen');
-     if(ps && ps.style.display === 'none'){
-       if(typeof doLogout === 'function') doLogout();
-     }
-   }
-   if(!_authInitialized){
-     _authInitialized = true;
-     // İlk auth kontrolü: oturum varsa direkt giriş yap
-     if(user && typeof _onLoginSuccess === 'function'){
-       _onLoginSuccess();
-     }
-   }
+   window._fbAuthReady = true;
    window.dispatchEvent(new CustomEvent('fb-auth-changed', { detail: { user } }));
  });
 
@@ -1739,17 +1725,20 @@ function forgotPassword(){
 
 function _onLoginSuccess(){
   _pwVerified = true;
-  document.getElementById('password-screen').style.display = 'none';
+  var ps = document.getElementById('password-screen');
+  if(ps) ps.style.display = 'none';
+  var errEl = document.getElementById('pw-error');
+  if(errEl) errEl.textContent = '';
+  // Hiçbir ekran görünmüyorsa login-screen'i aç
   var _ls = document.getElementById('login-screen');
   var _ms = document.getElementById('module-select-screen');
   var _aw = document.getElementById('app-wrapper');
-  var errEl = document.getElementById('pw-error');
-  if(errEl) errEl.textContent = '';
-
-  const anyVisible = (_ls && _ls.style.display !== 'none') ||
-                     (_ms && _ms.style.display !== 'none') ||
-                     (_aw && _aw.style.display !== 'none');
-  if(!anyVisible && _ls) _ls.style.display = 'flex';
+  var anyVisible = (_ls && _ls.style.display !== 'none') ||
+                   (_ms && _ms.style.display !== 'none') ||
+                   (_aw && _aw.style.display !== 'none');
+  if(!anyVisible){
+    if(_ls){ _ls.style.display = 'flex'; }
+  }
 }
 
 function checkPassword(){
@@ -1773,14 +1762,6 @@ function checkPassword(){
       .then(function(){
         if(btn){ btn.disabled = false; btn.textContent = 'GİRİŞ YAP'; }
         _onLoginSuccess();
-        // Hiçbir ekran açık değilse login-screen'e git
-        var _ls = document.getElementById('login-screen');
-        var _ms = document.getElementById('module-select-screen');
-        var _aw = document.getElementById('app-wrapper');
-        const anyVisible = (_ls && _ls.style.display !== 'none') ||
-                           (_ms && _ms.style.display !== 'none') ||
-                           (_aw && _aw.style.display !== 'none');
-        if(!anyVisible && _ls) _ls.style.display = 'flex';
       })
       .catch(function(err){
         var msg = 'Giriş başarısız';
@@ -1792,11 +1773,11 @@ function checkPassword(){
         } else if(err.code === 'auth/network-request-failed'){
           msg = 'İnternet bağlantısı yok';
         }
-        if(errEl) errEl.textContent = msg;
+        if(errEl) errEl.textContent = msg + (err.code ? ' ('+err.code+')' : '');
         var inp = document.getElementById('pw-input');
         if(inp){ inp.value = ''; inp.focus(); }
         if(btn){ btn.disabled = false; btn.textContent = 'GİRİŞ YAP'; }
-        console.warn('Firebase Auth hatası:', err.code);
+        console.error('Firebase Auth hatası:', err.code, err.message);
       });
   } else {
     // Firebase henüz yüklenmediyse bekle
@@ -1832,10 +1813,16 @@ function doLogout(){
   if(errEl) errEl.textContent = '';
 }
 
-// _checkRemembered: onAuthStateChanged halleder, burada sadece sync kontrol
+// Sayfa yüklenince oturum kontrolü
 function _checkRemembered(){
-  // onAuthStateChanged ilk tetiklenişinde oturum varsa _onLoginSuccess çağırıyor.
-  // Ek bir şey yapmaya gerek yok.
+  // fb-auth-changed event'ini dinle — Firebase oturumu async yüklenir
+  window.addEventListener('fb-auth-changed', function(e){
+    if(e.detail && e.detail.user){
+      // Aktif oturum var — direkt giriş yap
+      _onLoginSuccess();
+    }
+    // Oturum yoksa şifre ekranında kal (zaten açık)
+  }, { once: true });
 }
 
 if(document.readyState === 'loading'){
