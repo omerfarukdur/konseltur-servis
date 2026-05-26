@@ -8919,7 +8919,7 @@ function exportSoforOgrenciExcel(){
     const aktifAylar = getAktifAylar(s);
     const ayOdemeleri = AYLAR.map(a => {
       if(!aktifAylar.find(x=>x.key===a.key)) return '—';
-      return p[a.key] ? '✓ ₺'+(p[a.key].amount||0) : '✗';
+      return (p[a.key] && p[a.key].paid) ? '✓ ₺'+(p[a.key].amount||0) : '✗';
     });
     const t = calcStudentTotalsForAylar(s.id, aktifAylar);
     return [
