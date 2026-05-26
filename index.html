@@ -8080,6 +8080,11 @@ function renderUcretOgrenci(){
            <div style="font-size:10px;color:var(--muted2);">${t.totalAmount>0?'₺'+t.totalAmount.toLocaleString('tr-TR'):''}</div>
          </div>
        </div>
+       <button onclick="event.stopPropagation();soforOgrenciSil(${s.id})"
+         style="flex-shrink:0;margin-left:6px;width:30px;height:30px;border-radius:8px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.07);color:#f87171;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.15s;"
+         onmouseover="this.style.background='rgba(239,68,68,.2)';this.style.borderColor='rgba(239,68,68,.5)'"
+         onmouseout="this.style.background='rgba(239,68,68,.07)';this.style.borderColor='rgba(239,68,68,.25)'"
+         title="Listeden kaldır">×</button>
      </div>`;
    }).join('');
 
@@ -10423,6 +10428,42 @@ function ucretManualAdd(sid){
  toast('✅ ' + (s?s.name:'Öğrenci') + ' ücret listesine eklendi');
 }
 
+
+function soforOgrenciSil(sid){
+  const _s = students.find(x=>x.id===sid);
+  const ad = _s ? _s.name : 'Bu öğrenci';
+  if(!confirm(ad + ' öğrencisini bu şoförün listesinden kaldırmak istiyor musunuz?\n\nÖdeme kayıtları silinecek.')) return;
+  const drvId = window._ucretActiveSoforId;
+  // Sofor-ogrenci map'inden kaldır
+  if(drvId){
+    const liste = _getSoforOgrenciListesi(drvId).filter(o => o.id !== sid);
+    _setSoforOgrenci(drvId, liste);
+  }
+  // Payments'tan kaldır
+  delete payments[sid];
+  _saveAllSchoolsFromUcret();
+  // Firebase payments güncelle
+  if(window._fbReady && _isOnline){
+    const s = students.find(x=>x.id===sid);
+    if(s){
+      const schIdx = s._schIdx !== undefined ? s._schIdx : (s.school||0);
+      const schKey = (SCHOOLS[schIdx]||SCHOOLS[0]).key;
+      const ID_OFFSET = schIdx * 100000;
+      const schPay = {};
+      students.filter(st=>(st._schIdx===schIdx||st.school===schIdx)).forEach(st=>{
+        if(payments[st.id] !== undefined){
+          const origId = st._origId !== undefined ? st._origId : (st.id - ID_OFFSET);
+          schPay[origId] = payments[st.id];
+        }
+      });
+      window._fbSet(window._fbRef(window._fbDb,'konseltur/'+schKey+'/payments'), schPay).catch(e=>console.warn(e));
+    }
+  }
+  renderUcretOgrenci();
+  renderUcretSoforList();
+  if(typeof showToast==='function') showToast(ad+' listeden kaldırıldı','success');
+  else toast('✅ '+ad+' listeden kaldırıldı');
+}
 
 function ucretManualRemove(sid){
  const s = students.find(x=>x.id===sid);
