@@ -4486,32 +4486,46 @@ function _loadAllSchoolsForUcret(){
 
 // Tüm öğrenci verilerini okullara göre geri kaydet
 function _saveAllSchoolsFromUcret(){
-  // ID_OFFSET sistemi: global ID - offset = orijinal ID
   SCHOOLS.forEach((sch, schIdx) => {
     const ID_OFFSET = schIdx * 100000;
     const schStudents = students.filter(s => s._schIdx === schIdx || s.school === schIdx);
-    // Payments: global ID → orijinal ID ile kaydet
+    // Payments: global ID -> orijinal ID ile kaydet
+    // NOT: payments[id] === {} (bos obje) de kaydedilmeli — undefined kontrolu yap
     const schPayments = {};
     schStudents.forEach(s => {
       const globalId = s.id;
       const origId = s._origId !== undefined ? s._origId : (globalId - ID_OFFSET);
-      if(payments[globalId]) schPayments[origId] = payments[globalId];
+      if(payments[globalId] !== undefined) schPayments[origId] = payments[globalId];
     });
     try{ localStorage.setItem('konseltur_pay_v2_' + sch.key, JSON.stringify(schPayments)); } catch(e){}
-    // Öğrenci verisini de kaydet (kayitAy için) — orijinal ID ile
+    // Ogrenci verisini de kaydet — hem guncelle hem yeni eklenenleri push et
     const rawMain = localStorage.getItem('konseltur_main_v2_' + sch.key);
-    if(rawMain){
-      try{
-        const d = JSON.parse(rawMain);
-        d.students = (d.students||[]).map(st => {
-          // Orijinal ID'ye göre updated öğrenci bul
-          const origId = st.id;
-          const updated = schStudents.find(s => (s._origId === origId) || (s.id - ID_OFFSET === origId));
-          return updated ? {...st, kayitAy: updated.kayitAy || st.kayitAy} : st;
-        });
-        localStorage.setItem('konseltur_main_v2_' + sch.key, JSON.stringify(d));
-      } catch(e){}
-    }
+    try{
+      const d = rawMain ? JSON.parse(rawMain) : {students:[], routes:[], nSid:1};
+      if(!d.students) d.students = [];
+      // Mevcut ogrencileri guncelle
+      const existingOrigIds = new Set(d.students.map(st => st.id));
+      d.students = d.students.map(st => {
+        const origId = st.id;
+        const updated = schStudents.find(s => (s._origId === origId) || (s.id - ID_OFFSET === origId));
+        return updated ? {...st, kayitAy: updated.kayitAy || st.kayitAy} : st;
+      });
+      // Yeni eklenen ogrencileri push et (localStorage'da henuz yoksa)
+      schStudents.forEach(s => {
+        const origId = s._origId !== undefined ? s._origId : (s.id - ID_OFFSET);
+        if(!existingOrigIds.has(origId)){
+          d.students.push({
+            id: origId, name: s.name, ilce: s.ilce||'', mah: s.mah||'',
+            cls: s.cls||'', kayitAy: s.kayitAy||'', lat: s.lat||null, lng: s.lng||null, ph: s.ph||''
+          });
+        }
+      });
+      if(schStudents.length > 0){
+        const maxOrigId = Math.max(...schStudents.map(s => s._origId||0));
+        d.nSid = Math.max(d.nSid||1, maxOrigId + 1);
+      }
+      localStorage.setItem('konseltur_main_v2_' + sch.key, JSON.stringify(d));
+    } catch(e){ console.error('_saveAllSchoolsFromUcret hata:', e); }
   });
 }
 
@@ -9756,18 +9770,8 @@ function ucretYeniOgrenciEkle(){
   payments[newGlobalId] = {};
   nSid = Math.max(nSid, newGlobalId + 1);
 
-  // LocalStorage'a kaydet (öğrenci + payment birlikte)
+  // LocalStorage'a kaydet — _saveAllSchoolsFromUcret hem ogrenciyi hem payment'i kaydeder
   _saveAllSchoolsFromUcret();
-  // Öğrenciyi de okul localStorage'ına kaydet
-  const schKey = (SCHOOLS[okulIdx]||SCHOOLS[0]).key;
-  const rawMain = localStorage.getItem('konseltur_main_v2_' + schKey);
-  try{
-    const d = rawMain ? JSON.parse(rawMain) : {students:[], routes:[], nSid:1};
-    if(!d.students) d.students = [];
-    d.students.push({id:newOrigId, name:ad, ilce, mah, cls:sinif, kayitAy, lat:null, lng:null, ph:''});
-    d.nSid = Math.max(d.nSid||1, newOrigId+1);
-    localStorage.setItem('konseltur_main_v2_' + schKey, JSON.stringify(d));
-  }catch(e){ console.error('Öğrenci kayıt hatası:',e); }
 
   // Formu temizle
   ['yeni-ogrenci-ad','yeni-ogrenci-ilce','yeni-ogrenci-mah','yeni-ogrenci-sinif'].forEach(id=>{
