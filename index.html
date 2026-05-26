@@ -4423,6 +4423,8 @@ function showSoforSelectForUcret(){
   loadSoforData();
   // Tüm okulların students/routes/payments verilerini çek
   _loadAllSchoolsForUcret();
+  // Şoför-öğrenci direkt bağlantılarını yükle
+  _loadSoforOgrenciler();
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('module-select-screen').style.display = 'none';
   document.getElementById('app-wrapper').style.display = 'flex';
@@ -4594,19 +4596,18 @@ function renderUcretSoforList(){
   wrap.innerHTML = kadroSoforler.map(drv => {
     // Bu şoförün rotaları
     // soforler[].id !== routes[].driverId — driverRef uzerinden eslestir
-    const drvRoutes = routes.filter(r => r._soforId === drv.id);
-    const studentIds = new Set(drvRoutes.flatMap(r => (r.students || []).map(st => st.id ?? st)));
-    const total = studentIds.size; // rotadaki tüm öğrenciler
-    // Ödemeler özeti - payments kaydı olanlar
+    // Şoför-öğrenci direkt bağlantı sistemi
+    const _sogrL = _getSoforOgrenciListesi(drv.id);
+    const total = _sogrL.length;
     let paidCount = 0, bekleyenCount = 0;
-    studentIds.forEach(id => {
-      if(payments[id] === undefined) return; // payments kaydı yok, say değil
-      const s = students.find(st => st.id === id);
-      const aktifAylar = s ? getAktifAylar(s) : AYLAR;
-      const t = calcStudentTotalsForAylar(id, aktifAylar);
+    _sogrL.forEach(o => {
+      const s = students.find(st => st.id === o.id) || o;
+      const aktifAylar = getAktifAylar(s);
+      const t = calcStudentTotalsForAylar(o.id, aktifAylar);
       if(t.paidMonths >= aktifAylar.length && aktifAylar.length > 0) paidCount++;
       else bekleyenCount++;
     });
+    const drvRoutes = routes.filter(r => r._soforId === drv.id);
     const col = drv.color || 'var(--brand)';
     const colMap = {'var(--brand)':'#c8371a','var(--green)':'#22c55e','var(--blue)':'#3b82f6','var(--purple)':'#8b5cf6','var(--amber)':'#f59e0b'};
     const hexCol = colMap[col] || (col.startsWith('#') ? col : '#60a5fa');
@@ -7695,31 +7696,24 @@ function renderUcretOgrenci(){
    const drvId = window._ucretActiveSoforId;
    if(!drvId){ wrap.innerHTML=''; return; }
 
-   // Bu şoförün öğrencilerini bul - route üzerinden
-   // r.students = student nesneleri [{id,...}], ID'leri çıkar
-   // _ucretActiveSoforId = soforler[].id, routes[].driverId = drivers[].id
-   // driverRef uzerinden eslestir
-   const driverRoutes = routes.filter(r => r._soforId === drvId);
-   const routeStudentIds = new Set(driverRoutes.flatMap(r => (r.students || []).map(st => st.id ?? st)));
+   // Şoför-öğrenci direkt bağlantı sistemi ile öğrencileri al
+   const soforOgrList = _getSoforOgrenciListesi(drvId);
+   const soforOgrIds = new Set(soforOgrList.map(o => o.id));
 
-   // Rotadaki öğrenciler + payments'ta olan ama henüz rotaya atanmamış öğrenciler
-   // (yeni eklenen öğrenciler rota ataması başarısız olsa bile görünsün)
-   const paymentStudentIds = new Set(
-     students.filter(s => payments[s.id] !== undefined).map(s => s.id)
-   );
-   const combinedIds = new Set([...routeStudentIds, ...paymentStudentIds]);
-   // Sadece şoföre ait olanlar: rotadakiler kesin şoföre ait;
-   // payments'takiler için şoför seçiliyse tüm payments'lıları göster (şoförsüz olanlar)
-   // Ama payments'ta herkes olabilir — sadece rotası olmayan YENİ eklenenleri ekle
-   // Güvenli yol: routeStudentIds + son 60sn içinde eklenenler
-   const now = Date.now();
-   const yeniEklenenIds = new Set(
-     students.filter(s => payments[s.id] !== undefined && !routeStudentIds.has(s.id) && s._addedAt && (now - s._addedAt) < 60000).map(s => s.id)
-   );
-   const allIds = new Set([...routeStudentIds, ...yeniEklenenIds]);
+   // students dizisinde kayıtlı olanları getir, kayıtlı olmayanları soforOgrList'ten tamamla
+   let list = [];
+   soforOgrIds.forEach(oid => {
+     const found = students.find(s => s.id === oid);
+     if(found) list.push(found);
+     else {
+       // students'ta yok ama soforOgrList'te var — direkt kullan
+       const fromMap = soforOgrList.find(o => o.id === oid);
+       if(fromMap) list.push(fromMap);
+     }
+   });
 
-   // Sadece bu şoförün rotasındaki + yeni eklenen öğrenciler
-   let list = students.filter(s => allIds.has(s.id));
+   // payments kaydı yoksa ekle
+   list.forEach(s => { if(payments[s.id] === undefined) payments[s.id] = {}; });
 
    // Filtreler
    if(uFilter === 'unpaid') list = list.filter(s => calcStudentTotals(s.id).paidMonths < getAktifAylar(s).length);
@@ -7774,8 +7768,8 @@ function renderUcretOgrenci(){
    if(_ulc2){
      const drv2 = soforler.find(d => d.id === drvId);
      const drvRoutes2 = routes.filter(r => r._soforId === drvId);
-     const allRouteStudents = new Set(drvRoutes2.flatMap(r => (r.students||[]).map(st=>st.id??st)));
-     _ulc2.textContent = list.length + ' öğrenci gösteriliyor · Rotada ' + allRouteStudents.size + ' öğrenci · ' + drvRoutes2.length + ' rota';
+     const _sogrTotal = _getSoforOgrenciListesi(drvId).length;
+     _ulc2.textContent = list.length + ' öğrenci gösteriliyor · Toplam ' + _sogrTotal + ' kayıtlı · ' + drvRoutes2.length + ' rota';
    }
    if(typeof _topluMod !== 'undefined' && _topluMod) _topluShowCheckboxes();
  } catch(e){ console.error('renderUcretOgrenci hata:', e); }
@@ -9828,11 +9822,19 @@ function ucretYeniOgrenciEkle(){
     }
   }
 
+  // Şoför-öğrenci direkt bağlantısı kaydet
+  if(window._ucretActiveSoforId){
+    const _sogrList = _getSoforOgrenciListesi(window._ucretActiveSoforId);
+    if(!_sogrList.some(o=>o.id===newGlobalId)){
+      _sogrList.push({id:newGlobalId, _origId:newOrigId, _schIdx:okulIdx, school:okulIdx,
+        name:ad, ilce, mah, cls:sinif, kayitAy});
+      _setSoforOgrenci(window._ucretActiveSoforId, _sogrList);
+    }
+  }
   document.getElementById('ucret-add-modal').classList.remove('open');
   renderUcretOgrenci();
   renderUcretSoforList();
-  const mesaj = rotayaEklendi ? '✅ '+ad+' eklendi ve rotaya atandı' : '✅ '+ad+' ödeme listesine eklendi';
-  toast(mesaj);
+  toast('✅ '+ad+' eklendi');
 }
 
 function openUcretAddModal(){
@@ -9873,6 +9875,51 @@ function filterUcretAddList(q){
  </div>`).join('');
 }
 
+
+
+// ══════════════════════════════════════════
+// ŞOFÖR-ÖĞRENCİ DOĞRUDAN BAĞLANTI SİSTEMİ
+// Her şoförün öğrencileri direkt şoför ID'si altında tutulur
+// ══════════════════════════════════════════
+window._soforOgrenciler = {}; // {soforId: [{id, name, ilce, mah, cls, kayitAy, school, _origId, _schIdx}]}
+
+function _loadSoforOgrenciler(){
+  try{
+    const raw = localStorage.getItem('konseltur_sofor_ogr_v1');
+    if(raw) window._soforOgrenciler = JSON.parse(raw)||{};
+  }catch(e){ window._soforOgrenciler = {}; }
+  // Firebase'den de yükle
+  if(window._fbReady && window._fbDb){
+    window._fbGet(window._fbRef(window._fbDb, 'konseltur/GLOBAL/sofor_ogrenciler')).then(snap=>{
+      if(snap && snap.exists()){
+        const d = snap.val();
+        if(d && typeof d==='object'){
+          window._soforOgrenciler = d;
+          try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(d)); }catch(e){}
+          if(window._ucretActiveSoforId){ renderUcretOgrenci(); renderUcretSoforList(); }
+        }
+      }
+    }).catch(e=>console.warn('soforOgrenci load:',e));
+  }
+}
+
+function _saveSoforOgrenciler(){
+  try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(window._soforOgrenciler)); }catch(e){}
+  if(window._fbReady && _isOnline){
+    window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), window._soforOgrenciler)
+      .then(()=>flashSaveDot())
+      .catch(e=>console.warn('soforOgrenci save:',e));
+  }
+}
+
+function _getSoforOgrenciListesi(soforId){
+  return window._soforOgrenciler[String(soforId)] || [];
+}
+
+function _setSoforOgrenci(soforId, ogrList){
+  window._soforOgrenciler[String(soforId)] = ogrList;
+  _saveSoforOgrenciler();
+}
 
 function ucretManualAdd(sid){
  if(payments[sid]) return;
@@ -9924,6 +9971,16 @@ function ucretManualAdd(sid){
          }
        }catch(e){ console.error('ucretManualAdd rota:',e); }
      }
+   }
+ }
+ // Şoför-öğrenci direkt bağlantısı kaydet
+ if(window._ucretActiveSoforId && s){
+   const _sogrList2 = _getSoforOgrenciListesi(window._ucretActiveSoforId);
+   if(!_sogrList2.some(o=>o.id===sid)){
+     _sogrList2.push({id:s.id, _origId:s._origId||s.id, _schIdx:s._schIdx||s.school||0,
+       school:s.school||0, name:s.name, ilce:s.ilce||'', mah:s.mah||'',
+       cls:s.cls||'', kayitAy:s.kayitAy||''});
+     _setSoforOgrenci(window._ucretActiveSoforId, _sogrList2);
    }
  }
  filterUcretAddList('');
