@@ -4437,22 +4437,28 @@ function showSoforSelectForUcret(){
 }
 
 function _loadAllSchoolsForUcret(){
-  // Tüm okulların verilerini birleştir
-  // ID ÇAKIŞMASI ÇÖZÜMÜ: her okul için ID'leri benzersiz yap (schIdx * 100000 + origId)
   students = []; routes = []; payments = {};
+  // drivers -> soforler eslestirme haritasi: drivers[].id -> soforler[].id
+  // Her okulun drivers listesini yukleyip soforler ile isim eslestirmesi yapacagiz
+  const _allDrivers = []; // {id, name, schIdx}
+
   SCHOOLS.forEach((sch, schIdx) => {
     try {
       const raw = localStorage.getItem('konseltur_main_v2_' + sch.key);
       if(raw){
         const d = JSON.parse(raw);
-        const ID_OFFSET = schIdx * 100000; // Her okul 100k ID bloğu alır
+        const ID_OFFSET = schIdx * 100000;
         if(d.students) d.students.forEach(s => {
           const ns = Object.assign({}, s);
-          ns._origId = s.id;          // Orijinal ID sakla (kayıt için)
-          ns.id = s.id + ID_OFFSET;   // Unique global ID
+          ns._origId = s.id;
+          ns.id = s.id + ID_OFFSET;
           ns.school = schIdx;
           ns._schIdx = schIdx;
           students.push(ns);
+        });
+        // drivers listesini de yükle (driverId eslesme icin)
+        if(d.drivers) d.drivers.forEach(drv => {
+          _allDrivers.push({origId: drv.id, name: (drv.name||'').trim().toLowerCase(), schIdx});
         });
         if(d.routes) d.routes.forEach(r => {
           const nr = Object.assign({}, r);
@@ -4460,12 +4466,12 @@ function _loadAllSchoolsForUcret(){
           nr.id = r.id + ID_OFFSET;
           nr.school = schIdx;
           nr._schIdx = schIdx;
-          // Route içindeki student referanslarını da güncelle
+          nr._origDriverId = r.driverId; // orijinal driverId sakla
           if(nr.students) nr.students = nr.students.map(st => {
             if(typeof st === 'object' && st !== null){
               return Object.assign({}, st, {id: st.id + ID_OFFSET, _origId: st.id, _schIdx: schIdx});
             }
-            return st + ID_OFFSET; // ID sayısalsa
+            return st + ID_OFFSET;
           });
           routes.push(nr);
         });
@@ -4474,13 +4480,24 @@ function _loadAllSchoolsForUcret(){
       const rawPay = localStorage.getItem('konseltur_pay_v2_' + sch.key);
       if(rawPay){
         const dp = JSON.parse(rawPay);
-        // Payment key'lerini de offset ile kaydet
         const ID_OFFSET = schIdx * 100000;
         Object.entries(dp).forEach(([origId, val]) => {
           payments[parseInt(origId) + ID_OFFSET] = val;
         });
       }
     } catch(e){ console.error('_loadAllSchoolsForUcret hata:', e); }
+  });
+
+  // routes[].driverId (drivers[].id) -> soforler[].id donusturme
+  // Eslesme: ayni isimli sofor bul
+  routes.forEach(r => {
+    if(r._origDriverId == null){ r._soforId = null; return; }
+    // Bu rotanin drivers kaydini bul
+    const origDrv = _allDrivers.find(d => d.origId === r._origDriverId && d.schIdx === r._schIdx);
+    if(!origDrv){ r._soforId = null; return; }
+    // Soforler icinde ayni isimli birini bul
+    const matchSofor = soforler.find(s => (s.name||'').trim().toLowerCase() === origDrv.name);
+    r._soforId = matchSofor ? matchSofor.id : null;
   });
 }
 
@@ -4577,8 +4594,7 @@ function renderUcretSoforList(){
   wrap.innerHTML = kadroSoforler.map(drv => {
     // Bu şoförün rotaları
     // soforler[].id !== routes[].driverId — driverRef uzerinden eslestir
-    const drvDriverRef = drv.driverRef != null ? drv.driverRef : drv.id;
-    const drvRoutes = routes.filter(r => r.driverId === drvDriverRef || r.driverId === drv.id);
+    const drvRoutes = routes.filter(r => r._soforId === drv.id);
     const studentIds = new Set(drvRoutes.flatMap(r => (r.students || []).map(st => st.id ?? st)));
     const total = studentIds.size; // rotadaki tüm öğrenciler
     // Ödemeler özeti - payments kaydı olanlar
@@ -7683,9 +7699,7 @@ function renderUcretOgrenci(){
    // r.students = student nesneleri [{id,...}], ID'leri çıkar
    // _ucretActiveSoforId = soforler[].id, routes[].driverId = drivers[].id
    // driverRef uzerinden eslestir
-   const _activeSofor = soforler.find(s => s.id === drvId);
-   const _driverRefId = _activeSofor && _activeSofor.driverRef != null ? _activeSofor.driverRef : drvId;
-   const driverRoutes = routes.filter(r => r.driverId === _driverRefId || r.driverId === drvId);
+   const driverRoutes = routes.filter(r => r._soforId === drvId);
    const routeStudentIds = new Set(driverRoutes.flatMap(r => (r.students || []).map(st => st.id ?? st)));
 
    // Rotadaki öğrenciler + payments'ta olan ama henüz rotaya atanmamış öğrenciler
@@ -7759,9 +7773,7 @@ function renderUcretOgrenci(){
    const _ulc2 = document.getElementById('ucret-sofor-ozet');
    if(_ulc2){
      const drv2 = soforler.find(d => d.id === drvId);
-     const _sf2 = soforler.find(d => d.id === drvId);
-     const _ref2 = _sf2 && _sf2.driverRef != null ? _sf2.driverRef : drvId;
-     const drvRoutes2 = routes.filter(r => r.driverId === _ref2 || r.driverId === drvId);
+     const drvRoutes2 = routes.filter(r => r._soforId === drvId);
      const allRouteStudents = new Set(drvRoutes2.flatMap(r => (r.students||[]).map(st=>st.id??st)));
      _ulc2.textContent = list.length + ' öğrenci gösteriliyor · Rotada ' + allRouteStudents.size + ' öğrenci · ' + drvRoutes2.length + ' rota';
    }
@@ -9790,9 +9802,7 @@ function ucretYeniOgrenciEkle(){
   const _drvId = window._ucretActiveSoforId;
   let rotayaEklendi = false;
   if(_drvId){
-    const _activeSofor2 = soforler.find(s => s.id === _drvId);
-    const _driverRefId2 = _activeSofor2 && _activeSofor2.driverRef != null ? _activeSofor2.driverRef : _drvId;
-    const _drvRoutes = routes.filter(r => r.driverId === _driverRefId2 || r.driverId === _drvId);
+    const _drvRoutes = routes.filter(r => r._soforId === _drvId);
     if(_drvRoutes.length > 0){
       const targetRoute = _drvRoutes[0];
       if(!targetRoute.students) targetRoute.students = [];
@@ -9891,9 +9901,7 @@ function ucretManualAdd(sid){
  // Öğrenciyi şoförün rotasına bağla
  const _drvId2 = window._ucretActiveSoforId;
  if(_drvId2 && s){
-   const _activeSofor3 = soforler.find(s => s.id === _drvId2);
-   const _driverRefId3 = _activeSofor3 && _activeSofor3.driverRef != null ? _activeSofor3.driverRef : _drvId2;
-   const _drvRoutes2 = routes.filter(r => r.driverId === _driverRefId3 || r.driverId === _drvId2);
+   const _drvRoutes2 = routes.filter(r => r._soforId === _drvId2);
    if(_drvRoutes2.length > 0){
      const targetRoute2 = _drvRoutes2[0];
      if(!targetRoute2.students) targetRoute2.students = [];
@@ -10018,9 +10026,35 @@ function loadSoforData(){
         try{ localStorage.setItem(LS_SOFOR(), JSON.stringify({soforler, nSid2})); }catch(e){}
         try{ localStorage.setItem(LS_SOFORPAY(), JSON.stringify(soforPayments)); }catch(e){}
         if(currentApp==='sofor') renderSoforListe();
+        // Ucret modülündeyse _soforId eslesmesini yeniden hesapla
+        if(currentApp==='ucret'){
+          _remapRouteSoforIds();
+          renderUcretSoforList();
+          if(window._ucretActiveSoforId) renderUcretOgrenci();
+        }
       }
     });
   }
+}
+
+// routes[_soforId] -> soforler eslesmesini yeniden hesapla (Firebase sync sonrasi)
+function _remapRouteSoforIds(){
+  routes.forEach(r => {
+    if(r._origDriverId == null){ r._soforId = null; return; }
+    // Sadece isim eslestirmesi yapabiliriz — _allDrivers artik yok, farklı yol dene
+    // routes[_schIdx] -> o okulun drivers'ini localStorage'dan bul
+    try {
+      const schKey = (SCHOOLS[r._schIdx]||SCHOOLS[0]).key;
+      const raw = localStorage.getItem('konseltur_main_v2_' + schKey);
+      if(!raw){ r._soforId = null; return; }
+      const d = JSON.parse(raw);
+      const origDrv = (d.drivers||[]).find(dr => dr.id === r._origDriverId);
+      if(!origDrv){ r._soforId = null; return; }
+      const drvName = (origDrv.name||'').trim().toLowerCase();
+      const matchSofor = soforler.find(s => (s.name||'').trim().toLowerCase() === drvName);
+      r._soforId = matchSofor ? matchSofor.id : null;
+    } catch(e){ r._soforId = null; }
+  });
 }
 
 function saveSoforData(){
