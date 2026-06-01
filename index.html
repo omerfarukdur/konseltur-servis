@@ -2253,7 +2253,7 @@ setInterval(updateLoginClock, 30000);
 </script>
 
 <!-- TAKVİM WIDGET -->
-<div id="calendar-widget" style="position:fixed;left:20px;bottom:74px;z-index:500;background:rgba(8,12,24,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:20px;width:300px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;overflow:hidden;">
+<div id="calendar-widget" style="position:fixed;left:20px;bottom:74px;z-index:500;pointer-events:none;background:rgba(8,12,24,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:20px;width:300px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;overflow:hidden;">
   <div style="padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;">
     <div style="display:flex;align-items:center;gap:10px;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(200,55,26,.9)" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -2289,7 +2289,7 @@ setInterval(updateLoginClock, 30000);
 </button>
 
 <!-- KDV WİDGET -->
-<div id="kdv-widget" style="position:fixed;left:78px;bottom:74px;z-index:500;background:rgba(8,12,24,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:20px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;overflow:hidden;">
+<div id="kdv-widget" style="position:fixed;left:78px;bottom:74px;z-index:500;pointer-events:none;background:rgba(8,12,24,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:20px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;overflow:hidden;">
   <div style="padding:16px 18px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;">
     <div style="display:flex;align-items:center;gap:9px;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(34,197,94,.9)" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
@@ -2420,7 +2420,7 @@ setInterval(updateLoginClock, 30000);
 
 
 <!-- OKUL SEÇİM EKRANI (Modüller için) -->
-<div id="module-select-screen" style="display:none;height:100vh;background:var(--bg);position:fixed;top:0;left:0;width:100%;z-index:1000;overflow-y:auto;">
+<div id="module-select-screen" style="display:none;height:100vh;background:var(--bg);position:relative;overflow:hidden;">
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(200,55,26,.06) 0%,transparent 60%);pointer-events:none;"></div>
   <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(200,55,26,.8) 30%,rgba(200,55,26,.9) 50%,rgba(200,55,26,.8) 70%,transparent 100%);pointer-events:none;"></div>
 
@@ -5122,6 +5122,7 @@ function toggleCalendar(){
   if(!w) return;
   if(w.style.display==='none'||!w.style.display){
     w.style.display='block';
+    w.style.pointerEvents='auto';
     renderCalendar();
     // Dışına tıklayınca kapat - sonraki tick'te ekle (kendi tıklamasını atla)
     setTimeout(()=>{
@@ -5141,7 +5142,7 @@ function _calOutsideClick(e){
 }
 function _closeCalendar(){
   const w = document.getElementById('calendar-widget');
-  if(w) w.style.display='none';
+  if(w){ w.style.display='none'; w.style.pointerEvents='none'; }
   document.removeEventListener('click', _calOutsideClick);
 }
 function calPrevMonth(){ window._calDate.setMonth(window._calDate.getMonth()-1); renderCalendar(); }
@@ -5325,6 +5326,7 @@ function toggleKdvWidget(){
   if(!w) return;
   if(w.style.display === 'none' || !w.style.display){
     w.style.display = 'block';
+    w.style.pointerEvents = 'auto';
     setTimeout(()=>{ document.addEventListener('click', _kdvOutsideClick); }, 50);
     document.getElementById('kdv-tutar').focus();
   } else {
@@ -5339,7 +5341,7 @@ function _kdvOutsideClick(e){
 }
 function _closeKdvWidget(){
   const w = document.getElementById('kdv-widget');
-  if(w) w.style.display = 'none';
+  if(w){ w.style.display = 'none'; w.style.pointerEvents = 'none'; }
   document.removeEventListener('click', _kdvOutsideClick);
 }
 
