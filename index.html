@@ -14138,16 +14138,30 @@ function _durumBadge(g){
 function _fmtT(s){ if(!s) return '—'; return new Date(s).toLocaleDateString('tr-TR',{day:'2-digit',month:'short',year:'numeric'}); }
 
 function openAracTakipModal(){
+  if(typeof _pwVerified!=='undefined'&&!_pwVerified){
+    document.getElementById('password-screen').style.display='flex'; return;
+  }
   const ms=document.getElementById('module-select-screen');
-  if(ms) ms.style.display='none';
+  if(ms){ if(ms.style.display!=='none'){ ms._wasVisible=true; ms.style.display='none'; } }
+  const ls=document.getElementById('login-screen');
+  if(ls) ls.style.display='none';
   document.getElementById('arac-takip-modal').style.display='flex';
   renderAracListe(); _updateAracTakipOzet();
 }
 function closeAracTakipModal(){
   document.getElementById('arac-takip-modal').style.display='none';
   document.getElementById('arac-ekle-form').style.display='none';
-  const ms=document.getElementById('module-select-screen');
-  if(ms) ms.style.display='flex';
+  // Hangi ekran aktifse onu geri getir
+  const appWrapper = document.getElementById('app-wrapper');
+  const ms = document.getElementById('module-select-screen');
+  const ls = document.getElementById('login-screen');
+  if(appWrapper && appWrapper.style.display==='flex'){
+    // Uygulama içindeyiz, bir şey yapma
+  } else if(ms && ms._wasVisible){
+    ms.style.display='flex'; ms._wasVisible=false;
+  } else if(ls){
+    ls.style.display='flex';
+  }
 }
 function openAracEkleForm(){
   document.getElementById('arac-form-baslik').textContent='Yeni Araç Ekle';
