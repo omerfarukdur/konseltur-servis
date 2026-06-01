@@ -14064,7 +14064,7 @@ try{ _updateLoginBasvuruCount(); }catch(e){}
 <!-- ═══════════════════════════════════════════════
      ARAÇ TAKİP EKRANI
 ════════════════════════════════════════════════ -->
-<div id="arac-takip-screen" style="display:none;position:fixed;inset:0;z-index:99999;background:#060810;flex-direction:column;overflow-y:auto;">
+<div id="arac-takip-screen" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#060810;flex-direction:column;overflow-y:auto;">
 
   <!-- Üst bar -->
   <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07);background:#0a0f1c;position:sticky;top:0;z-index:2;">
@@ -14140,15 +14140,21 @@ function openAracTakipModal(){
   if(typeof _pwVerified!=='undefined'&&!_pwVerified){
     document.getElementById('password-screen').style.display='flex'; return;
   }
-  // Tüm aktif ekranları kaydet ve gizle
+  // Tüm sayfayı gizle
+  document.body.style.overflow = 'hidden';
+  var ids = ['login-screen','module-select-screen','app-wrapper','password-screen'];
   window._aracPrevScreens = [];
-  ['login-screen','module-select-screen','app-wrapper'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el && el.style.display!=='none'){ window._aracPrevScreens.push(id); el.style.display='none'; }
+  ids.forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && el.style.display !== 'none'){
+      window._aracPrevScreens.push({id:id, disp:el.style.display});
+      el.style.display = 'none';
+    }
   });
-  const screen = document.getElementById('arac-takip-screen');
-  screen.style.display = 'flex';
-  document.getElementById('arac-ekle-form').style.display = 'none';
+  var scr = document.getElementById('arac-takip-screen');
+  scr.style.cssText = 'display:flex;flex-direction:column;position:fixed;top:0;left:0;width:100%;height:100%;z-index:2147483647;background:#060810;overflow-y:auto;';
+  var form = document.getElementById('arac-ekle-form');
+  if(form) form.style.display = 'none';
   renderAracListe();
   _updateAracTakipOzet();
 }
@@ -14156,13 +14162,17 @@ function openAracTakipModal(){
 function closeAracTakipModal(){
   document.getElementById('arac-takip-screen').style.display = 'none';
   document.getElementById('arac-ekle-form').style.display = 'none';
-  // Önceki ekranları geri getir
-  const prev = window._aracPrevScreens || ['login-screen'];
-  if(prev.length === 0) prev.push('login-screen');
-  prev.forEach(id=>{
-    const el=document.getElementById(id);
-    if(el) el.style.display = (id==='app-wrapper'?'flex':'flex');
-  });
+  document.body.style.overflow = '';
+  var prev = window._aracPrevScreens || [];
+  if(prev.length === 0){
+    var ls = document.getElementById('login-screen');
+    if(ls) ls.style.display = 'flex';
+  } else {
+    prev.forEach(function(item){
+      var el = document.getElementById(item.id);
+      if(el) el.style.display = item.disp || 'flex';
+    });
+  }
   window._aracPrevScreens = [];
 }
 
