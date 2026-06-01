@@ -9051,7 +9051,28 @@ tbody tr:hover{background:#fef3f2;}
   <span>Konseltur Taşımacılık &copy; ${new Date().getFullYear()}</span>
   <span>${tarih} tarihinde oluşturuldu</span>
 </div>
-<script>window.onload=()=>{ setTimeout(()=>window.print(),400); };<\/script>
+<!-- MOBİL GERİ DÖN BUTONU -->
+<div id="geri-btn-wrap" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;">
+  <button onclick="window.close()" style="background:#c8371a;color:#fff;border:none;border-radius:50px;padding:14px 32px;font-size:16px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,0.25);cursor:pointer;letter-spacing:.5px;">
+    ← Uygulamaya Geri Dön
+  </button>
+</div>
+<script>
+window.onload=()=>{
+  // Mobil mi kontrol et
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(isMobile){
+    document.getElementById('geri-btn-wrap').style.display='block';
+    // Mobilden yazdır iletişim kutusu açma — kullanıcı kendisi seçer
+  } else {
+    setTimeout(()=>window.print(), 400);
+  }
+  // Yazdırma bittikten sonra butonu göster (masaüstünde de)
+  window.onafterprint = ()=>{
+    document.getElementById('geri-btn-wrap').style.display='block';
+  };
+};
+<\/script>
 </body></html>`;
 
   const w = window.open('','_blank');
