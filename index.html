@@ -14160,8 +14160,8 @@ function _atRenderListe(){
         +(a.tip?'<div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px;">'+a.tip+'</div>':'')
         +(a.not?'<div style="font-size:11px;color:rgba(255,255,255,.25);margin-top:2px;font-style:italic;">'+a.not+'</div>':'')+'</div>'
         +'<div style="display:flex;gap:6px;">'
-          +'<button onclick="_atEditArac(''+a.id+'')" style="padding:6px 12px;border-radius:7px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;">Düzenle</button>'
-          +'<button onclick="_atDeleteArac(''+a.id+'')" style="padding:6px 12px;border-radius:7px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.07);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;">Sil</button>'
+          +'<button onclick="_atEditArac(this)" data-id="'+a.id+'" style="padding:6px 12px;border-radius:7px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;">Düzenle</button>'
+          +'<button onclick="_atDeleteArac(this)" data-id="'+a.id+'" style="padding:6px 12px;border-radius:7px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.07);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;">Sil</button>'
         +'</div>'
       +'</div>'
       +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
@@ -14192,7 +14192,7 @@ function _atSaveArac(){
   if(typeof toast==='function')toast('Araç kaydedildi ✓','success');
 }
 
-function _atEditArac(id){
+function _atEditArac(btn){var id=btn.getAttribute('data-id');
   var a=_loadAraclar().find(function(x){return x.id===id;});if(!a)return;
   document.getElementById('at-form-title').textContent='Araç Düzenle';
   document.getElementById('at-edit-id').value=id;
@@ -14204,7 +14204,7 @@ function _atEditArac(id){
   document.getElementById('at-form').style.display='block';
 }
 
-function _atDeleteArac(id){
+function _atDeleteArac(btn){var id=btn.getAttribute('data-id');
   if(!confirm('Bu aracı silmek istediğinizden emin misiniz?'))return;
   _saveAraclar(_loadAraclar().filter(function(x){return x.id!==id;}));
   _atRenderListe();
