@@ -2014,6 +2014,7 @@ function _addManagedListener(target, event, handler, options) {
 
 
 
+<div id="login-screen" style="display:flex;height:100vh;background:#060810;position:relative;overflow:hidden;">
   <!-- SOL PANEL: Vito tam ekran + katmanlı bilgi -->
   <div style="flex:0 0 52%;position:relative;overflow:hidden;">
 
@@ -2419,7 +2420,7 @@ setInterval(updateLoginClock, 30000);
 
 
 <!-- OKUL SEÇİM EKRANI (Modüller için) -->
-<div id="module-select-screen" style="display:none;height:100vh;background:var(--bg);position:relative;overflow:hidden;">
+<div id="module-select-screen" style="display:none;height:100vh;background:var(--bg);position:fixed;top:0;left:0;width:100%;z-index:1000;overflow-y:auto;">
   <div style="position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(200,55,26,.06) 0%,transparent 60%);pointer-events:none;"></div>
   <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,rgba(200,55,26,.8) 30%,rgba(200,55,26,.9) 50%,rgba(200,55,26,.8) 70%,transparent 100%);pointer-events:none;"></div>
 
@@ -14223,5 +14224,4 @@ document.addEventListener('DOMContentLoaded',function(){setTimeout(_updateAracTa
 </script>
 
 </body>
-</html><div id="login-screen" style="display:flex;height:100vh;background:#060810;position:relative;">
-
+</html>
