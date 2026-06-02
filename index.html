@@ -4317,6 +4317,9 @@ function syncColorFromHex(hex){
 
 // Renk picker değişince hex inputu da güncelle
 document.addEventListener('DOMContentLoaded', ()=>{
+ // Ek okulları localStorage/Firebase'den yükle (sayfa yenilenince kaybolmasın)
+ _loadExtraSchools();
+
  const cp = document.getElementById('asc-color');
  if(cp) cp.addEventListener('input', function(){ const h=document.getElementById('asc-color-hex'); if(h) h.value=this.value; });
  renderLoginSchoolCards();
@@ -4434,6 +4437,58 @@ function saveNewSchool(){
  const card = document.querySelector(`[data-school-key="${key}"]`);
  if(card){ card.style.transform='scale(1.05)'; setTimeout(()=>card.style.transform='',300); }
  }, 50);
+
+ // SCHOOLS array'ini kalıcı kaydet
+ _saveSchoolsToStorage();
+ toast(isEdit ? '✅ Okul güncellendi' : '✅ Yeni okul eklendi', 'success');
+}
+
+function _saveSchoolsToStorage(){
+  try{
+    // Sadece ek okulları (index 3+) kaydet — ilk 3 hardcoded
+    const extras = SCHOOLS.slice(3);
+    localStorage.setItem('konseltur_extra_schools_v1', JSON.stringify(extras));
+    // Firebase'e de yaz
+    if(window._fbDb && window._fbSet && window._fbRef){
+      window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/extra_schools'), extras).catch(()=>{});
+    }
+  }catch(e){ console.error('Okul kaydedilemedi:',e); }
+}
+
+function _loadExtraSchools(){
+  try{
+    const raw = localStorage.getItem('konseltur_extra_schools_v1');
+    if(raw){
+      const extras = JSON.parse(raw);
+      extras.forEach(s=>{
+        if(!SCHOOLS.some(x=>x.key===s.key)){
+          SCHOOLS.push(s);
+          SC.push(s.color||'#60a5fa');
+        }
+      });
+    }
+  }catch(e){}
+  // Firebase'den de yükle
+  if(window._fbDb && window._fbGet && window._fbRef){
+    window._fbGet(window._fbRef(window._fbDb,'konseltur/GLOBAL/extra_schools')).then(snap=>{
+      if(snap && snap.exists()){
+        const extras = snap.val();
+        const list = Array.isArray(extras) ? extras : Object.values(extras||{});
+        list.forEach(s=>{
+          if(s && s.key && !SCHOOLS.some(x=>x.key===s.key)){
+            SCHOOLS.push(s);
+            SC.push(s.color||'#60a5fa');
+            // LocalStorage'a da yaz
+            if(!localStorage.getItem('konseltur_main_v2_'+s.key)){
+              localStorage.setItem('konseltur_main_v2_'+s.key, JSON.stringify({students:[],drivers:[],routes:[],nSid:1,nDid:1}));
+            }
+          }
+        });
+        // Okul listesini tazele
+        if(typeof renderLoginSchoolCards==='function') renderLoginSchoolCards();
+      }
+    }).catch(()=>{});
+  }
 }
 
 // Silme modalı state
@@ -4558,6 +4613,7 @@ function _doDeleteSchool(idx, key){
  SC.splice(idx, 1);
  _refreshSchoolMaps();
  renderLoginSchoolCards();
+ _saveSchoolsToStorage();
 }
 
 function _refreshSchoolMaps(){
