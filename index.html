@@ -13798,62 +13798,102 @@ function importCariFromExcel(event){
   const file = event.target.files[0];
   if(!file) return;
   event.target.value = '';
-  
+
   const reader = new FileReader();
   reader.onload = function(e){
     try{
       const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, {type:'array'});
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
-      
-      if(rows.length < 2){ toast('Excel dosyasi bos veya baslik satiri yok','error'); return; }
-      
-      const headers = rows[0].map(function(h){ return (h||'').toString().toLowerCase().trim(); });
-      const findCol = function(keywords){ return headers.findIndex(function(h){ return keywords.some(function(k){ return h.includes(k); }); }); };
-      
-      const colIdx = {
-        isim:   findCol(['isim','ad soyad','name','ad']),
-        tur:    findCol(['tur','tip','type']),
-        servis: findCol(['servis','plaka','plate']),
-        tel:    findCol(['tel','phone','gsm']),
-        not:    findCol(['not','aciklama','note']),
-      };
-      
-      if(colIdx.isim < 0){ 
-        toast('Excel\'de Isim/Ad sutunu bulunamadi','error'); 
-        return; 
-      }
-      
-      const turMap = {
-        'personel':'personel','sofor':'sofor','taseron':'taseron',
-        'firma':'firma','okul':'okul','kasa':'kasa','diger':'diger',
-      };
-      
-      let added = 0, skipped = 0;
-      rows.slice(1).forEach(function(row){
-        const isim = (row[colIdx.isim]||'').toString().trim();
-        if(!isim){ skipped++; return; }
-        
-        const turRaw = colIdx.tur>=0 ? (row[colIdx.tur]||'').toString().toLowerCase().trim() : '';
-        const tur = turMap[turRaw] || 'diger';
-        const servis = colIdx.servis>=0 ? (row[colIdx.servis]||'').toString().trim() : '';
-        const tel = colIdx.tel>=0 ? (row[colIdx.tel]||'').toString().trim() : '';
-        const not2 = colIdx.not>=0 ? (row[colIdx.not]||'').toString().trim() : '';
-        
-        const newId = 'xi_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-        _cariData[newId] = {
-          id:newId, isim:isim, tur:tur, servis:servis, tel:tel, not:not2,
-          plaka:'', firma:'', hareketler:{}, ts:Date.now()
+      const workbook = XLSX.read(data, {type:'array', cellDates:true});
+
+      // 2026_CARİ.xlsx formatı: Her sayfa ayrı bir cari hesap
+      const SKIP_SHEETS = ['GENEL LİSTE ','ÖNEMLİ','GÖREV','FATURA TAKİP','FİYAT ARTIŞI','İŞ BAŞVURU','GELİR GİDER TAKİBİ'];
+      let added = 0, skipped = 0, atlananLog = [];
+
+      workbook.SheetNames.forEach(function(sheetName){
+        if(SKIP_SHEETS.some(function(s){ return sheetName.trim()===s.trim(); })){ return; }
+
+        const ws = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:false});
+        if(!rows || rows.length < 5){ skipped++; return; }
+
+        // İsim ve firma bul (ilk 5 satırda etiket ara)
+        var isim = '', firma = '';
+        for(var ri=0; ri<Math.min(5,rows.length); ri++){
+          var row = rows[ri];
+          for(var ci=0; ci<row.length-1; ci++){
+            var lbl = (row[ci]||'').toString().toUpperCase().trim();
+            if(lbl==='CARİ İSMİ'||lbl==='SOFOR'||lbl==='ŞOFÖR'){
+              if(!isim) isim=(row[ci+1]||'').toString().trim();
+            }
+            if(lbl==='FIRMA'||lbl==='FİRMA'||lbl==='CARİ TÜRÜ'){
+              if(!firma) firma=(row[ci+1]||'').toString().trim();
+            }
+          }
+        }
+
+        if(!isim){ skipped++; atlananLog.push(sheetName+' (isim yok)'); return; }
+
+        // Zaten var mı kontrol
+        var zatenVar = Object.values(_cariData).some(function(c){ return c.isim===isim; });
+        if(zatenVar){ skipped++; atlananLog.push(sheetName+' ('+isim+' zaten var)'); return; }
+
+        // Hareket başlık satırını bul
+        var hStartRow=-1, borcCol=-1, alacakCol=-1, aciklamaCol=-1, tarihCol=-1;
+        for(var ri2=0; ri2<Math.min(15,rows.length); ri2++){
+          var rowU = rows[ri2].map(function(v){ return (v||'').toString().toUpperCase().trim(); });
+          if(rowU.indexOf('BORÇ')>=0 && rowU.indexOf('ALACAK')>=0){
+            hStartRow=ri2+1;
+            borcCol=rowU.indexOf('BORÇ');
+            alacakCol=rowU.indexOf('ALACAK');
+            aciklamaCol=rowU.indexOf('AÇIKLAMA');
+            if(aciklamaCol<0) aciklamaCol=rowU.indexOf('ACIKLAMA');
+            tarihCol=rowU.indexOf('TARİH');
+            if(tarihCol<0) tarihCol=rowU.indexOf('TARIH');
+            break;
+          }
+        }
+
+        if(hStartRow<0||borcCol<0||alacakCol<0){
+          skipped++; atlananLog.push(sheetName+' ('+isim+' hareket yok)'); return;
+        }
+
+        // Hareketleri oku
+        var hareketler={}, hid=1;
+        for(var ri3=hStartRow; ri3<rows.length; ri3++){
+          var hr=rows[ri3];
+          var borcV=parseFloat(((hr[borcCol]||'0').toString().replace(/[^0-9.-]/g,'')))||0;
+          var alacakV=parseFloat(((hr[alacakCol]||'0').toString().replace(/[^0-9.-]/g,'')))||0;
+          var aciklama=aciklamaCol>=0?(hr[aciklamaCol]||'').toString().trim():'';
+          var tarihRaw=tarihCol>=0?hr[tarihCol]:null;
+          if(borcV===0&&alacakV===0&&!aciklama) continue;
+          var tarihStr='';
+          if(tarihRaw){
+            var td=new Date(tarihRaw);
+            tarihStr=isNaN(td.getTime())?tarihRaw.toString().trim():td.toISOString().slice(0,10);
+          }
+          var hKey='h_xl_'+hid;
+          hareketler[hKey]={id:hKey, tarih:tarihStr, aciklama:aciklama, borc:borcV, alacak:alacakV, ts:hid};
+          hid++;
+        }
+
+        if(hid<=1){ skipped++; atlananLog.push(sheetName+' ('+isim+' hareket boş)'); return; }
+
+        var cariId='xl_'+sheetName.replace(/[^a-zA-Z0-9]/g,'_')+'_'+Date.now().toString(36);
+        _cariData[cariId]={
+          id:cariId, isim:isim, tur:firma||'diger', firma:firma,
+          servis:'', tel:'', plaka:'', hareketler:hareketler, ts:Date.now()
         };
         added++;
       });
-      
+
       _saveCariToStorage();
       renderCariListe();
-      toast('✅ '+added+' cari eklendi'+(skipped>0?' ('+skipped+' satir atlandı)':''),'success');
-      
-    } catch(err){
+      var msg='✅ '+added+' hesap aktarıldı';
+      if(skipped>0) msg+=', '+skipped+' sayfa atlandı';
+      toast(msg,'success');
+      if(atlananLog.length>0) console.log('Atlanan sayfalar:', atlananLog);
+
+    }catch(err){
       console.error('Excel import hatasi:',err);
       toast('Excel okuma hatasi: '+(err.message||'bilinmeyen'),'error');
     }
