@@ -13803,17 +13803,42 @@ function importCariFromExcel(event){
   reader.onload = function(e){
     try{
       const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, {type:'array', cellDates:true});
+      const workbook = XLSX.read(data, {type:'array', cellDates:true, raw:true});
 
       // 2026_CARİ.xlsx formatı: Her sayfa ayrı bir cari hesap
       const SKIP_SHEETS = ['GENEL LİSTE ','ÖNEMLİ','GÖREV','FATURA TAKİP','FİYAT ARTIŞI','İŞ BAŞVURU','GELİR GİDER TAKİBİ'];
       let added = 0, skipped = 0, atlananLog = [];
 
-      workbook.SheetNames.forEach(function(sheetName){
+      // GENEL LİSTE'den sırayı al
+      var orderedSheets = [];
+      var genelWs = workbook.Sheets['GENEL LİSTE '] || workbook.Sheets['GENEL LİSTE'];
+      if(genelWs){
+        var genelRows = XLSX.utils.sheet_to_json(genelWs, {header:1, defval:null, raw:true});
+        var seenNos = {};
+        for(var gi=3; gi<genelRows.length; gi++){
+          var gRow = genelRows[gi];
+          var no = gRow[1]; // NO sütunu (index 1)
+          if(no && !isNaN(parseInt(no))){
+            var noStr = String(parseInt(no));
+            if(!seenNos[noStr] && workbook.SheetNames.indexOf(noStr)>=0){
+              seenNos[noStr] = true;
+              orderedSheets.push(noStr);
+            }
+          }
+        }
+      }
+      // GENEL LİSTE'de olmayan sayfaları sona ekle
+      workbook.SheetNames.forEach(function(sn){
+        if(!SKIP_SHEETS.some(function(s){ return sn.trim()===s.trim(); }) && orderedSheets.indexOf(sn)<0){
+          orderedSheets.push(sn);
+        }
+      });
+
+      orderedSheets.forEach(function(sheetName){
         if(SKIP_SHEETS.some(function(s){ return sheetName.trim()===s.trim(); })){ return; }
 
         const ws = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:false});
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
         if(!rows || rows.length < 5){ skipped++; return; }
 
         // İsim ve firma bul (ilk 5 satırda etiket ara)
@@ -13861,15 +13886,24 @@ function importCariFromExcel(event){
         var hareketler={}, hid=1;
         for(var ri3=hStartRow; ri3<rows.length; ri3++){
           var hr=rows[ri3];
-          var borcV=parseFloat(((hr[borcCol]||'0').toString().replace(/[^0-9.-]/g,'')))||0;
-          var alacakV=parseFloat(((hr[alacakCol]||'0').toString().replace(/[^0-9.-]/g,'')))||0;
+          var _bv=hr[borcCol]; var borcV=typeof _bv==='number'?_bv:parseFloat((_bv||'0').toString().replace(/[^0-9.-]/g,''))||0;
+          var _av=hr[alacakCol]; var alacakV=typeof _av==='number'?_av:parseFloat((_av||'0').toString().replace(/[^0-9.-]/g,''))||0;
           var aciklama=aciklamaCol>=0?(hr[aciklamaCol]||'').toString().trim():'';
           var tarihRaw=tarihCol>=0?hr[tarihCol]:null;
           if(borcV===0&&alacakV===0&&!aciklama) continue;
           var tarihStr='';
           if(tarihRaw){
-            var td=new Date(tarihRaw);
-            tarihStr=isNaN(td.getTime())?tarihRaw.toString().trim():td.toISOString().slice(0,10);
+            if(tarihRaw instanceof Date){
+              tarihStr=tarihRaw.toISOString().slice(0,10);
+            } else if(typeof tarihRaw==='number'){
+              // Excel seri tarihi → JS Date
+              var excelEpoch=new Date(1899,11,30);
+              var td2=new Date(excelEpoch.getTime()+tarihRaw*86400000);
+              tarihStr=isNaN(td2.getTime())?'':td2.toISOString().slice(0,10);
+            } else {
+              var td3=new Date(tarihRaw.toString());
+              tarihStr=isNaN(td3.getTime())?tarihRaw.toString().trim():td3.toISOString().slice(0,10);
+            }
           }
           var hKey='h_xl_'+hid;
           hareketler[hKey]={id:hKey, tarih:tarihStr, aciklama:aciklama, borc:borcV, alacak:alacakV, ts:hid};
