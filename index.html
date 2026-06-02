@@ -14071,7 +14071,12 @@ var ARAC_KEY='konseltur_arac_takip_v1';
 function _loadAraclar(){try{return JSON.parse(localStorage.getItem(ARAC_KEY)||'[]');}catch(e){return[];}}
 function _saveAraclar(list){
   localStorage.setItem(ARAC_KEY,JSON.stringify(list));
-  if(window._fbDb&&window._fbSet){try{window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/arac_takip'),list);}catch(e){}}
+  if(window._fbDb&&window._fbSet&&window._fbRef){
+    // Firebase'e object map olarak yaz (array index sorununu önle)
+    var fbObj = {};
+    list.forEach(function(a){ fbObj[a.id] = a; });
+    try{ window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/arac_takip'), fbObj); }catch(e){}
+  }
 }
 function _gunFark(t){if(!t)return null;var b=new Date();b.setHours(0,0,0,0);return Math.round((new Date(t)-b)/86400000);}
 function _durumBadge(g){
@@ -14086,6 +14091,24 @@ function openAracTakipModal(){
   if(typeof _pwVerified!=='undefined'&&!_pwVerified){
     document.getElementById('password-screen').style.display='flex';return;
   }
+  // Firebase'den güncel veriyi çek, sonra ekranı aç
+  if(window._fbGet && window._fbRef && window._fbDb){
+    window._fbGet(window._fbRef(window._fbDb,'konseltur/GLOBAL/arac_takip')).then(function(snap){
+      if(snap && snap.exists()){
+        var fbData = snap.val();
+        // Array ise direkt kullan, object ise values al
+        var list = Array.isArray(fbData) ? fbData : Object.values(fbData||{});
+        if(list && list.length > 0){
+          localStorage.setItem(ARAC_KEY, JSON.stringify(list));
+        }
+      }
+      _openAracTakipEkran();
+    }).catch(function(){ _openAracTakipEkran(); });
+  } else {
+    _openAracTakipEkran();
+  }
+}
+function _openAracTakipEkran(){
   // Varsa eskiyi sil
   var old=document.getElementById('arac-takip-screen');
   if(old) old.parentNode.removeChild(old);
