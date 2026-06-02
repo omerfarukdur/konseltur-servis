@@ -10537,8 +10537,13 @@ function _setSoforOgrenci(soforId, ogrList){
 }
 
 function ucretManualAdd(sid){
- if(payments[sid]) return;
- payments[sid] = {};
+ // Zaten bu şoföre eklenmiş mi kontrol et
+ const _drvIdCheck = window._ucretActiveSoforId;
+ if(_drvIdCheck){
+   const _sogrCheck = _getSoforOgrenciListesi(_drvIdCheck);
+   if(_sogrCheck.some(o=>o.id===sid)){ toast('Bu öğrenci zaten eklenmiş','error'); return; }
+ }
+ if(!payments[sid]) payments[sid] = {};
  const kayitAyEl = document.getElementById('ucret-add-kayit-ay');
  const kayitAy = kayitAyEl ? kayitAyEl.value : '';
  const s = students.find(x=>x.id===sid);
