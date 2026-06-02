@@ -13187,32 +13187,53 @@ function _trashRestore(idx) {
       msg = 'Hareket geri alındı';
       if (typeof renderCariDetay === 'function') renderCariDetay(cariId);
     } else if (item.type === 'student') {
-      if (!students) return;
-      students.push(item.data);
-      if (typeof saveData === 'function') saveData();
+      // Temiz öğrenci objesi — ekstra alanları çıkar
+      const {_payments, _deletedFrom, _soforId, ...studentData} = item.data;
+      // Zaten varsa ekleme
+      if (!students.some(x=>x.id===studentData.id)) {
+        students.push(studentData);
+      }
+      // Payments geri yükle
+      if (_payments && Object.keys(_payments).length > 0) {
+        payments[studentData.id] = _payments;
+      }
+      // Ücret yönetiminden silinmişse şoförün listesine de geri ekle
+      if (_deletedFrom === 'ucret' && _soforId) {
+        const sogrList = _getSoforOgrenciListesi(_soforId);
+        if (!sogrList.some(o=>o.id===studentData.id)) {
+          sogrList.push({id:studentData.id, _origId:studentData._origId, _schIdx:studentData._schIdx,
+            school:studentData.school, name:studentData.name, ilce:studentData.ilce,
+            mah:studentData.mah, cls:studentData.cls, kayitAy:studentData.kayitAy});
+          _setSoforOgrenci(_soforId, sogrList);
+        }
+      }
+      if (typeof _saveAllSchoolsFromUcret === 'function') _saveAllSchoolsFromUcret();
+      else if (typeof saveData === 'function') saveData();
       if (typeof renderStudents === 'function') renderStudents();
-      msg = '"' + item.label + '" öğrenci geri alındı';
+      if (typeof renderUcretOgrenci === 'function') renderUcretOgrenci();
+      msg = '"' + (studentData.name||'Öğrenci') + '" geri alındı';
     } else if (item.type === 'driver') {
-      if (!drivers) return;
-      drivers.push(item.data);
+      const {_deletedFrom:_df, ...driverData} = item.data;
+      if (!drivers.some(x=>x.id===driverData.id)) drivers.push(driverData);
       if (typeof saveData === 'function') saveData();
       if (typeof renderDrivers === 'function') renderDrivers();
-      msg = '"' + item.label + '" şoför geri alındı';
+      msg = '"' + (driverData.name||'Şoför') + '" geri alındı';
     } else if (item.type === 'sofor') {
-      // Ücret yönetimi şoförü
+      const {_soforPayments, _deletedFrom:_df2, ...soforData} = item.data;
       if (!soforler) return;
-      if (!soforler.some(x=>x.id===item.data.id)) soforler.push(item.data);
-      if (item.data._soforPayments) soforPayments[item.data.id] = item.data._soforPayments;
+      if (!soforler.some(x=>x.id===soforData.id)) soforler.push(soforData);
+      if (_soforPayments) soforPayments[soforData.id] = _soforPayments;
       if (typeof saveSoforData === 'function') saveSoforData();
-      msg = '"' + (item.data.name||'Şoför') + '" şoför geri alındı';
+      if (typeof renderUcretSoforList === 'function') renderUcretSoforList();
+      msg = '"' + (soforData.name||'Şoför') + '" geri alındı';
     } else if (item.type === 'arac') {
+      const {_deletedFrom:_df3, ...aracData} = item.data;
       const list = _loadAraclar();
-      if (!list.some(x=>x.id===item.data.id)){
-        const {_deletedFrom,...aracData} = item.data;
+      if (!list.some(x=>x.id===aracData.id)) {
         list.push(aracData);
         _saveAraclar(list);
       }
-      msg = '"' + (item.data.plaka||'Araç') + '" geri alındı';
+      msg = '"' + (aracData.plaka||'Araç') + '" geri alındı';
     }
     window._trash.splice(idx, 1);
     _trashSave();
