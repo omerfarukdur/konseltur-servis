@@ -2075,73 +2075,73 @@ function _addManagedListener(target, event, handler, options) {
   <!-- SAĞ PANEL: Ana Menü (değişmeden) -->
   <div style="flex:1;background:#0d1018;overflow-y:auto;display:flex;flex-direction:column;">
     <!-- Üst başlık -->
-    <div style="padding:28px 32px 20px;border-bottom:1px solid rgba(255,255,255,.05);">
-      <h1 style="font-family:Syne,sans-serif;font-size:24px;font-weight:900;color:#fff;margin:0 0 4px;">Ana Menü</h1>
+    <div style="padding:14px 24px 12px;border-bottom:1px solid rgba(255,255,255,.05);">
+      <h1 style="font-family:Syne,sans-serif;font-size:18px;font-weight:900;color:#fff;margin:0 0 2px;">Ana Menü</h1>
       <div style="font-size:12px;color:rgba(255,255,255,.3);font-family:Outfit,sans-serif;">Modül seçin veya rota başlat</div>
     </div>
 
-    <div style="padding:24px 32px;flex:1;">
+    <div style="padding:14px 24px;flex:1;">
 
       <!-- MODÜLLER başlık -->
-      <div style="font-family:Outfit,sans-serif;font-size:10px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:16px;">MODÜLLER</div>
+      <div style="font-family:Outfit,sans-serif;font-size:10px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:10px;">MODÜLLER</div>
 
       <!-- 2×2 Grid -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
 
         <!-- Kasa Cari -->
         <button onclick="enterKasaDirect()"
-          style="background:#13171f;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;"
+          style="background:#13171f;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;"
           onmouseover="this.style.borderColor='rgba(245,158,11,.4)';this.style.background='#171c26';this.style.transform='translateY(-2px)'"
           onmouseout="this.style.borderColor='rgba(255,255,255,.07)';this.style.background='#13171f';this.style.transform='none'">
           <div style="position:absolute;top:12px;right:12px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:3px 10px;font-size:9px;font-weight:800;letter-spacing:1.5px;color:#f59e0b;font-family:Outfit,sans-serif;">FİNANS</div>
-          <div style="width:40px;height:40px;border-radius:12px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.2);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+          <div style="width:32px;height:32px;border-radius:10px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.2);display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
           </div>
-          <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;">Kasa Cari</div>
-          <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:6px;font-family:Outfit,sans-serif;">Nakit Akış Takibi</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.5;font-family:Outfit,sans-serif;">Günlük giriş ve çıkış işlemlerini kayıt altına alın</div>
+          <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;margin-bottom:2px;">Kasa Cari</div>
+          <div style="font-size:10px;font-weight:700;color:#f59e0b;margin-bottom:3px;font-family:Outfit,sans-serif;">Nakit Akış Takibi</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);line-height:1.4;font-family:Outfit,sans-serif;">Günlük giriş ve çıkış işlemlerini kayıt altına alın</div>
         </button>
 
         <!-- Cari Hesaplar -->
         <button onclick="enterCariDirect()"
-          style="background:#13171f;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;"
+          style="background:#13171f;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;"
           onmouseover="this.style.borderColor='rgba(96,165,250,.4)';this.style.background='#171c26';this.style.transform='translateY(-2px)'"
           onmouseout="this.style.borderColor='rgba(255,255,255,.07)';this.style.background='#13171f';this.style.transform='none'">
           <div style="position:absolute;top:12px;right:12px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:20px;padding:3px 10px;font-size:9px;font-weight:800;letter-spacing:1.5px;color:#60a5fa;font-family:Outfit,sans-serif;">MUHASEBE</div>
-          <div style="width:40px;height:40px;border-radius:12px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+          <div style="width:32px;height:32px;border-radius:10px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/><path d="M8 11h8"/><path d="M8 15h5"/></svg>
           </div>
-          <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;">Cari Hesaplar</div>
-          <div style="font-size:10px;font-weight:700;color:#60a5fa;margin-bottom:6px;font-family:Outfit,sans-serif;">Avans &amp; Mahsup</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.5;font-family:Outfit,sans-serif;">Personel avans ve aviklerini kolayca yönetin</div>
+          <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;margin-bottom:2px;">Cari Hesaplar</div>
+          <div style="font-size:10px;font-weight:700;color:#60a5fa;margin-bottom:3px;font-family:Outfit,sans-serif;">Avans &amp; Mahsup</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);line-height:1.4;font-family:Outfit,sans-serif;">Personel avans ve aviklerini kolayca yönetin</div>
         </button>
 
         <!-- Ücret Yönetimi -->
         <button onclick="showSoforSelectForUcret()"
-          style="background:#13171f;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;"
+          style="background:#13171f;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;"
           onmouseover="this.style.borderColor='rgba(34,197,94,.4)';this.style.background='#171c26';this.style.transform='translateY(-2px)'"
           onmouseout="this.style.borderColor='rgba(255,255,255,.07)';this.style.background='#13171f';this.style.transform='none'">
           <div style="position:absolute;top:12px;right:12px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:20px;padding:3px 10px;font-size:9px;font-weight:800;letter-spacing:1.5px;color:#22c55e;font-family:Outfit,sans-serif;">ÖĞRENCİ</div>
-          <div style="width:40px;height:40px;border-radius:12px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+          <div style="width:32px;height:32px;border-radius:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
-          <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;">Ücret Yönetimi</div>
-          <div style="font-size:10px;font-weight:700;color:#22c55e;margin-bottom:6px;font-family:Outfit,sans-serif;">Tahsilat &amp; Ödeme Planı</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.5;font-family:Outfit,sans-serif;">Aylık öğrenci ücretlerini takip edin ve raporlayın</div>
+          <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;margin-bottom:2px;">Ücret Yönetimi</div>
+          <div style="font-size:10px;font-weight:700;color:#22c55e;margin-bottom:3px;font-family:Outfit,sans-serif;">Tahsilat &amp; Ödeme Planı</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);line-height:1.4;font-family:Outfit,sans-serif;">Aylık öğrenci ücretlerini takip edin ve raporlayın</div>
         </button>
 
         <!-- Rota Yönetimi -->
         <button onclick="showSchoolSelectForModule('rota')"
-          style="background:#13171f;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;"
+          style="background:#13171f;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;"
           onmouseover="this.style.borderColor='rgba(200,55,26,.4)';this.style.background='#171c26';this.style.transform='translateY(-2px)'"
           onmouseout="this.style.borderColor='rgba(255,255,255,.07)';this.style.background='#13171f';this.style.transform='none'">
           <div style="position:absolute;top:12px;right:12px;background:rgba(200,55,26,.1);border:1px solid rgba(200,55,26,.25);border-radius:20px;padding:3px 10px;font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--brand);font-family:Outfit,sans-serif;">OPERASYON</div>
-          <div style="width:40px;height:40px;border-radius:12px;background:rgba(200,55,26,.1);border:1px solid rgba(200,55,26,.2);display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+          <div style="width:32px;height:32px;border-radius:10px;background:rgba(200,55,26,.1);border:1px solid rgba(200,55,26,.2);display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 6 2v5h-6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
           </div>
-          <div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;">Rota Yönetimi</div>
-          <div style="font-size:10px;font-weight:700;color:var(--brand);margin-bottom:6px;font-family:Outfit,sans-serif;">Güzergah Optimizasyonu</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.5;font-family:Outfit,sans-serif;">Öğrenci atama ve servis rotalarını planlayın</div>
+          <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;margin-bottom:2px;">Rota Yönetimi</div>
+          <div style="font-size:10px;font-weight:700;color:var(--brand);margin-bottom:3px;font-family:Outfit,sans-serif;">Güzergah Optimizasyonu</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);line-height:1.4;font-family:Outfit,sans-serif;">Öğrenci atama ve servis rotalarını planlayın</div>
         </button>
       </div>
 
@@ -2153,11 +2153,11 @@ function _addManagedListener(target, event, handler, options) {
 
       <!-- Not Defteri -->
       <button onclick="openNotepad()"
-        style="width:100%;background:#13171f;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:18px 20px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;margin-bottom:24px;"
+        style="width:100%;background:#13171f;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 14px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;margin-bottom:8px;"
         onmouseover="this.style.borderColor='rgba(139,92,246,.4)';this.style.background='#171c26';this.style.transform='translateY(-1px)'"
         onmouseout="this.style.borderColor='rgba(255,255,255,.07)';this.style.background='#13171f';this.style.transform='none'">
         <div style="position:absolute;top:14px;right:16px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);border-radius:20px;padding:3px 10px;font-size:9px;font-weight:800;letter-spacing:1.5px;color:#a78bfa;font-family:Outfit,sans-serif;">ARAÇ</div>
-        <div style="width:38px;height:38px;flex-shrink:0;border-radius:11px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;">
+        <div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </div>
         <div style="flex:1;">
@@ -2170,11 +2170,11 @@ function _addManagedListener(target, event, handler, options) {
 
       <!-- Araç Takip -->
       <button onclick="openAracTakipModal()"
-        style="width:100%;background:#13171f;border:1px solid rgba(14,165,233,.15);border-radius:16px;padding:18px 20px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;margin-bottom:14px;"
+        style="width:100%;background:#13171f;border:1px solid rgba(14,165,233,.15);border-radius:12px;padding:10px 14px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;margin-bottom:8px;"
         onmouseover="this.style.borderColor='rgba(14,165,233,.45)';this.style.background='#171c26';this.style.transform='translateY(-1px)'"
         onmouseout="this.style.borderColor='rgba(14,165,233,.15)';this.style.background='#13171f';this.style.transform='none'">
         <div style="position:absolute;top:14px;right:16px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);border-radius:20px;padding:3px 10px;font-size:9px;font-weight:800;letter-spacing:1.5px;color:#38bdf8;font-family:Outfit,sans-serif;">ARAÇ</div>
-        <div style="width:38px;height:38px;flex-shrink:0;border-radius:11px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);display:flex;align-items:center;justify-content:center;">
+        <div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:rgba(14,165,233,.1);border:1px solid rgba(14,165,233,.2);display:flex;align-items:center;justify-content:center;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 6 2v5h-6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/><path d="M12 8v4l2 2"/></svg>
         </div>
         <div style="flex:1;">
@@ -2187,11 +2187,11 @@ function _addManagedListener(target, event, handler, options) {
 
       <!-- İş Başvuruları -->
       <button onclick="openBasvuruModal()"
-        style="width:100%;background:#13171f;border:1px solid rgba(251,146,60,.15);border-radius:16px;padding:18px 20px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;margin-bottom:24px;"
+        style="width:100%;background:#13171f;border:1px solid rgba(251,146,60,.15);border-radius:12px;padding:10px 14px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;margin-bottom:8px;"
         onmouseover="this.style.borderColor='rgba(251,146,60,.4)';this.style.background='#171c26';this.style.transform='translateY(-1px)'"
         onmouseout="this.style.borderColor='rgba(251,146,60,.15)';this.style.background='#13171f';this.style.transform='none'">
         <div style="position:absolute;top:14px;right:16px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.2);border-radius:20px;padding:3px 10px;font-size:9px;font-weight:800;letter-spacing:1.5px;color:#fb923c;font-family:Outfit,sans-serif;">YENİ</div>
-        <div style="width:38px;height:38px;flex-shrink:0;border-radius:11px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.2);display:flex;align-items:center;justify-content:center;">
+        <div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.2);display:flex;align-items:center;justify-content:center;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <div style="flex:1;">
@@ -2201,8 +2201,8 @@ function _addManagedListener(target, event, handler, options) {
         </div>
       </button>
       <!-- Son Silinenler -->
-      <button onclick="openTrashModal()" style="width:100%;background:#13171f;border:1px solid rgba(239,68,68,.15);border-radius:16px;padding:16px 20px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;margin-bottom:14px;" onmouseover="this.style.borderColor='rgba(239,68,68,.4)';this.style.background='#171c26'" onmouseout="this.style.borderColor='rgba(239,68,68,.15)';this.style.background='#13171f'">
-        <div style="width:38px;height:38px;flex-shrink:0;border-radius:11px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);display:flex;align-items:center;justify-content:center;font-size:18px;">🗑️</div>
+      <button onclick="openTrashModal()" style="width:100%;background:#13171f;border:1px solid rgba(239,68,68,.15);border-radius:12px;padding:10px 14px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;margin-bottom:8px;" onmouseover="this.style.borderColor='rgba(239,68,68,.4)';this.style.background='#171c26'" onmouseout="this.style.borderColor='rgba(239,68,68,.15)';this.style.background='#13171f'">
+        <div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);display:flex;align-items:center;justify-content:center;font-size:18px;">🗑️</div>
         <div style="flex:1;">
           <div style="font-family:Syne,sans-serif;font-size:14px;font-weight:800;color:#fff;margin-bottom:2px;">Son Silinenler</div>
           <div style="font-size:11px;color:rgba(255,255,255,.3);font-family:Outfit,sans-serif;">Cari, öğrenci, şoför geri alma</div>
@@ -2210,9 +2210,9 @@ function _addManagedListener(target, event, handler, options) {
         <div id="trash-badge" style="display:none;min-width:22px;height:22px;border-radius:11px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;align-items:center;justify-content:center;flex-shrink:0;padding:0 5px;">0</div>
       </button>
 
-      <div style="border-top:1px solid rgba(255,255,255,.05);padding-top:20px;">
-        <div style="font-family:Outfit,sans-serif;font-size:10px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:14px;">SİSTEM</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div style="border-top:1px solid rgba(255,255,255,.05);padding-top:12px;">
+        <div style="font-family:Outfit,sans-serif;font-size:10px;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.2);text-transform:uppercase;margin-bottom:8px;">SİSTEM</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
           <button onclick="exportDataFromLogin()" style="display:flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;border:1px solid rgba(52,211,153,.2);background:rgba(52,211,153,.06);color:rgba(52,211,153,.85);font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:all .15s;" onmouseover="this.style.background='rgba(52,211,153,.14)'" onmouseout="this.style.background='rgba(52,211,153,.06)'">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Yedekle
@@ -13989,7 +13989,7 @@ try{ _updateLoginBasvuruCount(); }catch(e){}
     <!-- Header -->
     <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;background:rgba(139,92,246,.04);">
       <div style="display:flex;align-items:center;gap:12px;">
-        <div style="width:40px;height:40px;border-radius:12px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);display:flex;align-items:center;justify-content:center;">
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);display:flex;align-items:center;justify-content:center;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/><path d="M19 11l2 2-4 4"/></svg>
         </div>
         <div>
@@ -14099,7 +14099,7 @@ try{ _updateLoginBasvuruCount(); }catch(e){}
     <!-- Header -->
     <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;background:rgba(239,68,68,.04);">
       <div style="display:flex;align-items:center;gap:12px;">
-        <div style="width:40px;height:40px;border-radius:12px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);display:flex;align-items:center;justify-content:center;font-size:18px;">🗑️</div>
+        <div style="width:32px;height:32px;border-radius:10px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);display:flex;align-items:center;justify-content:center;font-size:18px;">🗑️</div>
         <div>
           <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:900;color:#fff;">Son Silinenler</div>
           <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:1px;">Son 30 silinen kayıt — dilediğinizi geri alabilirsiniz</div>
