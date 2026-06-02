@@ -10409,11 +10409,13 @@ function filterUcretAddList(q){
  const lo = q.toLowerCase();
  const el = document.getElementById('ucret-add-list');
  if(!el) return;
- // payments[s.id] === undefined ise eklenmemiş demektir
- // {} boş obje truthy olduğu için !payments[s.id] YANLIŞ - undefined kontrolü lazım
+ // Aktif şoförün mevcut öğrencileri — bunları hariç tut
+ const drvId = window._ucretActiveSoforId;
+ const soforOgrIds = new Set(drvId ? _getSoforOgrenciListesi(drvId).map(o=>o.id) : []);
+ // payments'ta kaydı olan VE şoföre zaten eklenmiş olanları hariç tut
  const candidates = students.filter(s=>
-   payments[s.id] === undefined &&
-   (!lo || s.name.toLowerCase().includes(lo) || (s.mah||'').toLowerCase().includes(lo) || (s.ilce||'').toLowerCase().includes(lo))
+   !soforOgrIds.has(s.id) &&
+   (!lo || (s.name||'').toLowerCase().includes(lo) || (s.mah||'').toLowerCase().includes(lo) || (s.ilce||'').toLowerCase().includes(lo))
  );
  if(!candidates.length){
    el.innerHTML='<div style="font-size:13px;color:var(--muted2);padding:12px;text-align:center;">Tüm öğrenciler eklenmiş.<br><span style="font-size:11px;opacity:.6;">Yeni öğrenci eklemek için "Yeni Öğrenci Ekle" sekmesini kullanın.</span></div>';
