@@ -6311,6 +6311,7 @@ function removeStudent(id){
  s.name+' adlı öğrenci silinsin mi? Ödeme kayıtları da silinir.',
  'Evet, Sil',
  function(){
+ _trashAdd('student', id, {...s, _payments: payments[id]||{}, _school: s.school, _deletedFrom:'rota'});
  students = students.filter(x=>x.id!==id);
  routes.forEach(r=>{ r.students=r.students.filter(x=>x.id!==id); });
  routes = routes.filter(r=>r.students.length>0);
@@ -6491,6 +6492,7 @@ function removeDriver(id){
   d.name+' adlı şoför silinsin mi? Atanmış rotası varsa rota serbest kalır.',
   'Evet, Sil',
   function(){
+   _trashAdd('driver', id, {...d, _deletedFrom:'rota'});
    drivers = drivers.filter(x=>x.id!==id);
    routes.forEach(r=>{ if(r.driverId===id) r.driverId=null; });
    renderDrivers(); updateDash(); saveData();
@@ -10607,6 +10609,8 @@ function soforOgrenciSil(sid){
   const ad = _s ? _s.name : 'Bu öğrenci';
   if(!confirm(ad + ' öğrencisini bu şoförün listesinden kaldırmak istiyor musunuz?\n\nÖdeme kayıtları silinecek.')) return;
   const drvId = window._ucretActiveSoforId;
+  // Trash'e ekle
+  if(_s) _trashAdd('student', sid, {..._s, _payments: payments[sid]||{}, _soforId: drvId, _deletedFrom:'ucret'});
   // Sofor-ogrenci map'inden kaldır
   if(drvId){
     const liste = _getSoforOgrenciListesi(drvId).filter(o => o.id !== sid);
@@ -11072,6 +11076,7 @@ function openDeleteSoforModal(id){
     '🗑 '+s.name+' silinsin mi?',
     'Bu şoförün tüm ödeme verileri de silinecek.',
     ()=>{
+      _trashAdd('sofor', id, {...s, _soforPayments: soforPayments[id]||{}, _deletedFrom:'ucret'});
       soforler = soforler.filter(x=>x.id!==id);
       delete soforPayments[id];
       saveSoforData();
@@ -13024,8 +13029,10 @@ function _trashAdd(type, id, data) {
 function _trashLabel(type, data) {
   if (type === 'cari')    return data.isim || 'İsimsiz Cari';
   if (type === 'hareket') return (data.aciklama || 'Hareket') + ' · ' + (data._cariId ? '' : '');
-  if (type === 'student') return data.name || 'İsimsiz Öğrenci';
+  if (type === 'student') return (data.name || 'İsimsiz Öğrenci') + (data._deletedFrom==='ucret' ? ' (Ücret)' : ' (Rota)');
   if (type === 'driver')  return data.name || 'İsimsiz Şoför';
+  if (type === 'sofor')   return (data.name || 'İsimsiz Şoför') + ' (Şoför)';
+  if (type === 'arac')    return (data.plaka || 'Plakasız') + ' — Araç';
   return 'Kayıt';
 }
 
@@ -13133,9 +13140,9 @@ function _trashRender() {
   }
   list.style.display = 'flex';
   if (empty) empty.style.display = 'none';
-  const icons = {cari:'💳', hareket:'💸', student:'🎒', driver:'🚗'};
-  const labels = {cari:'Cari Hesap', hareket:'Hareket', student:'Öğrenci', driver:'Şoför'};
-  const colors = {cari:'59,130,246', hareket:'139,92,246', student:'34,197,94', driver:'251,146,60'};
+  const icons = {cari:'💳', hareket:'💸', student:'🎒', driver:'🚗', sofor:'👤', arac:'🚌'};
+  const labels = {cari:'Cari Hesap', hareket:'Hareket', student:'Öğrenci', driver:'Şoför', sofor:'Şoför', arac:'Araç'};
+  const colors = {cari:'59,130,246', hareket:'139,92,246', student:'34,197,94', driver:'251,146,60', sofor:'251,146,60', arac:'14,165,233'};
   list.innerHTML = trash.map((item, idx) => {
     const c = colors[item.type] || '255,255,255';
     const ago = _trashTimeAgo(item.ts);
@@ -13191,6 +13198,21 @@ function _trashRestore(idx) {
       if (typeof saveData === 'function') saveData();
       if (typeof renderDrivers === 'function') renderDrivers();
       msg = '"' + item.label + '" şoför geri alındı';
+    } else if (item.type === 'sofor') {
+      // Ücret yönetimi şoförü
+      if (!soforler) return;
+      if (!soforler.some(x=>x.id===item.data.id)) soforler.push(item.data);
+      if (item.data._soforPayments) soforPayments[item.data.id] = item.data._soforPayments;
+      if (typeof saveSoforData === 'function') saveSoforData();
+      msg = '"' + (item.data.name||'Şoför') + '" şoför geri alındı';
+    } else if (item.type === 'arac') {
+      const list = _loadAraclar();
+      if (!list.some(x=>x.id===item.data.id)){
+        const {_deletedFrom,...aracData} = item.data;
+        list.push(aracData);
+        _saveAraclar(list);
+      }
+      msg = '"' + (item.data.plaka||'Araç') + '" geri alındı';
     }
     window._trash.splice(idx, 1);
     _trashSave();
@@ -14290,6 +14312,8 @@ function _atEditArac(btn){var id=btn.getAttribute('data-id');
 
 function _atDeleteArac(btn){var id=btn.getAttribute('data-id');
   if(!confirm('Bu aracı silmek istediğinizden emin misiniz?'))return;
+  var _aracObj=_loadAraclar().find(function(x){return x.id===id;});
+  if(_aracObj) _trashAdd('arac', id, {..._aracObj, _deletedFrom:'arac_takip'});
   _saveAraclar(_loadAraclar().filter(function(x){return x.id!==id;}));
   _atRenderListe();
   if(typeof toast==='function')toast('Araç silindi','success');
