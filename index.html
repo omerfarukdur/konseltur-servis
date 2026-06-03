@@ -3234,6 +3234,11 @@ setInterval(updateLoginClock, 30000);
     <div style="display:flex;gap:6px;">
       <button onclick="openCariEditModal(window._activeCariId)" style="padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--card2);color:var(--muted2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;" onmouseover="this.style.borderColor='rgba(59,130,246,.4)';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted2)'">Düzenle</button>
       <button onclick="openCariHareketModal()" class="detay-hareket-btn" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(59,130,246,.35);background:rgba(59,130,246,.1);color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;">+ Hareket</button>
+      <button onclick="document.getElementById('kasa-excel-import-input').click()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.08);color:#4ade80;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Excel'den Aktar
+      </button>
+      <input type="file" id="kasa-excel-import-input" accept=".xlsx,.xls" style="display:none;" onchange="importKasaFromExcel(event)">
       <button onclick="exportCariDetayPDF()" class="detay-pdf-btn" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         PDF'e Aktar
@@ -12844,7 +12849,13 @@ function renderCariDetay(id){
   }
 
   let runBal = 0;
-  const sorted = [...hareketler].sort((a,b)=>(a.tarih||'').localeCompare(b.tarih||''));
+  const sorted = [...hareketler].sort((a,b)=>{
+    const ta = a.tarih||'', tb = b.tarih||'';
+    if(ta && tb) return ta.localeCompare(tb);
+    if(ta && !tb) return -1;
+    if(!ta && tb) return 1;
+    return (a.ts||0) - (b.ts||0);  // tarih yoksa insert sırasına göre
+  });
   sorted.forEach(h=>{ runBal += (parseFloat(h.borc||0) - parseFloat(h.alacak||0)); h._rb = runBal; });
   sorted.reverse();
 
@@ -13905,7 +13916,7 @@ function importCariFromExcel(event){
               tarihStr=isNaN(td3.getTime())?tarihRaw.toString().trim():td3.toISOString().slice(0,10);
             }
           }
-          var hKey='h_xl_'+hid;
+          var hKey='h_xl_'+String(hid).padStart(6,'0');  // Sıralı key — alfabetik sıra = eklenme sırası
           hareketler[hKey]={id:hKey, tarih:tarihStr, aciklama:aciklama, borc:borcV, alacak:alacakV, ts:hid};
           hid++;
         }
@@ -13933,6 +13944,82 @@ function importCariFromExcel(event){
     }
   };
   reader.readAsArrayBuffer(file);
+}
+
+// ── Kasa Cari Excel Import ─────────────────────────────────
+function importKasaFromExcel(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  event.target.value = '';
+  _ensureXLSX(function(){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      try{
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type:'array', cellDates:true, raw:true});
+        const ws = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
+        if(!rows || rows.length < 2){ toast('Excel boş','error'); return; }
+
+        // Başlık satırını bul
+        var hStartRow=-1, borcCol=-1, alacakCol=-1, aciklamaCol=-1, tarihCol=-1;
+        for(var ri=0; ri<Math.min(10,rows.length); ri++){
+          var rowU=rows[ri].map(function(v){return(v||'').toString().toUpperCase().trim();});
+          if((rowU.indexOf('BORÇ')>=0||rowU.indexOf('BORC')>=0) && rowU.indexOf('ALACAK')>=0){
+            hStartRow=ri+1;
+            borcCol=rowU.indexOf('BORÇ'); if(borcCol<0) borcCol=rowU.indexOf('BORC');
+            alacakCol=rowU.indexOf('ALACAK');
+            aciklamaCol=rowU.indexOf('AÇIKLAMA'); if(aciklamaCol<0) aciklamaCol=rowU.indexOf('ACIKLAMA');
+            tarihCol=rowU.indexOf('TARİH'); if(tarihCol<0) tarihCol=rowU.indexOf('TARIH');
+            break;
+          }
+        }
+        if(hStartRow<0){ toast('Borç/Alacak sütunu bulunamadı','error'); return; }
+
+        // Aktif kasa cari ID
+        const kasaId = window._activeCariId;
+        if(!kasaId || !_cariData[kasaId]){ toast('Kasa hesabı bulunamadı','error'); return; }
+        const cari = _cariData[kasaId];
+        if(!cari.hareketler) cari.hareketler = {};
+
+        var added=0, hid=Object.keys(cari.hareketler).length+1;
+        for(var ri2=hStartRow; ri2<rows.length; ri2++){
+          var hr=rows[ri2];
+          var _bv=hr[borcCol]; var borcV=typeof _bv==='number'?_bv:parseFloat((_bv||'0').toString().replace(/[^0-9.-]/g,''))||0;
+          var _av=hr[alacakCol]; var alacakV=typeof _av==='number'?_av:parseFloat((_av||'0').toString().replace(/[^0-9.-]/g,''))||0;
+          var aciklama=aciklamaCol>=0?(hr[aciklamaCol]||'').toString().trim():'';
+          var tarihRaw=tarihCol>=0?hr[tarihCol]:null;
+          if(borcV===0&&alacakV===0&&!aciklama) continue;
+
+          var tarihStr='';
+          if(tarihRaw){
+            if(tarihRaw instanceof Date){
+              tarihStr=tarihRaw.toISOString().slice(0,10);
+            } else if(typeof tarihRaw==='number'){
+              var excelEpoch=new Date(1899,11,30);
+              var td=new Date(excelEpoch.getTime()+tarihRaw*86400000);
+              tarihStr=isNaN(td.getTime())?'':td.toISOString().slice(0,10);
+            } else {
+              var td2=new Date(tarihRaw.toString());
+              tarihStr=isNaN(td2.getTime())?tarihRaw.toString().trim():td2.toISOString().slice(0,10);
+            }
+          }
+
+          var hKey='h_kasa_xl_'+String(hid).padStart(6,'0');
+          cari.hareketler[hKey]={id:hKey, tarih:tarihStr, aciklama:aciklama, borc:borcV, alacak:alacakV, ts:hid};
+          hid++; added++;
+        }
+
+        _saveCariToStorage();
+        renderCariDetay(kasaId);
+        toast('✅ '+added+' hareket aktarıldı','success');
+      }catch(err){
+        console.error('Kasa Excel import hatası:',err);
+        toast('Hata: '+(err.message||'bilinmeyen'),'error');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
 }
 
 // SheetJS yüklü değilse CDN'den yükle
