@@ -13047,6 +13047,66 @@ function renderCariDetay(id){
   if(hList) hList.innerHTML = hh;
 }
 const _renderCariHareketList = renderCariDetay;
+
+// Sadece hareket listesini filtre ile render et (arama için - sayfayı sıfırlamaz)
+function _renderSadecaHareketList(id){
+  if(!id || !_cariData[id]) return;
+  const c = _cariData[id];
+  const hList  = document.getElementById('cdet-hareket-list');
+  const hCount = document.getElementById('cdet-hareket-count');
+  const hareketler = Object.entries(c.hareketler||{}).map(([hid,h])=>({id:hid,...h}));
+
+  if(!hareketler.length){
+    if(hList) hList.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Henüz hareket yok.</div>';
+    return;
+  }
+
+  let runBal = 0;
+  const sorted = [...hareketler].sort((a,b)=>{
+    const ta=a.tarih||'', tb=b.tarih||'';
+    if(ta&&tb) return ta.localeCompare(tb);
+    if(ta&&!tb) return -1;
+    if(!ta&&tb) return 1;
+    return (a.ts||0)-(b.ts||0);
+  });
+  sorted.forEach(h=>{ runBal+=(parseFloat(h.borc||0)-parseFloat(h.alacak||0)); h._rb=runBal; });
+  sorted.reverse();
+
+  const _hFilter=(window._cdetHareketFilter||'').toLowerCase();
+  const displayed=_hFilter
+    ? sorted.filter(h=>(h.aciklama||'').toLowerCase().includes(_hFilter)||(h.tarih||'').includes(_hFilter))
+    : sorted;
+
+  if(hCount) hCount.textContent=_hFilter
+    ? displayed.length+' / '+sorted.length+' hareket'
+    : sorted.length+' hareket';
+
+  if(!displayed.length){
+    if(hList) hList.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px;">"'+_hFilter+'" ile eşleşen hareket bulunamadı</div>';
+    return;
+  }
+
+  let hh='<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;overflow-x:auto;">';
+  hh+=`<div style="display:grid;grid-template-columns:85px 1fr 85px 85px 95px 30px;gap:0;padding:10px 14px;background:rgba(255,255,255,.025);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);min-width:480px;">
+    <div>Tarih</div><div>Açıklama</div><div style="text-align:right;">Alınan</div><div style="text-align:right;">Verilen</div><div style="text-align:right;">Bakiye</div><div></div></div>`;
+  displayed.forEach(h=>{
+    const b=parseFloat(h.borc||0),a=parseFloat(h.alacak||0);
+    const bc=h._rb>=0?'var(--green)':'var(--red)';
+    const _editBtn=h.otomatik
+      ? `<button onclick="event.stopPropagation();editTaseronGun('${id}','${h.id}')" style="width:22px;height:22px;border-radius:5px;border:1px solid rgba(245,158,11,.25);background:rgba(245,158,11,.07);color:#fbbf24;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;margin-bottom:2px;">✏</button>`
+      : `<button onclick="event.stopPropagation();editCariHareket('${id}','${h.id}')" style="width:22px;height:22px;border-radius:5px;border:1px solid rgba(96,165,250,.2);background:rgba(96,165,250,.06);color:#60a5fa;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;margin-bottom:2px;">✏</button>`;
+    hh+=`<div style="display:grid;grid-template-columns:85px 1fr 85px 85px 95px 48px;gap:0;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px;min-width:480px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background='transparent'">
+      <div style="color:var(--muted2);font-size:12px;">${_esc(h.tarih||'—')}</div>
+      <div style="font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(h.aciklama||'—')}</div>
+      <div style="text-align:right;color:${b>0?'var(--green)':'var(--muted)'};font-weight:600;">${b>0?_fmtPara(b):'—'}</div>
+      <div style="text-align:right;color:${a>0?'var(--red)':'var(--muted)'};font-weight:600;">${a>0?_fmtPara(a):'—'}</div>
+      <div style="text-align:right;color:${bc};font-weight:700;font-family:'Syne',sans-serif;">${_fmtPara(h._rb)}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;">${_editBtn}<button onclick="event.stopPropagation();deleteCariHareket('${id}','${h.id}')" style="width:22px;height:22px;border-radius:5px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.06);color:var(--red);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;">×</button></div>
+    </div>`;
+  });
+  hh+='</div>';
+  if(hList) hList.innerHTML=hh;
+}
 // Modal: Cari Ekle
 function openCariAddModal(){
   document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> ' + (window._kasaModOnly ? 'Yeni Kasa Hareketi' : 'Yeni Cari Hesap');
@@ -14155,7 +14215,7 @@ function filterCariHareketler(q){
   window._cdetHareketFilter = (q||'').trim().toLowerCase();
   const clr = document.getElementById('cdet-hareket-search-clear');
   if(clr) clr.style.display = window._cdetHareketFilter ? 'block' : 'none';
-  if(window._activeCariId) renderCariDetay(window._activeCariId);
+  if(window._activeCariId) _renderSadecaHareketList(window._activeCariId);
 }
 window.filterCariHareketler = filterCariHareketler;
 
