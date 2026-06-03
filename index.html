@@ -1424,7 +1424,7 @@ try{
       <div style="font-size:12px;color:rgba(255,255,255,.3);margin-bottom:28px;text-align:center;">Devam etmek için giriş yapın</div>
 
       <!-- Email input -->
-      <div style="position:relative;margin-bottom:12px;">
+      <div style="position:relative;margin-bottom:12px;z-index:10;isolation:isolate;">
         <div style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.22);pointer-events:none;line-height:0;">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </div>
@@ -12826,9 +12826,15 @@ function openCariDetay(id){
 
 function renderCariDetay(id){
   if(!id || !_cariData[id]) return;
-  // Arama kutusunu temizle
+  // Arama kutusunu temizle ve etkinleştir
   const srch = document.getElementById('cdet-hareket-search');
-  if(srch) srch.value = '';
+  if(srch){
+    srch.value = '';
+    srch.style.pointerEvents = 'auto';
+    srch.style.position = 'relative';
+    srch.style.zIndex = '10';
+    srch.removeAttribute('disabled');
+  }
   window._cdetHareketFilter = '';
   const clr = document.getElementById('cdet-hareket-search-clear');
   if(clr) clr.style.display = 'none';
@@ -13193,7 +13199,7 @@ function _toggleCariBakiye(){
 // SON SİLİNENLER (TRASH BIN) SİSTEMİ
 // ═══════════════════════════════════════════════════
 window._trash = [];
-const TRASH_MAX = 30; // Max 30 kayıt sakla
+const TRASH_MAX = 999999; // Max 30 kayıt sakla
 
 function _trashAdd(type, id, data) {
   window._trash.unshift({
@@ -13201,7 +13207,7 @@ function _trashAdd(type, id, data) {
     ts: Date.now(),
     label: _trashLabel(type, data)
   });
-  if (window._trash.length > TRASH_MAX) window._trash.pop();
+  // TRASH_MAX sınırı kaldırıldı
   _trashSave();
   _trashUpdateBadge();
 }
@@ -14082,14 +14088,18 @@ function importCariFromExcel(event){
         var hareketler={}, hid=1;
         for(var ri3=hStartRow; ri3<rows.length; ri3++){
           var hr=rows[ri3];
-          // SR.NO boşsa veya TOPLAM satırıysa atla
-          if(hr[borcCol]===null && hr[alacakCol]===null) continue;
+          // Boş veya TOPLAM satırları atla
+          var _b = hr[borcCol], _a = hr[alacakCol], _ac = aciklamaCol>=0 ? hr[aciklamaCol] : null;
+          var bV = typeof _b==='number' ? _b : parseFloat((_b||'0').toString().replace(/[^0-9.-]/g,''))||0;
+          var aV = typeof _a==='number' ? _a : parseFloat((_a||'0').toString().replace(/[^0-9.-]/g,''))||0;
+          var acStr = (_ac||'').toString().trim();
+          if(bV===0 && aV===0 && !acStr) continue;  // tamamen boş satır
           if(hr[0]===null||hr[0]===undefined||hr[0]==='') continue;
           var srNo=hr[0].toString().trim();
           if(srNo.toUpperCase().indexOf('TOPLAM')>=0||srNo.toUpperCase().indexOf('TOTAL')>=0) continue;
-          var borcV=parseFloat((hr[borcCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
-          var alacakV=parseFloat((hr[alacakCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
-          var aciklama=aciklamaCol>=0?(hr[aciklamaCol]||'').toString().trim():'';
+          var borcV = bV;
+          var alacakV = aV;
+          var aciklama = acStr;
           var tarihRaw=tarihCol>=0?hr[tarihCol]:null;
           if(borcV===0&&alacakV===0&&!aciklama) continue;
           var tarihStr='';
@@ -14211,14 +14221,18 @@ function importKasaFromExcel(event){
         var added=0, hid=Object.keys(cari.hareketler).length+1;
         for(var ri2=hStartRow; ri2<rows.length; ri2++){
           var hr=rows[ri2];
-          // SR.NO boşsa veya TOPLAM satırıysa atla
-          if(hr[borcCol]===null && hr[alacakCol]===null) continue;
+          // Boş veya TOPLAM satırları atla
+          var _b = hr[borcCol], _a = hr[alacakCol], _ac = aciklamaCol>=0 ? hr[aciklamaCol] : null;
+          var bV = typeof _b==='number' ? _b : parseFloat((_b||'0').toString().replace(/[^0-9.-]/g,''))||0;
+          var aV = typeof _a==='number' ? _a : parseFloat((_a||'0').toString().replace(/[^0-9.-]/g,''))||0;
+          var acStr = (_ac||'').toString().trim();
+          if(bV===0 && aV===0 && !acStr) continue;  // tamamen boş satır
           if(hr[0]===null||hr[0]===undefined||hr[0]==='') continue;
           var srNo=hr[0].toString().trim();
           if(srNo.toUpperCase().indexOf('TOPLAM')>=0||srNo.toUpperCase().indexOf('TOTAL')>=0) continue;
-          var borcV=parseFloat((hr[borcCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
-          var alacakV=parseFloat((hr[alacakCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
-          var aciklama=aciklamaCol>=0?(hr[aciklamaCol]||'').toString().trim():'';
+          var borcV = bV;
+          var alacakV = aV;
+          var aciklama = acStr;
           var tarihRaw=tarihCol>=0?hr[tarihCol]:null;
           if(borcV===0&&alacakV===0&&!aciklama) continue;
 
