@@ -3408,7 +3408,7 @@ setInterval(updateLoginClock, 30000);
   <div style="position:relative;margin-bottom:12px;">
     <svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input id="cdet-hareket-search" type="text" placeholder="Açıklama veya tarih ara..." oninput="filterCariHareketler(this.value)"
-      style="width:100%;padding:9px 36px 9px 34px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"
+      style="width:100%;padding:9px 36px 9px 34px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;pointer-events:auto;position:relative;z-index:1;"
       onfocus="this.style.borderColor='rgba(59,130,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
     <button id="cdet-hareket-search-clear" onclick="clearHareketSearch()" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;line-height:1;padding:0;">×</button>
   </div>
@@ -13359,7 +13359,7 @@ function _trashRestore(idx) {
       if (typeof renderCariListe === 'function') renderCariListe();
     } else if (item.type === 'hareket') {
       const cariId = item.data._cariId;
-      if (!cariId || !_cariData || !_cariData[cariId]) { showToast('Cari hesap artık mevcut değil','error'); return; }
+      if (!cariId || !_cariData || !_cariData[cariId]) { if(typeof toast==='function') toast('Cari hesap artık mevcut değil','error'); return; }
       if (!_cariData[cariId].hareketler) _cariData[cariId].hareketler = {};
       const {_cariId, ...hData} = item.data;
       _cariData[cariId].hareketler[item.id] = hData;
@@ -13419,9 +13419,9 @@ function _trashRestore(idx) {
     _trashSave();
     _trashUpdateBadge();
     _trashRender();
-    if (msg && typeof showToast === 'function') showToast('✅ ' + msg, 'success');
+    if (msg) { if(typeof toast==='function') toast('✅ ' + msg,'success'); else if(typeof showToast==='function') showToast('✅ '+msg,'success'); }
   } catch(e) {
-    if (typeof showToast === 'function') showToast('Geri alma hatası: ' + e.message, 'error');
+    if(typeof toast==='function') toast('Geri alma hatası: '+e.message,'error');
   }
 }
 
@@ -14037,34 +14037,56 @@ function importCariFromExcel(event){
         var zatenVar = Object.values(_cariData).some(function(c){ return c.isim===isim; });
         if(zatenVar){ skipped++; atlananLog.push(sheetName+' ('+isim+' zaten var)'); return; }
 
-        // Hareket başlık satırını bul
-        var hStartRow=-1, borcCol=-1, alacakCol=-1, aciklamaCol=-1, tarihCol=-1;
-        for(var ri2=0; ri2<Math.min(15,rows.length); ri2++){
-          var rowU = rows[ri2].map(function(v){ return (v||'').toString().toUpperCase().trim(); });
-          if(rowU.indexOf('BORÇ')>=0 && rowU.indexOf('ALACAK')>=0){
+        // Hareket başlık satırını bul — SR.NO veya BORÇ/ALACAK olan satır
+        var hStartRow=-1, borcCol=3, alacakCol=4, aciklamaCol=2, tarihCol=1;
+        for(var ri2=0; ri2<rows.length; ri2++){
+          var rowArr = rows[ri2].map(function(v){ return (v||'').toString().trim(); });
+          var rowUp = rowArr.map(function(v){ return v.toUpperCase(); });
+          // SR.NO içeren satır = başlık
+          if(rowUp[0]==='SR.NO'||rowUp[0]==='SR NO'){
             hStartRow=ri2+1;
-            borcCol=rowU.indexOf('BORÇ');
-            alacakCol=rowU.indexOf('ALACAK');
-            aciklamaCol=rowU.indexOf('AÇIKLAMA');
-            if(aciklamaCol<0) aciklamaCol=rowU.indexOf('ACIKLAMA');
-            tarihCol=rowU.indexOf('TARİH');
-            if(tarihCol<0) tarihCol=rowU.indexOf('TARIH');
+            for(var ci=0;ci<rowUp.length;ci++){
+              var c=rowUp[ci];
+              if(c==='BORÇ'||c==='BORC'||c==='BORÇ ') borcCol=ci;
+              if(c==='ALACAK') alacakCol=ci;
+              if(c.indexOf('ACIKLAMA')>=0||c.indexOf('AÇIKLAMA')>=0) aciklamaCol=ci;
+              if(c==='TARIH'||c.indexOf('TARIH')===0) tarihCol=ci;
+            }
+            break;
+          }
+          // BORÇ ve ALACAK kelimeleri olan satır
+          var hasBorc = rowUp.some(function(v){return v==='BORÇ'||v==='BORC';});
+          var hasAlacak = rowUp.indexOf('ALACAK')>=0;
+          if(hasBorc && hasAlacak){
+            hStartRow=ri2+1;
+            for(var ci2=0;ci2<rowUp.length;ci2++){
+              if(rowUp[ci2]==='BORÇ'||rowUp[ci2]==='BORC') borcCol=ci2;
+              if(rowUp[ci2]==='ALACAK') alacakCol=ci2;
+              if(rowUp[ci2].indexOf('ACIKLAMA')>=0||rowUp[ci2].indexOf('AÇIKLAMA')>=0) aciklamaCol=ci2;
+              if(rowUp[ci2]==='TARIH'||rowUp[ci2].indexOf('TARIH')===0) tarihCol=ci2;
+            }
             break;
           }
         }
-
-        if(hStartRow<0||borcCol<0||alacakCol<0){
-          skipped++; atlananLog.push(sheetName+' ('+isim+' hareket yok)'); return;
+        // Bulunamadıysa sabit pozisyon dene (Excel formatı tutarlı: SR.NO=0,TARİH=1,AÇIKLAMA=2,BORÇ=3,ALACAK=4)
+        if(hStartRow<0){
+          for(var ri3=5;ri3<Math.min(12,rows.length);ri3++){
+            var v0=(rows[ri3][0]||'').toString();
+            if(v0==='SR.NO'||v0==='SR NO'){ hStartRow=ri3+1; break; }
+            if(!isNaN(parseInt(v0)) && parseInt(v0)===1){ hStartRow=ri3; break; }
+          }
+          if(hStartRow<0){ skipped++; atlananLog.push(sheetName+' ('+isim+' baslik yok)'); return; }
         }
 
         // Hareketleri oku
         var hareketler={}, hid=1;
         for(var ri3=hStartRow; ri3<rows.length; ri3++){
           var hr=rows[ri3];
-          // SR.NO sütunu (index 0) boşsa TOPLAM satırıdır — atla
+          // SR.NO boşsa veya TOPLAM satırıysa atla
+          if(hr[borcCol]===null && hr[alacakCol]===null) continue;
           if(hr[0]===null||hr[0]===undefined||hr[0]==='') continue;
           var srNo=hr[0].toString().trim();
-          if(srNo.toUpperCase().includes('TOPLAM')||srNo.toUpperCase().includes('TOTAL')) continue;
+          if(srNo.toUpperCase().indexOf('TOPLAM')>=0||srNo.toUpperCase().indexOf('TOTAL')>=0) continue;
           var borcV=parseFloat((hr[borcCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
           var alacakV=parseFloat((hr[alacakCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
           var aciklama=aciklamaCol>=0?(hr[aciklamaCol]||'').toString().trim():'';
@@ -14136,13 +14158,18 @@ function clearCariHareketler(){
   const id = window._activeCariId;
   if(!id || !_cariData[id]) return;
   const c = _cariData[id];
-  const count = Object.keys(c.hareketler||{}).length;
+  const hareketler = c.hareketler||{};
+  const count = Object.keys(hareketler).length;
   if(!count){ toast('Zaten hareket yok','info'); return; }
-  if(!confirm(count+' hareketi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) return;
+  if(!confirm(count+' hareketi silmek istediğinizden emin misiniz?')) return;
+  // Her hareketi trash'e ekle
+  Object.entries(hareketler).forEach(([hid, h]) => {
+    _trashAdd('hareket', hid, {...h, _cariId: id});
+  });
   _cariData[id].hareketler = {};
   _saveCariToStorage();
   renderCariDetay(id);
-  toast('✅ '+count+' hareket silindi','success');
+  toast('✅ '+count+' hareket silindi. Son Silinenlerden geri alabilirsiniz.','success');
 }
 
 // ── Kasa Cari Excel Import ─────────────────────────────────
@@ -14184,10 +14211,11 @@ function importKasaFromExcel(event){
         var added=0, hid=Object.keys(cari.hareketler).length+1;
         for(var ri2=hStartRow; ri2<rows.length; ri2++){
           var hr=rows[ri2];
-          // SR.NO sütunu (index 0) boşsa TOPLAM satırıdır — atla
+          // SR.NO boşsa veya TOPLAM satırıysa atla
+          if(hr[borcCol]===null && hr[alacakCol]===null) continue;
           if(hr[0]===null||hr[0]===undefined||hr[0]==='') continue;
           var srNo=hr[0].toString().trim();
-          if(srNo.toUpperCase().includes('TOPLAM')||srNo.toUpperCase().includes('TOTAL')) continue;
+          if(srNo.toUpperCase().indexOf('TOPLAM')>=0||srNo.toUpperCase().indexOf('TOTAL')>=0) continue;
           var borcV=parseFloat((hr[borcCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
           var alacakV=parseFloat((hr[alacakCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
           var aciklama=aciklamaCol>=0?(hr[aciklamaCol]||'').toString().trim():'';
