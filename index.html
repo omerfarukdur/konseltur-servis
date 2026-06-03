@@ -1514,7 +1514,7 @@ function closeAdminPanel(){
 }
 
 function adminSwitchTab(tab){
-  ['users','add','password'].forEach(t=>{
+  ['users','add','password','tema'].forEach(t=>{
     const panel = document.getElementById('admin-tab-'+t);
     const btn   = document.getElementById('admin-tab-btn-'+t);
     if(!panel||!btn) return;
@@ -1524,7 +1524,134 @@ function adminSwitchTab(tab){
     btn.style.color         = active ? '#a78bfa' : 'rgba(255,255,255,.35)';
     btn.style.borderBottom  = active ? '2px solid #a78bfa' : '2px solid transparent';
   });
+  if(tab==='tema') temaLoadValues();
 }
+
+// ══════════════════════════════════════
+// TEMA SİSTEMİ
+// ══════════════════════════════════════
+const TEMA_KEY = 'konseltur_tema_v1';
+
+function _temaSave(data){
+  const cur = _temaGet();
+  const merged = Object.assign({}, cur, data);
+  localStorage.setItem(TEMA_KEY, JSON.stringify(merged));
+  // Firebase'e de yaz
+  if(window._fbDb && window._fbSet && window._fbRef){
+    window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/tema'), merged).catch(()=>{});
+  }
+}
+function _temaGet(){
+  try{ return JSON.parse(localStorage.getItem(TEMA_KEY)||'{}'); }catch(e){ return {}; }
+}
+
+function temaLoadValues(){
+  const t = _temaGet();
+  if(t.sirketAdi) document.getElementById('tema-sirket-adi').value = t.sirketAdi;
+  if(t.adres)     document.getElementById('tema-adres').value = t.adres;
+  if(t.tel)       document.getElementById('tema-tel').value = t.tel;
+  if(t.web)       document.getElementById('tema-web').value = t.web;
+  if(t.bgImage){
+    document.getElementById('tema-bg-img').src = t.bgImage;
+    document.getElementById('tema-bg-preview').style.display='block';
+  }
+  if(t.logoImage){
+    document.getElementById('tema-logo-img').src = t.logoImage;
+    document.getElementById('tema-logo-preview').style.display='block';
+  }
+}
+
+function temaChangeBg(event){
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const b64 = e.target.result;
+    // Giriş ekranındaki Vito fotoğrafını değiştir
+    const vitoEl = document.querySelector('#login-screen img[style*="object-fit:cover"]') ||
+                   document.querySelector('#login-screen .sol-panel img') ||
+                   document.querySelector('#login-screen div img');
+    if(vitoEl) vitoEl.src = b64;
+    _temaSave({bgImage: b64});
+    document.getElementById('tema-bg-img').src = b64;
+    document.getElementById('tema-bg-preview').style.display='block';
+    if(typeof toast==='function') toast('Fotoğraf güncellendi ✓','success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function temaResetBg(){
+  _temaSave({bgImage: null});
+  document.getElementById('tema-bg-preview').style.display='none';
+  if(typeof toast==='function') toast('Orijinal fotoğrafa döndü','success');
+  // Sayfayı yenile
+  setTimeout(()=>location.reload(), 800);
+}
+
+function temaChangeLogo(event){
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const b64 = e.target.result;
+    // Tüm logo img'leri güncelle
+    document.querySelectorAll('img[alt="Konseltur"]').forEach(function(el){ el.src = b64; });
+    _temaSave({logoImage: b64});
+    document.getElementById('tema-logo-img').src = b64;
+    document.getElementById('tema-logo-preview').style.display='block';
+    if(typeof toast==='function') toast('Logo güncellendi ✓','success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function temaResetLogo(){
+  _temaSave({logoImage: null});
+  document.getElementById('tema-logo-preview').style.display='none';
+  if(typeof toast==='function') toast('Orijinal logoya döndü','success');
+  setTimeout(()=>location.reload(), 800);
+}
+
+function temaSirketKaydet(){
+  const data = {
+    sirketAdi: document.getElementById('tema-sirket-adi').value.trim(),
+    adres:     document.getElementById('tema-adres').value.trim(),
+    tel:       document.getElementById('tema-tel').value.trim(),
+    web:       document.getElementById('tema-web').value.trim()
+  };
+  _temaSave(data);
+  if(typeof toast==='function') toast('Şirket bilgileri kaydedildi ✓','success');
+}
+
+// Sayfa yüklenince tema uygula
+function _temaApply(){
+  const t = _temaGet();
+  if(t.bgImage){
+    // Vito img'yi bul
+    const imgs = document.querySelectorAll('#login-screen img');
+    imgs.forEach(function(img){
+      if(img.src && img.src.indexOf('data:image/jpeg') >= 0) img.src = t.bgImage;
+    });
+  }
+  if(t.logoImage){
+    document.querySelectorAll('img[alt="Konseltur"]').forEach(function(el){ el.src = t.logoImage; });
+  }
+  // Firebase'den yükle
+  if(window._fbDb && window._fbGet && window._fbRef){
+    window._fbGet(window._fbRef(window._fbDb,'konseltur/GLOBAL/tema')).then(function(snap){
+      if(snap && snap.exists()){
+        const ft = snap.val();
+        localStorage.setItem(TEMA_KEY, JSON.stringify(ft));
+        if(ft.bgImage){
+          document.querySelectorAll('#login-screen img').forEach(function(img){
+            if(img.src && img.src.indexOf('data:image/jpeg') >= 0) img.src = ft.bgImage;
+          });
+        }
+        if(ft.logoImage){
+          document.querySelectorAll('img[alt="Konseltur"]').forEach(function(el){ el.src = ft.logoImage; });
+        }
+      }
+    }).catch(()=>{});
+  }
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(_temaApply, 300); });
 
 // Kullanıcı listesi — Firebase DB'deki konseltur/GLOBAL/users kaydından okur
 async function adminLoadUsers(){
@@ -3239,6 +3366,10 @@ setInterval(updateLoginClock, 30000);
         Excel'den Aktar
       </button>
       <input type="file" id="kasa-excel-import-input" accept=".xlsx,.xls" style="display:none;" onchange="importKasaFromExcel(event)">
+      <button onclick="clearCariHareketler()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        Tümünü Temizle
+      </button>
       <button onclick="exportCariDetayPDF()" class="detay-pdf-btn" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         PDF'e Aktar
@@ -3269,9 +3400,17 @@ setInterval(updateLoginClock, 30000);
   </div>
 
   <!-- Hareket Geçmişi -->
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
     <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--muted2);">Hareket Geçmişi</div>
     <div id="cdet-hareket-count" style="font-size:11px;color:var(--muted2);font-weight:600;"></div>
+  </div>
+  <!-- Hareket Arama -->
+  <div style="position:relative;margin-bottom:12px;">
+    <svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="cdet-hareket-search" type="text" placeholder="Açıklama veya tarih ara..." oninput="filterCariHareketler(this.value)"
+      style="width:100%;padding:9px 36px 9px 34px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"
+      onfocus="this.style.borderColor='rgba(59,130,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
+    <button id="cdet-hareket-search-clear" onclick="clearHareketSearch()" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;line-height:1;padding:0;">×</button>
   </div>
   <div id="cdet-hareket-list" style="margin-bottom:20px;">
     <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Henüz hareket yok</div>
@@ -12687,6 +12826,12 @@ function openCariDetay(id){
 
 function renderCariDetay(id){
   if(!id || !_cariData[id]) return;
+  // Arama kutusunu temizle
+  const srch = document.getElementById('cdet-hareket-search');
+  if(srch) srch.value = '';
+  window._cdetHareketFilter = '';
+  const clr = document.getElementById('cdet-hareket-search-clear');
+  if(clr) clr.style.display = 'none';
   const c = _cariData[id];
   const calc = _cariCalcBakiye(c);
   const turLabel = {kasa:'Kasa',basvuru:'Başvuru',sofor:'Personel',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
@@ -12841,7 +12986,7 @@ function renderCariDetay(id){
   }
 
   const hareketler = Object.entries(c.hareketler||{}).map(([hid,h])=>({id:hid,...h}));
-  if(hCount) hCount.textContent = hareketler.length + ' hareket';
+  // hareket sayısı filtre bloğunda güncelleniyor
 
   if(!hareketler.length){
     if(hList) hList.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Henüz hareket yok. Yukarıdaki "+ Hareket" butonuyla işlem ekleyin.</div>';
@@ -12859,10 +13004,28 @@ function renderCariDetay(id){
   sorted.forEach(h=>{ runBal += (parseFloat(h.borc||0) - parseFloat(h.alacak||0)); h._rb = runBal; });
   sorted.reverse();
 
+  // Filtre uygula
+  const _hFilter = (window._cdetHareketFilter||'').toLowerCase();
+  const displayed = _hFilter
+    ? sorted.filter(h=>
+        (h.aciklama||'').toLowerCase().includes(_hFilter) ||
+        (h.tarih||'').includes(_hFilter)
+      )
+    : sorted;
+
+  if(hCount) hCount.textContent = _hFilter
+    ? displayed.length+' / '+sorted.length+' hareket'
+    : sorted.length+' hareket';
+
+  if(!displayed.length){
+    if(hList) hList.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px;">'+(_hFilter?'"'+_hFilter+'" ile eşleşen hareket bulunamadı':'Henüz hareket yok')+'</div>';
+    return;
+  }
+
   let hh = '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;overflow-x:auto;">';
   hh += `<div style="display:grid;grid-template-columns:85px 1fr 85px 85px 95px 30px;gap:0;padding:10px 14px;background:rgba(255,255,255,.025);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);min-width:480px;">
     <div>Tarih</div><div>Açıklama</div><div style="text-align:right;">Alınan</div><div style="text-align:right;">Verilen</div><div style="text-align:right;">Bakiye</div><div></div></div>`;
-  sorted.forEach(h=>{
+  displayed.forEach(h=>{
     const b=parseFloat(h.borc||0), a=parseFloat(h.alacak||0);
     const bc = h._rb>=0?'var(--green)':'var(--red)';
     const _editBtn = h.otomatik
@@ -12880,6 +13043,7 @@ function renderCariDetay(id){
   hh += '</div>';
   if(hList) hList.innerHTML = hh;
 }
+const _renderCariHareketList = renderCariDetay;
 // Modal: Cari Ekle
 function openCariAddModal(){
   document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> ' + (window._kasaModOnly ? 'Yeni Kasa Hareketi' : 'Yeni Cari Hesap');
@@ -13814,7 +13978,7 @@ function importCariFromExcel(event){
   reader.onload = function(e){
     try{
       const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, {type:'array', cellDates:true, raw:true});
+      const workbook = XLSX.read(data, {type:'array', cellDates:true});
 
       // 2026_CARİ.xlsx formatı: Her sayfa ayrı bir cari hesap
       const SKIP_SHEETS = ['GENEL LİSTE ','ÖNEMLİ','GÖREV','FATURA TAKİP','FİYAT ARTIŞI','İŞ BAŞVURU','GELİR GİDER TAKİBİ'];
@@ -13824,7 +13988,7 @@ function importCariFromExcel(event){
       var orderedSheets = [];
       var genelWs = workbook.Sheets['GENEL LİSTE '] || workbook.Sheets['GENEL LİSTE'];
       if(genelWs){
-        var genelRows = XLSX.utils.sheet_to_json(genelWs, {header:1, defval:null, raw:true});
+        var genelRows = XLSX.utils.sheet_to_json(genelWs, {header:1, defval:null, raw:false});
         var seenNos = {};
         for(var gi=3; gi<genelRows.length; gi++){
           var gRow = genelRows[gi];
@@ -13849,7 +14013,7 @@ function importCariFromExcel(event){
         if(SKIP_SHEETS.some(function(s){ return sheetName.trim()===s.trim(); })){ return; }
 
         const ws = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:false, dateNF:'yyyy-mm-dd'});
         if(!rows || rows.length < 5){ skipped++; return; }
 
         // İsim ve firma bul (ilk 5 satırda etiket ara)
@@ -13897,23 +14061,30 @@ function importCariFromExcel(event){
         var hareketler={}, hid=1;
         for(var ri3=hStartRow; ri3<rows.length; ri3++){
           var hr=rows[ri3];
-          var _bv=hr[borcCol]; var borcV=typeof _bv==='number'?_bv:parseFloat((_bv||'0').toString().replace(/[^0-9.-]/g,''))||0;
-          var _av=hr[alacakCol]; var alacakV=typeof _av==='number'?_av:parseFloat((_av||'0').toString().replace(/[^0-9.-]/g,''))||0;
+          // SR.NO sütunu (index 0) boşsa TOPLAM satırıdır — atla
+          if(hr[0]===null||hr[0]===undefined||hr[0]==='') continue;
+          var srNo=hr[0].toString().trim();
+          if(srNo.toUpperCase().includes('TOPLAM')||srNo.toUpperCase().includes('TOTAL')) continue;
+          var borcV=parseFloat((hr[borcCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
+          var alacakV=parseFloat((hr[alacakCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
           var aciklama=aciklamaCol>=0?(hr[aciklamaCol]||'').toString().trim():'';
           var tarihRaw=tarihCol>=0?hr[tarihCol]:null;
           if(borcV===0&&alacakV===0&&!aciklama) continue;
           var tarihStr='';
           if(tarihRaw){
             if(tarihRaw instanceof Date){
-              tarihStr=tarihRaw.toISOString().slice(0,10);
-            } else if(typeof tarihRaw==='number'){
-              // Excel seri tarihi → JS Date
-              var excelEpoch=new Date(1899,11,30);
-              var td2=new Date(excelEpoch.getTime()+tarihRaw*86400000);
-              tarihStr=isNaN(td2.getTime())?'':td2.toISOString().slice(0,10);
+              // cellDates:true ile Date nesnesi
+              var td=new Date(tarihRaw);
+              td.setMinutes(td.getMinutes()-td.getTimezoneOffset()); // timezone fix
+              tarihStr=td.toISOString().slice(0,10);
             } else {
-              var td3=new Date(tarihRaw.toString());
-              tarihStr=isNaN(td3.getTime())?tarihRaw.toString().trim():td3.toISOString().slice(0,10);
+              // String olarak geldi (dateNF:'yyyy-mm-dd')
+              var s=tarihRaw.toString().trim();
+              // dd.mm.yyyy veya yyyy-mm-dd formatını normalize et
+              var m=s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+              if(m) tarihStr=m[3]+'-'+m[2]+'-'+m[1];
+              else if(/^\d{4}-\d{2}-\d{2}$/.test(s)) tarihStr=s;
+              else { var td2=new Date(s); tarihStr=isNaN(td2.getTime())?'':td2.toISOString().slice(0,10); }
             }
           }
           var hKey='h_xl_'+String(hid).padStart(6,'0');  // Sıralı key — alfabetik sıra = eklenme sırası
@@ -13946,6 +14117,34 @@ function importCariFromExcel(event){
   reader.readAsArrayBuffer(file);
 }
 
+// ── Cari Hareketleri Toplu Sil ─────────────────────────────
+function filterCariHareketler(q){
+  window._cdetHareketFilter = (q||'').trim().toLowerCase();
+  const clr = document.getElementById('cdet-hareket-search-clear');
+  if(clr) clr.style.display = window._cdetHareketFilter ? 'block' : 'none';
+  _renderCariHareketList(window._activeCariId);
+}
+
+function clearHareketSearch(){
+  const srch = document.getElementById('cdet-hareket-search');
+  if(srch) srch.value = '';
+  filterCariHareketler('');
+  if(srch) srch.focus();
+}
+
+function clearCariHareketler(){
+  const id = window._activeCariId;
+  if(!id || !_cariData[id]) return;
+  const c = _cariData[id];
+  const count = Object.keys(c.hareketler||{}).length;
+  if(!count){ toast('Zaten hareket yok','info'); return; }
+  if(!confirm(count+' hareketi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) return;
+  _cariData[id].hareketler = {};
+  _saveCariToStorage();
+  renderCariDetay(id);
+  toast('✅ '+count+' hareket silindi','success');
+}
+
 // ── Kasa Cari Excel Import ─────────────────────────────────
 function importKasaFromExcel(event){
   const file = event.target.files[0];
@@ -13956,9 +14155,9 @@ function importKasaFromExcel(event){
     reader.onload = function(e){
       try{
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type:'array', cellDates:true, raw:true});
+        const workbook = XLSX.read(data, {type:'array', cellDates:true});
         const ws = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:false, dateNF:'yyyy-mm-dd'});
         if(!rows || rows.length < 2){ toast('Excel boş','error'); return; }
 
         // Başlık satırını bul
@@ -13985,8 +14184,12 @@ function importKasaFromExcel(event){
         var added=0, hid=Object.keys(cari.hareketler).length+1;
         for(var ri2=hStartRow; ri2<rows.length; ri2++){
           var hr=rows[ri2];
-          var _bv=hr[borcCol]; var borcV=typeof _bv==='number'?_bv:parseFloat((_bv||'0').toString().replace(/[^0-9.-]/g,''))||0;
-          var _av=hr[alacakCol]; var alacakV=typeof _av==='number'?_av:parseFloat((_av||'0').toString().replace(/[^0-9.-]/g,''))||0;
+          // SR.NO sütunu (index 0) boşsa TOPLAM satırıdır — atla
+          if(hr[0]===null||hr[0]===undefined||hr[0]==='') continue;
+          var srNo=hr[0].toString().trim();
+          if(srNo.toUpperCase().includes('TOPLAM')||srNo.toUpperCase().includes('TOTAL')) continue;
+          var borcV=parseFloat((hr[borcCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
+          var alacakV=parseFloat((hr[alacakCol]||'0').toString().replace(/[^0-9.,]/g,'').replace(',','.'))||0;
           var aciklama=aciklamaCol>=0?(hr[aciklamaCol]||'').toString().trim():'';
           var tarihRaw=tarihCol>=0?hr[tarihCol]:null;
           if(borcV===0&&alacakV===0&&!aciklama) continue;
@@ -13994,14 +14197,15 @@ function importKasaFromExcel(event){
           var tarihStr='';
           if(tarihRaw){
             if(tarihRaw instanceof Date){
-              tarihStr=tarihRaw.toISOString().slice(0,10);
-            } else if(typeof tarihRaw==='number'){
-              var excelEpoch=new Date(1899,11,30);
-              var td=new Date(excelEpoch.getTime()+tarihRaw*86400000);
-              tarihStr=isNaN(td.getTime())?'':td.toISOString().slice(0,10);
+              var td=new Date(tarihRaw);
+              td.setMinutes(td.getMinutes()-td.getTimezoneOffset());
+              tarihStr=td.toISOString().slice(0,10);
             } else {
-              var td2=new Date(tarihRaw.toString());
-              tarihStr=isNaN(td2.getTime())?tarihRaw.toString().trim():td2.toISOString().slice(0,10);
+              var s=tarihRaw.toString().trim();
+              var m=s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+              if(m) tarihStr=m[3]+'-'+m[2]+'-'+m[1];
+              else if(/^\d{4}-\d{2}-\d{2}$/.test(s)) tarihStr=s;
+              else { var td2=new Date(s); tarihStr=isNaN(td2.getTime())?'':td2.toISOString().slice(0,10); }
             }
           }
 
@@ -14220,6 +14424,9 @@ try{ _updateLoginBasvuruCount(); }catch(e){}
       <button id="admin-tab-btn-password" onclick="adminSwitchTab('password')" style="flex:1;padding:12px;border:none;background:transparent;color:rgba(255,255,255,.35);font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;border-bottom:2px solid transparent;transition:.15s;">
         🔑 Şifre Değiştir
       </button>
+      <button id="admin-tab-btn-tema" onclick="adminSwitchTab('tema')" style="flex:1;padding:12px;border:none;background:transparent;color:rgba(255,255,255,.35);font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;border-bottom:2px solid transparent;transition:.15s;">
+        🎨 Tema
+      </button>
     </div>
 
     <!-- İçerik -->
@@ -14292,6 +14499,90 @@ try{ _updateLoginBasvuruCount(); }catch(e){}
             style="width:100%;padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;transition:.15s;">
             🔑 Şifreyi Güncelle
           </button>
+        </div>
+      </div>
+
+      <!-- TEMA SEKMESİ -->
+      <div id="admin-tab-tema" style="display:none;">
+        <div style="display:flex;flex-direction:column;gap:14px;">
+
+          <!-- Arkaplan Fotoğrafı -->
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;">
+            <div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:#fff;margin-bottom:4px;">🚗 Giriş Ekranı Fotoğrafı</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:12px;">Soldaki araç fotoğrafını değiştirin</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <button onclick="document.getElementById('tema-bg-input').click()"
+                style="padding:9px 16px;border-radius:9px;border:1px solid rgba(14,165,233,.35);background:rgba(14,165,233,.08);color:#38bdf8;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">
+                📁 Fotoğraf Seç
+              </button>
+              <button onclick="temaResetBg()"
+                style="padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">
+                ↺ Orijinale Dön
+              </button>
+              <input type="file" id="tema-bg-input" accept="image/*" style="display:none" onchange="temaChangeBg(event)">
+            </div>
+            <div id="tema-bg-preview" style="margin-top:12px;display:none;">
+              <img id="tema-bg-img" style="width:100%;height:120px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,.08);">
+              <div style="font-size:11px;color:rgba(34,197,94,.7);margin-top:6px;">✓ Fotoğraf güncellendi</div>
+            </div>
+          </div>
+
+          <!-- Logo -->
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;">
+            <div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:#fff;margin-bottom:4px;">🏢 Logo</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:12px;">Konseltur logosunu değiştirin (PNG önerilir)</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <button onclick="document.getElementById('tema-logo-input').click()"
+                style="padding:9px 16px;border-radius:9px;border:1px solid rgba(14,165,233,.35);background:rgba(14,165,233,.08);color:#38bdf8;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">
+                📁 Logo Seç
+              </button>
+              <button onclick="temaResetLogo()"
+                style="padding:9px 16px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">
+                ↺ Orijinale Dön
+              </button>
+              <input type="file" id="tema-logo-input" accept="image/*" style="display:none" onchange="temaChangeLogo(event)">
+            </div>
+            <div id="tema-logo-preview" style="margin-top:12px;display:none;">
+              <img id="tema-logo-img" style="height:50px;object-fit:contain;border-radius:6px;">
+              <div style="font-size:11px;color:rgba(34,197,94,.7);margin-top:6px;">✓ Logo güncellendi</div>
+            </div>
+          </div>
+
+          <!-- Şirket Bilgileri -->
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;">
+            <div style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:#fff;margin-bottom:12px;">🏷️ Şirket Bilgileri (PDF Anteti)</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div>
+                <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:4px;">ŞİRKET ADI</div>
+                <input id="tema-sirket-adi" placeholder="Konseltur Taşımacılık"
+                  style="width:100%;padding:9px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"
+                  onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:4px;">ADRES</div>
+                <input id="tema-adres" placeholder="Demiryolu Cad. No:48/c · Selçuklu, Konya"
+                  style="width:100%;padding:9px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"
+                  onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:4px;">TELEFON</div>
+                <input id="tema-tel" placeholder="0332 235 55 30"
+                  style="width:100%;padding:9px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"
+                  onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:4px;">WEB SİTESİ</div>
+                <input id="tema-web" placeholder="www.konseltur.com"
+                  style="width:100%;padding:9px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;font-size:12px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;"
+                  onfocus="this.style.borderColor='rgba(139,92,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+              </div>
+              <button onclick="temaSirketKaydet()"
+                style="padding:10px;border-radius:9px;border:none;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;margin-top:4px;">
+                💾 Kaydet
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
