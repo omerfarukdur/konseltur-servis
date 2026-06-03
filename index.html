@@ -3405,13 +3405,12 @@ setInterval(updateLoginClock, 30000);
     <div id="cdet-hareket-count" style="font-size:11px;color:var(--muted2);font-weight:600;"></div>
   </div>
   <!-- Hareket Arama -->
-  <div id="cdet-search-wrap" style="position:relative;margin-bottom:12px;">
-    <svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:2;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  <div id="cdet-search-wrap" style="position:relative;margin-bottom:12px;z-index:20;">
+    <svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:21;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input id="cdet-hareket-search" type="text" placeholder="Açıklama veya tarih ara..."
-      oninput="window.filterCariHareketler&&filterCariHareketler(this.value)"
-      onkeyup="window.filterCariHareketler&&filterCariHareketler(this.value)"
-      style="width:100%;padding:9px 36px 9px 34px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;">
-    <button id="cdet-hareket-search-clear" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;line-height:1;padding:0;z-index:2;">×</button>
+      oninput="filterCariHareketler(this.value)"
+      style="width:100%;padding:9px 36px 9px 34px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;position:relative;z-index:22;-webkit-user-select:text;user-select:text;">
+    <button id="cdet-hareket-search-clear" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;line-height:1;padding:0;z-index:23;">×</button>
   </div>
   <div id="cdet-hareket-list" style="margin-bottom:20px;">
     <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Henüz hareket yok</div>
@@ -12827,18 +12826,15 @@ function openCariDetay(id){
 
 function renderCariDetay(id){
   if(!id || !_cariData[id]) return;
-  // Arama kutusunu temizle ve event listener bağla
+  // Arama — sadece farklı cari açılırken sıfırla
   const srch = document.getElementById('cdet-hareket-search');
-  if(srch){
+  const isNewCari = (window._activeCariId !== id);
+  if(srch && isNewCari){
     srch.value = '';
-    // Event listener'ı her seferinde yeniden bağla
-    srch.oninput = function(){ filterCariHareketler(this.value); };
-    srch.onfocus = function(){ this.style.borderColor='rgba(59,130,246,.5)'; };
-    srch.onblur  = function(){ this.style.borderColor='rgba(255,255,255,.12)'; };
+    window._cdetHareketFilter = '';
+    const clrBtn = document.getElementById('cdet-hareket-search-clear');
+    if(clrBtn) clrBtn.style.display='none';
   }
-  const clrBtn = document.getElementById('cdet-hareket-search-clear');
-  if(clrBtn){ clrBtn.onclick = clearHareketSearch; clrBtn.style.display='none'; }
-  window._cdetHareketFilter = '';
   const c = _cariData[id];
   const calc = _cariCalcBakiye(c);
   const turLabel = {kasa:'Kasa',basvuru:'Başvuru',sofor:'Personel',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
@@ -14159,7 +14155,7 @@ function filterCariHareketler(q){
   window._cdetHareketFilter = (q||'').trim().toLowerCase();
   const clr = document.getElementById('cdet-hareket-search-clear');
   if(clr) clr.style.display = window._cdetHareketFilter ? 'block' : 'none';
-  _renderCariHareketList(window._activeCariId);
+  if(window._activeCariId) renderCariDetay(window._activeCariId);
 }
 window.filterCariHareketler = filterCariHareketler;
 
@@ -14245,15 +14241,20 @@ function importKasaFromExcel(event){
           var tarihStr='';
           if(tarihRaw){
             if(tarihRaw instanceof Date){
-              var td=new Date(tarihRaw);
-              td.setMinutes(td.getMinutes()-td.getTimezoneOffset());
-              tarihStr=td.toISOString().slice(0,10);
+              var y=tarihRaw.getUTCFullYear();
+              var mo=String(tarihRaw.getUTCMonth()+1).padStart(2,'0');
+              var d=String(tarihRaw.getUTCDate()).padStart(2,'0');
+              tarihStr=y+'-'+mo+'-'+d;
+            } else if(typeof tarihRaw==='number' && tarihRaw>1000){
+              var excelBase=new Date(1899,11,30);
+              var td2=new Date(excelBase.getTime()+tarihRaw*86400000);
+              tarihStr=td2.toISOString().slice(0,10);
             } else {
               var s=tarihRaw.toString().trim();
               var m=s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
               if(m) tarihStr=m[3]+'-'+m[2]+'-'+m[1];
               else if(/^\d{4}-\d{2}-\d{2}$/.test(s)) tarihStr=s;
-              else { var td2=new Date(s); tarihStr=isNaN(td2.getTime())?'':td2.toISOString().slice(0,10); }
+              else { var td3=new Date(s); tarihStr=isNaN(td3.getTime())?'':td3.toISOString().slice(0,10); }
             }
           }
 
