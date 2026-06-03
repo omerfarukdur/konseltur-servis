@@ -3405,12 +3405,11 @@ setInterval(updateLoginClock, 30000);
     <div id="cdet-hareket-count" style="font-size:11px;color:var(--muted2);font-weight:600;"></div>
   </div>
   <!-- Hareket Arama -->
-  <div style="position:relative;margin-bottom:12px;">
-    <svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input id="cdet-hareket-search" type="text" placeholder="Açıklama veya tarih ara..." oninput="filterCariHareketler(this.value)"
-      style="width:100%;padding:9px 36px 9px 34px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;pointer-events:auto;position:relative;z-index:1;"
-      onfocus="this.style.borderColor='rgba(59,130,246,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
-    <button id="cdet-hareket-search-clear" onclick="clearHareketSearch()" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;line-height:1;padding:0;">×</button>
+  <div id="cdet-search-wrap" style="position:relative;margin-bottom:12px;">
+    <svg style="position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;z-index:2;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="cdet-hareket-search" type="text" placeholder="Açıklama veya tarih ara..."
+      style="width:100%;padding:9px 36px 9px 34px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;">
+    <button id="cdet-hareket-search-clear" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;line-height:1;padding:0;z-index:2;">×</button>
   </div>
   <div id="cdet-hareket-list" style="margin-bottom:20px;">
     <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Henüz hareket yok</div>
@@ -12826,18 +12825,18 @@ function openCariDetay(id){
 
 function renderCariDetay(id){
   if(!id || !_cariData[id]) return;
-  // Arama kutusunu temizle ve etkinleştir
+  // Arama kutusunu temizle ve event listener bağla
   const srch = document.getElementById('cdet-hareket-search');
   if(srch){
     srch.value = '';
-    srch.style.pointerEvents = 'auto';
-    srch.style.position = 'relative';
-    srch.style.zIndex = '10';
-    srch.removeAttribute('disabled');
+    // Event listener'ı her seferinde yeniden bağla
+    srch.oninput = function(){ filterCariHareketler(this.value); };
+    srch.onfocus = function(){ this.style.borderColor='rgba(59,130,246,.5)'; };
+    srch.onblur  = function(){ this.style.borderColor='rgba(255,255,255,.12)'; };
   }
+  const clrBtn = document.getElementById('cdet-hareket-search-clear');
+  if(clrBtn){ clrBtn.onclick = clearHareketSearch; clrBtn.style.display='none'; }
   window._cdetHareketFilter = '';
-  const clr = document.getElementById('cdet-hareket-search-clear');
-  if(clr) clr.style.display = 'none';
   const c = _cariData[id];
   const calc = _cariCalcBakiye(c);
   const turLabel = {kasa:'Kasa',basvuru:'Başvuru',sofor:'Personel',taseron:'Taşeron',okul:'Firma/Okul',firma:'Firma/Okul',personel:'Personel',diger:'Diğer'};
@@ -14019,7 +14018,7 @@ function importCariFromExcel(event){
         if(SKIP_SHEETS.some(function(s){ return sheetName.trim()===s.trim(); })){ return; }
 
         const ws = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:false, dateNF:'yyyy-mm-dd'});
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
         if(!rows || rows.length < 5){ skipped++; return; }
 
         // İsim ve firma bul (ilk 5 satırda etiket ara)
@@ -14105,18 +14104,20 @@ function importCariFromExcel(event){
           var tarihStr='';
           if(tarihRaw){
             if(tarihRaw instanceof Date){
-              // cellDates:true ile Date nesnesi
-              var td=new Date(tarihRaw);
-              td.setMinutes(td.getMinutes()-td.getTimezoneOffset()); // timezone fix
+              // cellDates:true → Date nesnesi, timezone offset düzelt
+              var td=new Date(tarihRaw.getTime() - tarihRaw.getTimezoneOffset()*60000);
               tarihStr=td.toISOString().slice(0,10);
+            } else if(typeof tarihRaw==='number' && tarihRaw>1000){
+              // raw:true → Excel seri numarası (1900-01-01 = 1)
+              var excelBase=new Date(1899,11,30); // Excel epoch
+              var td2=new Date(excelBase.getTime()+tarihRaw*86400000);
+              tarihStr=td2.toISOString().slice(0,10);
             } else {
-              // String olarak geldi (dateNF:'yyyy-mm-dd')
-              var s=tarihRaw.toString().trim();
-              // dd.mm.yyyy veya yyyy-mm-dd formatını normalize et
-              var m=s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-              if(m) tarihStr=m[3]+'-'+m[2]+'-'+m[1];
-              else if(/^\d{4}-\d{2}-\d{2}$/.test(s)) tarihStr=s;
-              else { var td2=new Date(s); tarihStr=isNaN(td2.getTime())?'':td2.toISOString().slice(0,10); }
+              var s2=tarihRaw.toString().trim();
+              var m2=s2.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+              if(m2) tarihStr=m2[3]+'-'+m2[2]+'-'+m2[1];
+              else if(/^\d{4}-\d{2}-\d{2}$/.test(s2)) tarihStr=s2;
+              else { var td3=new Date(s2); tarihStr=isNaN(td3.getTime())?'':td3.toISOString().slice(0,10); }
             }
           }
           var hKey='h_xl_'+String(hid).padStart(6,'0');  // Sıralı key — alfabetik sıra = eklenme sırası
@@ -14194,7 +14195,7 @@ function importKasaFromExcel(event){
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, {type:'array', cellDates:true});
         const ws = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:false, dateNF:'yyyy-mm-dd'});
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
         if(!rows || rows.length < 2){ toast('Excel boş','error'); return; }
 
         // Başlık satırını bul
