@@ -5320,7 +5320,16 @@ function renderUcretSoforList(){
           ${total===0 ? `<span style="font-size:10px;color:rgba(255,255,255,.25);">Öğrenci eklenmemiş</span>` : ''}
         </div>
       </div>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(${r},${g},${b},.5)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;" onclick="event.stopPropagation()">
+        <button onclick="event.stopPropagation();openEditSoforModal('${drv.id}')"
+          style="padding:5px 10px;border-radius:7px;border:1px solid rgba(139,92,246,.3);background:rgba(139,92,246,.07);color:#a78bfa;font-size:10px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap;">
+          ✏ Düzenle
+        </button>
+        <button onclick="event.stopPropagation();deleteUcretSofor('${drv.id}')"
+          style="padding:5px 10px;border-radius:7px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.06);color:#f87171;font-size:10px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;white-space:nowrap;">
+          🗑 Sil
+        </button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -8586,12 +8595,18 @@ function renderUcretGenel(){
 
  const el=id=>document.getElementById(id);
 
- // Sadece aktif okuldaki öğrencileri say — tüm okullar değil
+ // Şoförlere kayıtlı toplam öğrenci sayısını al
  const _ugSchIdx=getSchoolIdx(_activeSchoolKey);
  const _ugSch=SCHOOLS[_ugSchIdx]; const _ugCol=SC[_ugSchIdx];
  const schoolStudents=students.filter(x=>x.school===_ugSchIdx);
 
- const totalS=schoolStudents.length;
+ // Şoförlere kayıtlı benzersiz öğrencileri say
+ const kadroSoforler2 = soforler.filter(d => d.tip !== 'taseron');
+ const soforOgrSet = new Set();
+ kadroSoforler2.forEach(drv => {
+   _getSoforOgrenciListesi(drv.id).forEach(o => soforOgrSet.add(o.id));
+ });
+ const totalS = soforOgrSet.size || schoolStudents.length;
  let paidCount=0, totalAmount=0, unpaidCount=0;
  schoolStudents.forEach(s=>{
  const aktifAylar=getAktifAylar(s);
@@ -10911,21 +10926,20 @@ function _loadSoforOgrenciler(){
         const local = window._soforOgrenciler || {};
         if(snap && snap.exists()){
           const fb = snap.val() || {};
-          // Her iki kaynağı merge et — daha fazla öğrencisi olan şoförü kullan
-          const merged = Object.assign({}, local);
-          Object.keys(fb).forEach(soforId => {
-            const fbList = fb[soforId] || [];
-            const localList = local[soforId] || [];
-            merged[soforId] = fbList.length >= localList.length ? fbList : localList;
+          // Firebase'i esas al — en güncel veri orada
+          window._soforOgrenciler = fb;
+          try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(fb)); }catch(e){}
+          // Sadece local'de olup Firebase'de olmayan şoförleri ekle
+          var needUpdate = false;
+          Object.keys(local).forEach(function(soforId){
+            if(!fb[soforId] && local[soforId] && local[soforId].length > 0){
+              window._soforOgrenciler[soforId] = local[soforId];
+              needUpdate = true;
+            }
           });
-          // local'de olup fb'de olmayan şoförleri de ekle
-          Object.keys(local).forEach(soforId => {
-            if(!merged[soforId]) merged[soforId] = local[soforId];
-          });
-          window._soforOgrenciler = merged;
-          try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(merged)); }catch(e){}
-          // Firebase'i de güncelle (merge sonucu)
-          window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), merged).catch(()=>{});
+          if(needUpdate){
+            window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), window._soforOgrenciler).catch(()=>{});
+          }
         } else if(Object.keys(local).length > 0) {
           // Firebase boş ama local'de veri var — Firebase'e yaz
           window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), local).catch(()=>{});
@@ -11404,8 +11418,9 @@ function openAddSoforModal(){
   document.getElementById('sofor-add-modal').classList.add('open');
 }
 function openEditSoforModal(id){
-  window._editSoforId = id;
-  _soforModalFill(soforler.find(x=>x.id===id));
+  var numId = parseInt(id)||id;
+  window._editSoforId = numId;
+  _soforModalFill(soforler.find(x=>x.id===numId||x.id===String(id)));
   document.getElementById('sofor-add-modal').classList.add('open');
 }
 
@@ -11495,6 +11510,23 @@ function saveSoforModal(){
   toast(editId?'✏️ Şoför güncellendi':'✅ Şoför eklendi');
   if(editId && window._activeSoforId===editId) renderSoforDetay(editId);
   else gotoS('sofor-liste');
+}
+
+function deleteUcretSofor(id){
+  // id string veya number olabilir
+  var numId = parseInt(id) || id;
+  var s = soforler.find(function(x){ return x.id===numId || x.id===String(id); });
+  if(!s) return;
+  if(!confirm(s.name+' şoförünü silmek istediğinizden emin misiniz?\nBu şoförün tüm öğrenci listesi de kaldırılacak.')) return;
+  _trashAdd('sofor', numId, Object.assign({}, s, {_soforPayments: soforPayments[numId]||{}, _deletedFrom:'ucret'}));
+  // Şoför-öğrenci eşleştirmelerini kaldır
+  delete window._soforOgrenciler[String(numId)];
+  _saveSoforOgrenciler();
+  soforler = soforler.filter(function(x){ return x.id!==numId && x.id!==String(id); });
+  delete soforPayments[numId];
+  saveSoforData();
+  renderUcretSoforList();
+  if(typeof toast==='function') toast('Şoför silindi','success');
 }
 
 function openDeleteSoforModal(id){
