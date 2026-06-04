@@ -6273,12 +6273,18 @@ function _loadFromFirebase(){
  const fbStudents = Array.isArray(d.students) ? d.students : [];
  const fbDrivers  = Array.isArray(d.drivers)  ? d.drivers  : [];
  const fbRoutes   = Array.isArray(d.routes)   ? d.routes   : [];
- // Daha fazla veri olan tarafı kullan
- if(fbStudents.length >= students.length){
-   students = fbStudents;
-   drivers  = fbDrivers;
-   routes   = fbRoutes;
- }
+ // ID bazlı merge: her iki kaynaktaki benzersiz kayıtları birleştir
+ const mergeById = (local, fb) => {
+   const map = {};
+   local.forEach(x=>{ if(x&&x.id) map[x.id]=x; });
+   fb.forEach(x=>{ if(x&&x.id) map[x.id]=x; }); // fb üzerine yazar (daha güncel)
+   return Object.values(map);
+ };
+ const mergedStudents = mergeById(students, fbStudents);
+ const mergedDrivers  = mergeById(drivers,  fbDrivers);
+ students = mergedStudents.length > 0 ? mergedStudents : (fbStudents.length > 0 ? fbStudents : students);
+ drivers  = mergedDrivers.length  > 0 ? mergedDrivers  : (fbDrivers.length  > 0 ? fbDrivers  : drivers);
+ routes   = fbRoutes.length > 0 ? fbRoutes : routes;
  const fbNSid = Number(d.nSid) || 1;
  const fbNDid = Number(d.nDid) || 1;
  nSid = Math.max(nSid, fbNSid, students.length + 1);
@@ -10889,23 +10895,50 @@ function filterUcretAddList(q){
 window._soforOgrenciler = {}; // {soforId: [{id, name, ilce, mah, cls, kayitAy, school, _origId, _schIdx}]}
 
 function _loadSoforOgrenciler(){
+  // Önce localStorage'dan yükle
   try{
     const raw = localStorage.getItem('konseltur_sofor_ogr_v1');
     if(raw) window._soforOgrenciler = JSON.parse(raw)||{};
   }catch(e){ window._soforOgrenciler = {}; }
-  // Firebase'den de yükle
-  if(window._fbReady && window._fbDb){
-    window._fbGet(window._fbRef(window._fbDb, 'konseltur/GLOBAL/sofor_ogrenciler')).then(snap=>{
-      if(snap && snap.exists()){
-        const d = snap.val();
-        if(d && typeof d==='object'){
-          window._soforOgrenciler = d;
-          try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(d)); }catch(e){}
-          if(window._ucretActiveSoforId){ renderUcretOgrenci(); renderUcretSoforList(); }
+
+  const _doLoad = () => {
+    if(!window._fbReady || !window._fbDb) return;
+    // onValue ile realtime dinle
+    if(window._soforOgrUnsub){ try{ window._soforOgrUnsub(); }catch(e){} }
+    window._soforOgrUnsub = window._fbOnValue(
+      window._fbRef(window._fbDb, 'konseltur/GLOBAL/sofor_ogrenciler'),
+      snap => {
+        const local = window._soforOgrenciler || {};
+        if(snap && snap.exists()){
+          const fb = snap.val() || {};
+          // Her iki kaynağı merge et — daha fazla öğrencisi olan şoförü kullan
+          const merged = Object.assign({}, local);
+          Object.keys(fb).forEach(soforId => {
+            const fbList = fb[soforId] || [];
+            const localList = local[soforId] || [];
+            merged[soforId] = fbList.length >= localList.length ? fbList : localList;
+          });
+          // local'de olup fb'de olmayan şoförleri de ekle
+          Object.keys(local).forEach(soforId => {
+            if(!merged[soforId]) merged[soforId] = local[soforId];
+          });
+          window._soforOgrenciler = merged;
+          try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(merged)); }catch(e){}
+          // Firebase'i de güncelle (merge sonucu)
+          window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), merged).catch(()=>{});
+        } else if(Object.keys(local).length > 0) {
+          // Firebase boş ama local'de veri var — Firebase'e yaz
+          window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), local).catch(()=>{});
         }
-      }
-    }).catch(e=>console.warn('soforOgrenci load:',e));
-  }
+        if(window._ucretActiveSoforId){ renderUcretOgrenci(); renderUcretSoforList(); }
+        _updateAracTakipOzet();
+      },
+      e => console.warn('soforOgrenci load:', e)
+    );
+  };
+
+  if(window._fbReady) _doLoad();
+  else window.addEventListener('firebase-ready', _doLoad, {once:true});
 }
 
 function _saveSoforOgrenciler(){
