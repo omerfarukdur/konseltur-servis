@@ -3414,7 +3414,7 @@ setInterval(updateLoginClock, 30000);
     <input id="cdet-hareket-search" type="text" placeholder="Açıklama veya tarih ara..."
       oninput="filterCariHareketler(this.value)"
       style="width:100%;padding:9px 36px 9px 34px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;position:relative;z-index:22;-webkit-user-select:text;user-select:text;">
-    <button id="cdet-hareket-search-clear" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;line-height:1;padding:0;z-index:23;">×</button>
+    <button id="cdet-hareket-search-clear" onclick="clearHareketSearch()" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;line-height:1;padding:0;z-index:23;">×</button>
   </div>
   <div id="cdet-hareket-list" style="margin-bottom:20px;">
     <div style="text-align:center;padding:40px;color:var(--muted);font-size:13px;">Henüz hareket yok</div>
