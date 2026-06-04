@@ -1317,9 +1317,47 @@ body.light .pm-group-label { color: rgba(0,0,0,.3); border-bottom-color: rgba(0,
   #cdet-hareket-list > div { min-width:0 !important; }
   #cdet-bakiye-ozet { grid-template-columns:1fr 1fr !important; }
 
-  /* NAV BUTONLARI */
-  .nav-action-btn { width:32px !important; height:32px !important; }
-  nav { padding:0 10px !important; gap:6px !important; }
+  /* NAV */
+  :root { --nav-h:auto !important; }
+  nav {
+    padding:6px 8px !important;
+    flex-wrap:nowrap !important;
+    gap:4px !important;
+    overflow-x:auto !important;
+    height:auto !important;
+  }
+  /* Sol butonlar */
+  nav > div:first-child { gap:3px !important; flex-shrink:0; }
+  /* Orta (logo+sekmeler) - daralt */
+  nav > div:nth-child(2) { flex:1 !important; min-width:0 !important; overflow:hidden !important; }
+  /* Sağ butonlar */
+  nav > div:last-child { gap:3px !important; flex-shrink:0; }
+
+  /* Nav butonları küçült */
+  .nav-action-btn {
+    padding:5px 7px !important;
+    font-size:10px !important;
+    gap:3px !important;
+    border-radius:7px !important;
+  }
+  /* Yazı etiketlerini gizle, sadece ikon kalsın */
+  .nav-btn-text { display:none !important; }
+  .nav-action-btn svg { width:14px !important; height:14px !important; }
+
+  /* App pills küçült */
+  .app-pill { padding:5px 8px 5px 7px !important; gap:6px !important; border-radius:30px !important; }
+  .app-pill-icon { width:22px !important; height:22px !important; font-size:11px !important; }
+  .app-pill-title { font-size:10px !important; }
+  .app-pill-sub { font-size:8px !important; }
+
+  /* Sekmeler küçült */
+  .nav-tab { padding:5px 8px !important; font-size:10px !important; gap:4px !important; }
+  .tab-text { font-size:10px !important; }
+  .nav-pill-count { padding:3px 8px !important; font-size:10px !important; }
+  .sep { display:none !important; }
+
+  /* Sağ ikon butonlar */
+  .nav-icon-btn { width:28px !important; height:28px !important; }
 
   /* APP WRAPPER */
   #app-wrapper { flex-direction:column !important; }
@@ -1384,6 +1422,19 @@ body.light .pm-group-label { color: rgba(0,0,0,.3); border-bottom-color: rgba(0,
     font-size:10px !important;
     padding:10px 6px !important;
   }
+
+  /* NAV - çok küçük ekran */
+  .app-pill-sub { display:none !important; }
+  .nav-tab .tab-text { display:none !important; }
+
+  /* ÜCRET YÖNETİMİ HERO */
+  .hero { padding:16px !important; }
+  .hero h2 { font-size:20px !important; }
+  .hero > div[style*="display:flex"] { flex-wrap:wrap !important; gap:8px !important; }
+  .hero > div[style*="display:flex"] > button { flex:1 !important; min-width:120px !important; font-size:12px !important; padding:10px 8px !important; }
+
+  /* ÜCRET ÖĞRENCİ KARTLARI */
+  [style*="grid-template-columns:repeat(auto"] { grid-template-columns:1fr !important; }
 }
 </style>
 <!-- Leaflet CSS -->
@@ -6202,24 +6253,41 @@ function loadData(){
 function _loadFromFirebase(){
  const path = 'konseltur/' + _activeSchoolKey + '/main';
  const reqTime = Date.now();
- window._fbGet(window._fbRef(window._fbDb, path)).then(snapshot=>{
- // RACE CONDITION KORUMASI: Bu istekten sonra yerel kayıt yapıldıysa Firebase'i yoksay
+ // onValue ile realtime dinle — ilk veri gelince hemen güncelle
+ if(window._fbMainUnsub) { try{ window._fbMainUnsub(); }catch(e){} }
+ const mainRef = window._fbRef(window._fbDb, path);
+ window._fbMainUnsub = window._fbOnValue(mainRef, snapshot=>{
+ // RACE CONDITION KORUMASI
  if(_lastClearedAt > reqTime || _lastLocalSaveAt > reqTime){ return; }
- if(!snapshot.exists()) return;
+ if(!snapshot.exists()){
+   // Firebase'de veri yok — localStorage'daki veriyi Firebase'e yaz (ilk sync)
+   if(students.length > 0 || drivers.length > 0){
+     const path2 = 'konseltur/' + _activeSchoolKey + '/main';
+     const payload2 = {students, drivers, routes, nSid, nDid, savedAt: Date.now()};
+     window._fbSet(window._fbRef(window._fbDb, path2), payload2).catch(()=>{});
+   }
+   return;
+ }
  const d = snapshot.val();
  if(!d) return;
- students = Array.isArray(d.students) ? d.students : [];
- drivers  = Array.isArray(d.drivers)  ? d.drivers  : [];
- routes   = Array.isArray(d.routes)   ? d.routes   : [];
- // nSid/nDid ÇAKIŞMA KORUNMASI: Her iki kaynaktaki en büyük değeri al
- // Böylece arada eklenen öğrencilerin id'si kesinlikle çakışmaz
+ const fbStudents = Array.isArray(d.students) ? d.students : [];
+ const fbDrivers  = Array.isArray(d.drivers)  ? d.drivers  : [];
+ const fbRoutes   = Array.isArray(d.routes)   ? d.routes   : [];
+ // Daha fazla veri olan tarafı kullan
+ if(fbStudents.length >= students.length){
+   students = fbStudents;
+   drivers  = fbDrivers;
+   routes   = fbRoutes;
+ }
  const fbNSid = Number(d.nSid) || 1;
  const fbNDid = Number(d.nDid) || 1;
  nSid = Math.max(nSid, fbNSid, students.length + 1);
  nDid = Math.max(nDid, fbNDid, drivers.length  + 1);
+ // LocalStorage'ı güncelle
+ try{ localStorage.setItem(LS_MAIN(), JSON.stringify({students,drivers,routes,nSid,nDid})); }catch(e){}
  updateAll();
  document.getElementById('save-dot').title = "Firebase'den yüklendi";
- }).catch(e=>{ console.warn('Firebase yükleme hatası:', e); });
+ }, e=>{ console.warn('Firebase yükleme hatası:', e); });
 }
 
 function loadPayments(){
