@@ -14041,7 +14041,7 @@ function importCariFromExcel(event){
   reader.onload = function(e){
     try{
       const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, {type:'array', cellDates:true});
+      const workbook = XLSX.read(data, {type:'array', cellDates:false, cellText:false});
 
       // 2026_CARİ.xlsx formatı: Her sayfa ayrı bir cari hesap
       const SKIP_SHEETS = ['GENEL LİSTE ','ÖNEMLİ','GÖREV','FATURA TAKİP','FİYAT ARTIŞI','İŞ BAŞVURU','GELİR GİDER TAKİBİ'];
@@ -14160,24 +14160,24 @@ function importCariFromExcel(event){
           var tarihRaw=tarihCol>=0?hr[tarihCol]:null;
           if(borcV===0&&alacakV===0&&!aciklama) continue;
           var tarihStr='';
-          if(tarihRaw){
-            if(tarihRaw instanceof Date){
-              // Lokal tarih kullan (timezone kaymasını önle)
-              var y=tarihRaw.getFullYear();
-              var mo=String(tarihRaw.getMonth()+1).padStart(2,'0');
-              var d=String(tarihRaw.getDate()).padStart(2,'0');
-              tarihStr=y+'-'+mo+'-'+d;
-            } else if(typeof tarihRaw==='number' && tarihRaw>1000){
-              // raw:true → Excel seri numarası (1900-01-01 = 1)
-              var excelBase=new Date(1899,11,30); // Excel epoch
-              var td2=new Date(excelBase.getTime()+tarihRaw*86400000);
-              tarihStr=td2.toISOString().slice(0,10);
+          if(tarihRaw!==null && tarihRaw!==undefined && tarihRaw!==''){
+            if(typeof tarihRaw==='number' && tarihRaw>1){
+              // Excel seri numarası → tarih (Excel'in 1900 bug'ı dahil)
+              var _serial = tarihRaw > 59 ? tarihRaw - 1 : tarihRaw; // 1900 leap year bug fix
+              var _ms = (_serial - 25569) * 86400 * 1000; // Unix epoch'a çevir
+              var _dt = new Date(_ms);
+              tarihStr = _dt.getUTCFullYear() + '-' +
+                String(_dt.getUTCMonth()+1).padStart(2,'0') + '-' +
+                String(_dt.getUTCDate()).padStart(2,'0');
+            } else if(tarihRaw instanceof Date){
+              tarihStr = tarihRaw.getUTCFullYear() + '-' +
+                String(tarihRaw.getUTCMonth()+1).padStart(2,'0') + '-' +
+                String(tarihRaw.getUTCDate()).padStart(2,'0');
             } else {
-              var s2=tarihRaw.toString().trim();
-              var m2=s2.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-              if(m2) tarihStr=m2[3]+'-'+m2[2]+'-'+m2[1];
-              else if(/^\d{4}-\d{2}-\d{2}$/.test(s2)) tarihStr=s2;
-              else { var td3=new Date(s2); tarihStr=isNaN(td3.getTime())?'':td3.toISOString().slice(0,10); }
+              var _s = tarihRaw.toString().trim();
+              var _m = _s.match(/^(\d{1,2})[.\/\-](\d{1,2})[.\/\-](\d{4})$/);
+              if(_m) tarihStr = _m[3]+'-'+_m[2].padStart(2,'0')+'-'+_m[1].padStart(2,'0');
+              else if(/^\d{4}-\d{2}-\d{2}$/.test(_s)) tarihStr = _s;
             }
           }
           var hKey='h_xl_'+String(hid).padStart(6,'0');  // Sıralı key — alfabetik sıra = eklenme sırası
@@ -14254,7 +14254,7 @@ function importKasaFromExcel(event){
     reader.onload = function(e){
       try{
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {type:'array', cellDates:true});
+        const workbook = XLSX.read(data, {type:'array', cellDates:false, cellText:false});
         const ws = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
         if(!rows || rows.length < 2){ toast('Excel boş','error'); return; }
@@ -14299,22 +14299,23 @@ function importKasaFromExcel(event){
           if(borcV===0&&alacakV===0&&!aciklama) continue;
 
           var tarihStr='';
-          if(tarihRaw){
-            if(tarihRaw instanceof Date){
-              var y=tarihRaw.getFullYear();
-              var mo=String(tarihRaw.getMonth()+1).padStart(2,'0');
-              var d=String(tarihRaw.getDate()).padStart(2,'0');
-              tarihStr=y+'-'+mo+'-'+d;
-            } else if(typeof tarihRaw==='number' && tarihRaw>1000){
-              var excelBase=new Date(1899,11,30);
-              var td2=new Date(excelBase.getTime()+tarihRaw*86400000);
-              tarihStr=td2.toISOString().slice(0,10);
+          if(tarihRaw!==null && tarihRaw!==undefined && tarihRaw!==''){
+            if(typeof tarihRaw==='number' && tarihRaw>1){
+              var _serial2 = tarihRaw > 59 ? tarihRaw - 1 : tarihRaw;
+              var _ms2 = (_serial2 - 25569) * 86400 * 1000;
+              var _dt2 = new Date(_ms2);
+              tarihStr = _dt2.getUTCFullYear() + '-' +
+                String(_dt2.getUTCMonth()+1).padStart(2,'0') + '-' +
+                String(_dt2.getUTCDate()).padStart(2,'0');
+            } else if(tarihRaw instanceof Date){
+              tarihStr = tarihRaw.getUTCFullYear() + '-' +
+                String(tarihRaw.getUTCMonth()+1).padStart(2,'0') + '-' +
+                String(tarihRaw.getUTCDate()).padStart(2,'0');
             } else {
-              var s=tarihRaw.toString().trim();
-              var m=s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
-              if(m) tarihStr=m[3]+'-'+m[2]+'-'+m[1];
-              else if(/^\d{4}-\d{2}-\d{2}$/.test(s)) tarihStr=s;
-              else { var td3=new Date(s); tarihStr=isNaN(td3.getTime())?'':td3.toISOString().slice(0,10); }
+              var _s2 = tarihRaw.toString().trim();
+              var _m2 = _s2.match(/^(\d{1,2})[.\/\-](\d{1,2})[.\/\-](\d{4})$/);
+              if(_m2) tarihStr = _m2[3]+'-'+_m2[2].padStart(2,'0')+'-'+_m2[1].padStart(2,'0');
+              else if(/^\d{4}-\d{2}-\d{2}$/.test(_s2)) tarihStr = _s2;
             }
           }
 
