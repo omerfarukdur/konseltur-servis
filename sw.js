@@ -1,36 +1,61 @@
-// Konseltur Servis Yönetimi — Service Worker
-const CACHE_NAME = 'konseltur-v2';
-const ASSETS = ['./', './index.html', './manifest.json'];
+// Konseltur Service Worker - Arka Plan Alarm Sistemi
+const CACHE = 'konseltur-v2';
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
+// Zamanlanmış alarmlar
+let scheduledAlarms = [];
+let alarmTimers = [];
+
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+
+// Ana uygulamadan mesaj al
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SCHEDULE_ALARMS') {
+    // Mevcut timer'ları temizle
+    alarmTimers.forEach(t => clearTimeout(t));
+    alarmTimers = [];
+    scheduledAlarms = e.data.alarms || [];
+
+    const now = Date.now();
+    scheduledAlarms.forEach(alarm => {
+      const delay = alarm.time - now;
+      if (delay > 0 && delay < 7 * 24 * 60 * 60 * 1000) { // max 7 gün
+        const t = setTimeout(() => {
+          self.registration.showNotification('⏰ Konseltur Alarm', {
+            body: alarm.text,
+            icon: '/icon-192.png',
+            badge: '/icon-192.png',
+            tag: 'alarm-' + alarm.dateKey + '-' + alarm.idx,
+            requireInteraction: true, // Kullanıcı kapatana kadar göster
+            vibrate: [200, 100, 200, 100, 200],
+            actions: [
+              { action: 'dismiss', title: 'Kapat' }
+            ]
+          });
+        }, delay);
+        alarmTimers.push(t);
+      }
+    });
+  }
 });
 
-self.addEventListener('activate', e => {
-  // Eski cache'leri temizle
+// Bildirime tıklanınca uygulamayı aç
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  if (e.action === 'dismiss') return;
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => clients.claim())  // Hemen kontrolü al
-  );
-});
-
-self.addEventListener('fetch', e => {
-  // Sadece GET istekleri cache'le
-  if(e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      // Cache varsa dön, yoksa ağdan al
-      return cached || fetch(e.request).catch(() => caches.match('./index.html'));
+    clients.matchAll({ type: 'window' }).then(list => {
+      for (const c of list) {
+        if (c.url.includes('konseltur') && 'focus' in c) return c.focus();
+      }
+      if (clients.openWindow) return clients.openWindow('/konseltur-servis/');
     })
   );
 });
 
-// Güncelleme mesajı — HTML'den SKIP_WAITING isteklerini dinle
-self.addEventListener('message', e => {
-  if(e.data && e.data.type === 'SKIP_WAITING'){
-    self.skipWaiting();
-  }
+// Fetch - cache first
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request))
+  );
 });

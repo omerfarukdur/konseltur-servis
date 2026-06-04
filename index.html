@@ -2402,8 +2402,12 @@ setInterval(updateLoginClock, 30000);
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
         <label style="font-size:11px;color:rgba(255,255,255,.35);white-space:nowrap;">⏰ Alarm:</label>
         <input type="time" id="cal-alarm-time" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:#fff;font-size:12px;padding:5px 8px;font-family:Outfit,sans-serif;flex:1;" onfocus="this.style.borderColor='rgba(200,55,26,.5)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+        <button onclick="setTumGunHatirla()" title="Tüm Gün Hatırlat" style="padding:5px 8px;border-radius:7px;border:1px solid rgba(200,55,26,.35);background:rgba(200,55,26,.08);color:rgba(200,55,26,.9);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:Outfit,sans-serif;">🔔 Tüm Gün</button>
       </div>
-      <button onclick="saveCalEvent()" style="width:100%;padding:9px;border-radius:8px;border:none;background:linear-gradient(135deg,rgba(200,55,26,.9),rgba(168,45,21,.9));color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">Kaydet</button>
+      <div style="display:flex;gap:6px;">
+        <button onclick="saveCalEvent()" style="flex:1;padding:9px;border-radius:8px;border:none;background:linear-gradient(135deg,rgba(200,55,26,.9),rgba(168,45,21,.9));color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">Kaydet</button>
+        <button onclick="requestNotifPermission()" id="cal-notif-btn" title="Bildirim İzni" style="padding:9px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:14px;cursor:pointer;">🔕</button>
+      </div>
     </div>
     <div id="cal-events-list" style="margin-top:8px;max-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
   </div>
@@ -5394,6 +5398,59 @@ function calSelectDay(e, key){ if(e) e.stopPropagation();
   renderCalEvents();
 }
 
+function setTumGunHatirla(){
+  // Alarm saatini 09:00 olarak ayarla
+  const alInp = document.getElementById('cal-alarm-time');
+  if(alInp) alInp.value = '09:00';
+}
+
+function requestNotifPermission(){
+  if(!('Notification' in window)){ toast('Bu tarayıcı bildirimleri desteklemiyor','error'); return; }
+  Notification.requestPermission().then(p=>{
+    const btn = document.getElementById('cal-notif-btn');
+    if(p==='granted'){
+      if(btn) btn.textContent='🔔';
+      toast('Bildirimler etkinleştirildi ✓','success');
+      _scheduleSwAlarms();
+    } else {
+      if(btn) btn.textContent='🔕';
+      toast('Bildirim izni reddedildi','error');
+    }
+  });
+}
+
+function _updateNotifBtn(){
+  const btn = document.getElementById('cal-notif-btn');
+  if(!btn) return;
+  if(typeof Notification==='undefined') return;
+  btn.textContent = Notification.permission==='granted' ? '🔔' : '🔕';
+  btn.title = Notification.permission==='granted' ? 'Bildirimler Açık' : 'Bildirim İzni Ver';
+}
+
+// Service Worker üzerinden arka plan alarm zamanlaması
+function _scheduleSwAlarms(){
+  if(!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.ready.then(reg=>{
+    if(!reg.active) return;
+    const events = JSON.parse(localStorage.getItem('_konseltur_cal_events')||'{}');
+    // Gelecekteki tüm alarmları SW'ye gönder
+    const alarms = [];
+    const now = new Date();
+    Object.entries(events).forEach(([dateKey, evList])=>{
+      evList.forEach((e,i)=>{
+        if(!e.alarm) return;
+        const [y,m,d] = dateKey.split('-').map(Number);
+        const [hh,mm] = e.alarm.split(':').map(Number);
+        const alarmTime = new Date(y,m-1,d,hh,mm,0);
+        if(alarmTime > now){
+          alarms.push({ dateKey, idx:i, text:e.text, time:alarmTime.getTime() });
+        }
+      });
+    });
+    reg.active.postMessage({ type:'SCHEDULE_ALARMS', alarms });
+  }).catch(()=>{});
+}
+
 function saveCalEvent(){
   const inp = document.getElementById('cal-event-input');
   const alarmInp = document.getElementById('cal-alarm-time');
@@ -5403,6 +5460,7 @@ function saveCalEvent(){
   events[window._calSelected].push({
     text: inp.value.trim(),
     alarm: alarmInp ? alarmInp.value : '',
+    tumGun: !alarmInp || !alarmInp.value,
     ts: Date.now()
   });
   localStorage.setItem('_konseltur_cal_events', JSON.stringify(events));
@@ -5410,6 +5468,9 @@ function saveCalEvent(){
   if(alarmInp) alarmInp.value='';
   renderCalendar();
   checkCalNotifications();
+  // SW alarmlarını güncelle
+  _scheduleSwAlarms();
+  toast('Not kaydedildi ✓','success');
 }
 
 function renderCalEvents(){
@@ -5437,6 +5498,14 @@ function deleteCalEvent(key, idx){
 }
 
 function checkCalNotifications(){
+  _updateNotifBtn();
+  // Bildirim izni yoksa iste
+  if(typeof Notification!=='undefined' && Notification.permission==='default'){
+    Notification.requestPermission().then(p=>{ _updateNotifBtn(); if(p==='granted') _scheduleSwAlarms(); });
+  }
+  if(typeof Notification!=='undefined' && Notification.permission==='granted'){
+    _scheduleSwAlarms();
+  }
   const now = new Date();
   const key = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
   const events = JSON.parse(localStorage.getItem('_konseltur_cal_events')||'{}');
@@ -5447,7 +5516,11 @@ function checkCalNotifications(){
       localStorage.setItem('_cal_notif_checked_'+key,'1');
       setTimeout(()=>{
         const msgs = todays.map(e=>e.text+(e.alarm?' (⏰'+e.alarm+')':'')).join(' · ');
-        if(typeof toast==='function') toast('📅 Bugün için '+todays.length+' not: '+msgs,'info');
+        if(typeof toast==='function') toast('📅 Bugün: '+msgs,'info');
+        // Sistem bildirimi
+        if(typeof Notification!=='undefined' && Notification.permission==='granted'){
+          new Notification('📅 Konseltur - Bugünkü Notlar',{body:msgs,icon:'/icon-192.png'});
+        }
       }, 2000);
     }
   }
