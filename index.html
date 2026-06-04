@@ -14162,10 +14162,10 @@ function importCariFromExcel(event){
           var tarihStr='';
           if(tarihRaw){
             if(tarihRaw instanceof Date){
-              // UTC tarihini doğrudan al — getUTCFullYear/Month/Date ile
-              var y=tarihRaw.getUTCFullYear();
-              var mo=String(tarihRaw.getUTCMonth()+1).padStart(2,'0');
-              var d=String(tarihRaw.getUTCDate()).padStart(2,'0');
+              // Lokal tarih kullan (timezone kaymasını önle)
+              var y=tarihRaw.getFullYear();
+              var mo=String(tarihRaw.getMonth()+1).padStart(2,'0');
+              var d=String(tarihRaw.getDate()).padStart(2,'0');
               tarihStr=y+'-'+mo+'-'+d;
             } else if(typeof tarihRaw==='number' && tarihRaw>1000){
               // raw:true → Excel seri numarası (1900-01-01 = 1)
@@ -14301,9 +14301,9 @@ function importKasaFromExcel(event){
           var tarihStr='';
           if(tarihRaw){
             if(tarihRaw instanceof Date){
-              var y=tarihRaw.getUTCFullYear();
-              var mo=String(tarihRaw.getUTCMonth()+1).padStart(2,'0');
-              var d=String(tarihRaw.getUTCDate()).padStart(2,'0');
+              var y=tarihRaw.getFullYear();
+              var mo=String(tarihRaw.getMonth()+1).padStart(2,'0');
+              var d=String(tarihRaw.getDate()).padStart(2,'0');
               tarihStr=y+'-'+mo+'-'+d;
             } else if(typeof tarihRaw==='number' && tarihRaw>1000){
               var excelBase=new Date(1899,11,30);
