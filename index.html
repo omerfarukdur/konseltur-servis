@@ -8600,22 +8600,27 @@ function renderUcretGenel(){
  const _ugSch=SCHOOLS[_ugSchIdx]; const _ugCol=SC[_ugSchIdx];
  const schoolStudents=students.filter(x=>x.school===_ugSchIdx);
 
- // Şoförlere kayıtlı benzersiz öğrencileri say
- // _soforOgrenciler'deki TÜM key'leri tara (ID uyumsuzluğuna karşı)
- const soforOgrSet = new Set();
+ // Şoförlere kayıtlı benzersiz öğrencileri _soforOgrenciler'den al
  const _so = window._soforOgrenciler || {};
+ const soforOgrMap = {}; // id → öğrenci objesi
  Object.keys(_so).forEach(key => {
-   const list = _so[key] || [];
-   list.forEach(o => { if(o&&o.id) soforOgrSet.add(o.id); });
+   if(key === '_updatedAt') return;
+   (_so[key]||[]).forEach(o => { if(o&&o.id) soforOgrMap[o.id] = o; });
  });
- const totalS = soforOgrSet.size > 0 ? soforOgrSet.size : schoolStudents.length;
+ const soforOgrList = Object.values(soforOgrMap);
+ const totalS = soforOgrList.length > 0 ? soforOgrList.length : schoolStudents.length;
+
+ // Ödeme hesaplamalarını şoförlere kayıtlı öğrencilerden yap
+ const hesapListesi = soforOgrList.length > 0 ? soforOgrList : schoolStudents;
  let paidCount=0, totalAmount=0, unpaidCount=0;
- schoolStudents.forEach(s=>{
- const aktifAylar=getAktifAylar(s);
- const t=calcStudentTotalsForAylar(s.id, aktifAylar);
- totalAmount+=t.totalAmount;
- if(aktifAylar.length>0 && t.paidMonths>=aktifAylar.length) paidCount++;
- else unpaidCount++;
+ hesapListesi.forEach(s=>{
+   // students array'inden tam objeyi al (kayitAy vb. için)
+   const fullS = students.find(x=>x.id===s.id) || s;
+   const aktifAylar=getAktifAylar(fullS);
+   const t=calcStudentTotalsForAylar(s.id, aktifAylar);
+   totalAmount+=t.totalAmount;
+   if(aktifAylar.length>0 && t.paidMonths>=aktifAylar.length) paidCount++;
+   else unpaidCount++;
  });
  if(el('u-total-s')) el('u-total-s').textContent=totalS;
  if(el('u-paid-count')) el('u-paid-count').textContent=paidCount;
@@ -8633,12 +8638,12 @@ function renderUcretGenel(){
  if(mb){
  const maxAmt=Math.max(...AYLAR.map(a=>{
  let t=0;
- schoolStudents.forEach(s=>{ const p=getStudentPayment(s.id); if(p[a.key]&&p[a.key].paid) t+=Number(p[a.key].amount||0); });
+ hesapListesi.forEach(s=>{ const p=getStudentPayment(s.id); if(p[a.key]&&p[a.key].paid) t+=Number(p[a.key].amount||0); });
  return t;
  }),1);
  mb.innerHTML=AYLAR.map(a=>{
  let monthAmt=0;
- schoolStudents.forEach(s=>{ const p=getStudentPayment(s.id); if(p[a.key]&&p[a.key].paid) monthAmt+=Number(p[a.key].amount||0); });
+ hesapListesi.forEach(s=>{ const p=getStudentPayment(s.id); if(p[a.key]&&p[a.key].paid) monthAmt+=Number(p[a.key].amount||0); });
  const pct=Math.round(monthAmt/maxAmt*100);
  return`<div class="ay-bar-row">
  <div class="ay-bar-label">${a.label}</div>
