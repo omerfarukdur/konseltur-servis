@@ -10880,12 +10880,15 @@ function filterUcretAddList(q){
  const lo = q.toLowerCase();
  const el = document.getElementById('ucret-add-list');
  if(!el) return;
- // Aktif şoförün mevcut öğrencileri — bunları hariç tut
- const drvId = window._ucretActiveSoforId;
- const soforOgrIds = new Set(drvId ? _getSoforOgrenciListesi(drvId).map(o=>o.id) : []);
- // payments'ta kaydı olan VE şoföre zaten eklenmiş olanları hariç tut
+ // Herhangi bir şoföre eklenmiş olan TÜM öğrencileri hariç tut
+ const tumSoforOgrIds = new Set();
+ const _so = window._soforOgrenciler || {};
+ Object.keys(_so).forEach(function(key){
+   if(key === '_updatedAt') return;
+   (_so[key]||[]).forEach(function(o){ if(o&&o.id) tumSoforOgrIds.add(o.id); });
+ });
  const candidates = students.filter(s=>
-   !soforOgrIds.has(s.id) &&
+   !tumSoforOgrIds.has(s.id) &&
    (!lo || (s.name||'').toLowerCase().includes(lo) || (s.mah||'').toLowerCase().includes(lo) || (s.ilce||'').toLowerCase().includes(lo))
  );
  if(!candidates.length){
