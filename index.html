@@ -6319,18 +6319,43 @@ function loadPayments(){
 
 function _loadPaymentsFromFirebase(){
  const path = 'konseltur/' + _activeSchoolKey + '/payments';
- // Gerçek zamanlı dinleme — tek seferlik get değil
+ // Aktif okul payments'ını dinle
  window._fbOnValue(window._fbRef(window._fbDb, path), snapshot=>{
- if(!snapshot.exists()) return;
- const d = snapshot.val();
- if(d && typeof d==='object'){
- payments = d;
- try{ localStorage.setItem(LS_PAY(), JSON.stringify(payments)); }catch(e){}
- renderUcretOgrenci();
- _renderOverduePanel();
- if(currentApp==='ucret') renderUcretGenel();
- if(currentApp==='sofor') renderSoforListe();
- }
+   if(snapshot.exists()){
+     const d = snapshot.val();
+     if(d && typeof d==='object'){
+       payments = Object.assign({}, payments, d);
+       try{ localStorage.setItem(LS_PAY(), JSON.stringify(payments)); }catch(e){}
+     }
+   }
+   renderUcretOgrenci();
+   _renderOverduePanel();
+   if(currentApp==='ucret') renderUcretGenel();
+   if(currentApp==='sofor') renderSoforListe();
+ });
+
+ // Tüm okulların payments'larını da yükle (şoförlere farklı okuldan öğrenci eklenmiş olabilir)
+ SCHOOLS.forEach(function(sch){
+   if(sch.key === _activeSchoolKey) return; // zaten yüklendi
+   const schPath = 'konseltur/' + sch.key + '/payments';
+   // localStorage'dan önce yükle
+   try{
+     const raw = localStorage.getItem('konseltur_pay_v1_' + sch.key);
+     if(raw){ const d=JSON.parse(raw); if(d) payments = Object.assign({}, d, payments); }
+   }catch(e){}
+   // Firebase'den yükle
+   if(window._fbGet && window._fbRef && window._fbDb){
+     window._fbGet(window._fbRef(window._fbDb, schPath)).then(function(snap){
+       if(snap && snap.exists()){
+         const d = snap.val();
+         if(d && typeof d==='object'){
+           payments = Object.assign({}, d, payments); // aktif okul öncelikli
+           try{ localStorage.setItem('konseltur_pay_v1_'+sch.key, JSON.stringify(d)); }catch(e){}
+           if(currentApp==='ucret') renderUcretGenel();
+         }
+       }
+     }).catch(function(){});
+   }
  });
 }
 
