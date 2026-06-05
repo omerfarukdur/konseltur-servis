@@ -14570,8 +14570,8 @@ function importCariFromExcel(event){
           var aV = typeof _a==='number' ? _a : parseFloat((_a||'0').toString().replace(/[^0-9.-]/g,''))||0;
           var acStr = (_ac||'').toString().trim();
           if(bV===0 && aV===0 && !acStr) continue;  // tamamen boş satır
-          if(hr[0]===null||hr[0]===undefined||hr[0]==='') continue;
-          var srNo=hr[0].toString().trim();
+          // SR.NO boş olsa da kabul et — sadece TOPLAM satırlarını atla
+          var srNo=(hr[0]!==null&&hr[0]!==undefined)?hr[0].toString().trim():'';
           if(srNo.toUpperCase().indexOf('TOPLAM')>=0||srNo.toUpperCase().indexOf('TOTAL')>=0) continue;
           var borcV = bV;
           var alacakV = aV;
@@ -14708,8 +14708,8 @@ function importKasaFromExcel(event){
           var aV = typeof _a==='number' ? _a : parseFloat((_a||'0').toString().replace(/[^0-9.-]/g,''))||0;
           var acStr = (_ac||'').toString().trim();
           if(bV===0 && aV===0 && !acStr) continue;  // tamamen boş satır
-          if(hr[0]===null||hr[0]===undefined||hr[0]==='') continue;
-          var srNo=hr[0].toString().trim();
+          // SR.NO boş olsa da kabul et — sadece TOPLAM satırlarını atla
+          var srNo=(hr[0]!==null&&hr[0]!==undefined)?hr[0].toString().trim():'';
           if(srNo.toUpperCase().indexOf('TOPLAM')>=0||srNo.toUpperCase().indexOf('TOTAL')>=0) continue;
           var borcV = bV;
           var alacakV = aV;
