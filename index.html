@@ -5118,6 +5118,10 @@ function showSoforSelectForUcret(){
   if(tCari) tCari.style.display='none';
   switchApp('ucret');
   gotoU('ucret-genel');
+  // Payments migration - tüm cihazları senkronize et
+  setTimeout(function(){
+    if(typeof _migrateOldPayments === 'function') _migrateOldPayments();
+  }, 2000);
 }
 
 function _loadAllSchoolsForUcret(){
@@ -6320,14 +6324,23 @@ function _loadFromFirebase(){
 }
 
 function loadPayments(){
- // LocalStorage fallback
+ // LocalStorage fallback - tüm okul prefix'lerini tara
  const raw = localStorage.getItem(LS_PAY());
  if(raw){ const d=_parse(raw); if(d && typeof d==='object') payments=d; }
+ // Eski format localStorage'ları da yükle
+ SCHOOLS.forEach(function(sch){
+   ['konseltur_pay_v2_','konseltur_pay_v1_'].forEach(function(prefix){
+     try{
+       var r=localStorage.getItem(prefix+sch.key);
+       if(r){ var d=JSON.parse(r); if(d) payments=Object.assign({},d,payments); }
+     }catch(e){}
+   });
+ });
  // Firebase'den oku
  if(window._fbReady){
- _loadPaymentsFromFirebase();
+   _loadPaymentsFromFirebase();
  } else {
- window.addEventListener('firebase-ready', ()=>_loadPaymentsFromFirebase(), {once:true});
+   window.addEventListener('firebase-ready', ()=>_loadPaymentsFromFirebase(), {once:true});
  }
 }
 
@@ -8684,6 +8697,22 @@ function renderUcretGenel(){
  if(el('u-paid-count')) el('u-paid-count').textContent=paidCount;
  if(el('u-unpaid-count')) el('u-unpaid-count').textContent=unpaidCount;
  if(el('u-total-amount')) el('u-total-amount').textContent='₺'+totalAmount.toLocaleString('tr-TR');
+
+ // Sync butonu — yoksa oluştur
+ if(!el('ucret-sync-btn')){
+   const _sb=document.createElement('button');
+   _sb.id='ucret-sync-btn';
+   _sb.innerHTML='🔄 Senkronize Et';
+   _sb.style.cssText='display:block;margin:14px auto 0;padding:10px 24px;border-radius:10px;border:1px solid rgba(14,165,233,.3);background:rgba(14,165,233,.08);color:#38bdf8;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;width:100%;';
+   _sb.onclick=function(){
+     _sb.textContent='⏳ Senkronize ediliyor...'; _sb.disabled=true;
+     _migrateOldPayments();
+     setTimeout(function(){ _sb.textContent='✅ Tamamlandı!'; },3500);
+     setTimeout(function(){ _sb.textContent='🔄 Senkronize Et'; _sb.disabled=false; },6000);
+   };
+   var _uc=document.getElementById('page-ucret-genel');
+   if(_uc) _uc.querySelector('.page-inner').appendChild(_sb);
+ }
 
  const sc=el('u-school-cards');
  if(sc) sc.innerHTML=`<div style="background:var(--card);border:1px solid ${_ugCol}22;border-top:3px solid ${_ugCol};border-radius:var(--radius);padding:16px;display:inline-block;min-width:200px;">
