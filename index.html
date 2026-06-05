@@ -14604,6 +14604,7 @@ function importCariFromExcel(event){
           hid++;
         }
 
+        console.log('[Import] '+sheetName+' ('+isim+'): '+( hid-1)+' hareket bulundu');
         if(hid<=1){ skipped++; atlananLog.push(sheetName+' ('+isim+' hareket boş)'); return; }
 
         var cariId='xl_'+sheetName.replace(/[^a-zA-Z0-9]/g,'_')+'_'+Date.now().toString(36);
@@ -14619,7 +14620,8 @@ function importCariFromExcel(event){
       var msg='✅ '+added+' hesap aktarıldı';
       if(skipped>0) msg+=', '+skipped+' sayfa atlandı';
       toast(msg,'success');
-      if(atlananLog.length>0) console.log('Atlanan sayfalar:', atlananLog);
+      console.log('Atlanan sayfalar:', atlananLog);
+      console.log('Eklenen hesaplar:', added, 'Atlanan:', skipped);
 
     }catch(err){
       console.error('Excel import hatasi:',err);
