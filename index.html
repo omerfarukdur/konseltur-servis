@@ -5227,7 +5227,21 @@ function _saveAllSchoolsFromUcret(){
       }
       localStorage.setItem('konseltur_main_v2_' + sch.key, JSON.stringify(d));
     } catch(e){ console.error('_saveAllSchoolsFromUcret hata:', e); }
+
+    // Firebase'e yaz
+    if(window._fbReady && window._fbDb){
+      window._fbSet(window._fbRef(window._fbDb,'konseltur/'+sch.key+'/payments'), schPayments)
+        .catch(()=>{});
+      window._fbSet(window._fbRef(window._fbDb,'konseltur/'+sch.key+'/main'),
+        (()=>{ try{ return JSON.parse(localStorage.getItem('konseltur_main_v2_'+sch.key)||'{}'); }catch(e){ return {}; } })()
+      ).catch(()=>{});
+    }
   });
+  // GLOBAL payments'ı da güncelle
+  if(window._fbReady && window._fbDb){
+    window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/ucret_payments'), payments)
+      .catch(()=>{});
+  }
 }
 
 
@@ -11036,7 +11050,7 @@ function ucretManualAdd(sid){
  if(s && kayitAy) s.kayitAy = kayitAy;
  _saveAllSchoolsFromUcret();
  // Firebase: offset'siz orijinal ID ile kaydet
- if(window._fbReady && _isOnline && s){
+ if(window._fbReady && window._fbDb && s){
    const schIdx = s._schIdx !== undefined ? s._schIdx : s.school;
    const schKey = (SCHOOLS[schIdx]||SCHOOLS[0]).key;
    const ID_OFFSET = schIdx * 100000;
