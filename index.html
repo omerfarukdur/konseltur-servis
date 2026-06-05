@@ -8604,9 +8604,13 @@ function renderUcretGenel(){
  const kadroSoforler2 = soforler.filter(d => d.tip !== 'taseron');
  const soforOgrSet = new Set();
  kadroSoforler2.forEach(drv => {
-   _getSoforOgrenciListesi(drv.id).forEach(o => soforOgrSet.add(o.id));
+   const list = _getSoforOgrenciListesi(drv.id);
+   console.log('[Ücret] Şoför:', drv.name, 'ID:', drv.id, 'Öğrenci:', list.length);
+   list.forEach(o => soforOgrSet.add(o.id));
  });
- const totalS = soforOgrSet.size || schoolStudents.length;
+ console.log('[Ücret] _soforOgrenciler keys:', Object.keys(window._soforOgrenciler||{}));
+ console.log('[Ücret] toplam benzersiz:', soforOgrSet.size, 'schoolStudents:', schoolStudents.length);
+ const totalS = soforOgrSet.size > 0 ? soforOgrSet.size : schoolStudents.length;
  let paidCount=0, totalAmount=0, unpaidCount=0;
  schoolStudents.forEach(s=>{
  const aktifAylar=getAktifAylar(s);
@@ -10910,11 +10914,13 @@ function filterUcretAddList(q){
 window._soforOgrenciler = {}; // {soforId: [{id, name, ilce, mah, cls, kayitAy, school, _origId, _schIdx}]}
 
 function _loadSoforOgrenciler(){
-  // Önce localStorage'dan yükle
+  // localStorage'dan geçici yükle
+  window._soforOgrenciler = {};
   try{
     const raw = localStorage.getItem('konseltur_sofor_ogr_v1');
     if(raw) window._soforOgrenciler = JSON.parse(raw)||{};
   }catch(e){ window._soforOgrenciler = {}; }
+  console.log('[FB] _loadSoforOgrenciler başladı, local keys:', Object.keys(window._soforOgrenciler).length);
 
   const _doLoad = () => {
     if(!window._fbReady || !window._fbDb) return;
@@ -10957,9 +10963,9 @@ function _loadSoforOgrenciler(){
 
 function _saveSoforOgrenciler(){
   try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(window._soforOgrenciler)); }catch(e){}
-  if(window._fbReady && _isOnline){
+  if(window._fbReady && window._fbDb){
     window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), window._soforOgrenciler)
-      .then(()=>flashSaveDot())
+      .then(()=>{ flashSaveDot(); console.log('[FB] soforOgrenciler kaydedildi, toplam şoför:', Object.keys(window._soforOgrenciler).length); })
       .catch(e=>console.warn('soforOgrenci save:',e));
   }
 }
