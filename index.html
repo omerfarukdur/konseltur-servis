@@ -8601,15 +8601,13 @@ function renderUcretGenel(){
  const schoolStudents=students.filter(x=>x.school===_ugSchIdx);
 
  // Şoförlere kayıtlı benzersiz öğrencileri say
- const kadroSoforler2 = soforler.filter(d => d.tip !== 'taseron');
+ // _soforOgrenciler'deki TÜM key'leri tara (ID uyumsuzluğuna karşı)
  const soforOgrSet = new Set();
- kadroSoforler2.forEach(drv => {
-   const list = _getSoforOgrenciListesi(drv.id);
-   console.log('[Ücret] Şoför:', drv.name, 'ID:', drv.id, 'Öğrenci:', list.length);
-   list.forEach(o => soforOgrSet.add(o.id));
+ const _so = window._soforOgrenciler || {};
+ Object.keys(_so).forEach(key => {
+   const list = _so[key] || [];
+   list.forEach(o => { if(o&&o.id) soforOgrSet.add(o.id); });
  });
- console.log('[Ücret] _soforOgrenciler keys:', Object.keys(window._soforOgrenciler||{}));
- console.log('[Ücret] toplam benzersiz:', soforOgrSet.size, 'schoolStudents:', schoolStudents.length);
  const totalS = soforOgrSet.size > 0 ? soforOgrSet.size : schoolStudents.length;
  let paidCount=0, totalAmount=0, unpaidCount=0;
  schoolStudents.forEach(s=>{
@@ -10930,23 +10928,31 @@ function _loadSoforOgrenciler(){
       window._fbRef(window._fbDb, 'konseltur/GLOBAL/sofor_ogrenciler'),
       snap => {
         const local = window._soforOgrenciler || {};
+        const localTs = local._updatedAt || 0;
+
         if(snap && snap.exists()){
           const fb = snap.val() || {};
-          // Firebase'i esas al — en güncel veri orada
-          window._soforOgrenciler = fb;
-          try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(fb)); }catch(e){}
-          // Sadece local'de olup Firebase'de olmayan şoförleri ekle
-          var needUpdate = false;
-          Object.keys(local).forEach(function(soforId){
-            if(!fb[soforId] && local[soforId] && local[soforId].length > 0){
-              window._soforOgrenciler[soforId] = local[soforId];
-              needUpdate = true;
-            }
-          });
-          if(needUpdate){
-            window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), window._soforOgrenciler).catch(()=>{});
+          const fbTs = fb._updatedAt || 0;
+
+          var winner;
+          if(fbTs >= localTs){
+            // Firebase daha yeni veya eşit — Firebase'i kullan
+            winner = fb;
+          } else {
+            // Local daha yeni — local'i Firebase'e yaz
+            winner = local;
+            window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), local).catch(()=>{});
           }
-        } else if(Object.keys(local).length > 0) {
+
+          // _updatedAt key'ini temizle, sadece şoför ID'leri kalsın
+          const clean = {};
+          Object.keys(winner).forEach(function(k){
+            if(k !== '_updatedAt') clean[k] = winner[k];
+          });
+          window._soforOgrenciler = clean;
+          try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(winner)); }catch(e){}
+
+        } else if(Object.keys(local).length > 1) {
           // Firebase boş ama local'de veri var — Firebase'e yaz
           window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), local).catch(()=>{});
         }
@@ -10962,16 +10968,19 @@ function _loadSoforOgrenciler(){
 }
 
 function _saveSoforOgrenciler(){
-  try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(window._soforOgrenciler)); }catch(e){}
+  const payload = Object.assign({}, window._soforOgrenciler, {_updatedAt: Date.now()});
+  try{ localStorage.setItem('konseltur_sofor_ogr_v1', JSON.stringify(payload)); }catch(e){}
   if(window._fbReady && window._fbDb){
-    window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), window._soforOgrenciler)
-      .then(()=>{ flashSaveDot(); console.log('[FB] soforOgrenciler kaydedildi, toplam şoför:', Object.keys(window._soforOgrenciler).length); })
+    window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/sofor_ogrenciler'), payload)
+      .then(()=>flashSaveDot())
       .catch(e=>console.warn('soforOgrenci save:',e));
   }
 }
 
 function _getSoforOgrenciListesi(soforId){
-  return window._soforOgrenciler[String(soforId)] || [];
+  const s = window._soforOgrenciler;
+  if(!s) return [];
+  return s[String(soforId)] || s[soforId] || [];
 }
 
 function _setSoforOgrenci(soforId, ogrList){
