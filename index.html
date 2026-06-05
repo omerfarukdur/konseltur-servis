@@ -6339,7 +6339,8 @@ function _loadPaymentsFromFirebase(){
    if(snapshot && snapshot.exists()){
      const d = snapshot.val();
      if(d && typeof d==='object'){
-       payments = d;
+       // GLOBAL'den gelen veriyi mevcut payments ile merge et (hiçbir kayıt kaybolmasın)
+       payments = Object.assign({}, payments, d);
        try{ localStorage.setItem(LS_PAY(), JSON.stringify(payments)); }catch(e){}
        renderUcretOgrenci();
        _renderOverduePanel();
@@ -6347,29 +6348,44 @@ function _loadPaymentsFromFirebase(){
        if(currentApp==='sofor') renderSoforListe();
      }
    } else {
-     // GLOBAL boş — eski okul bazlı path'lerden yükle ve migrate et
+     // GLOBAL boş veya eksik — migration yap
      _migrateOldPayments();
    }
  });
 }
 
 function _migrateOldPayments(){
- // Eski sistemden payments'ları yükle ve GLOBAL path'e yaz
- var allPay = Object.assign({}, payments);
+ // Tüm eski path'leri tara
+ var allPay = {};
+ // Önce localStorage'dan al
+ SCHOOLS.forEach(function(sch){
+   ['konseltur_pay_v2_','konseltur_pay_v1_','konseltur_pay_'].forEach(function(prefix){
+     try{
+       var raw = localStorage.getItem(prefix+sch.key);
+       if(raw){ var d=JSON.parse(raw); if(d) Object.assign(allPay, d); }
+     }catch(e){}
+   });
+ });
+ // Mevcut payments'ı da ekle
+ Object.assign(allPay, payments);
+
  var pending = SCHOOLS.length;
  SCHOOLS.forEach(function(sch){
    var path = 'konseltur/' + sch.key + '/payments';
    window._fbGet(window._fbRef(window._fbDb, path)).then(function(snap){
      if(snap && snap.exists()){
        var d = snap.val();
-       if(d && typeof d==='object') allPay = Object.assign({}, d, allPay);
+       if(d && typeof d==='object') Object.assign(allPay, d);
      }
      pending--;
-     if(pending <= 0 && Object.keys(allPay).length > 0){
-       // Tüm okullar yüklendi — GLOBAL'e yaz
-       payments = allPay;
-       window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/ucret_payments'), allPay).catch(()=>{});
-       try{ localStorage.setItem(LS_PAY(), JSON.stringify(payments)); }catch(e){}
+     if(pending <= 0){
+       if(Object.keys(allPay).length > 0){
+         payments = allPay;
+         window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/ucret_payments'), allPay)
+           .then(function(){ console.log('[Migration] Tamamlandı, '+Object.keys(allPay).length+' öğrenci'); })
+           .catch(function(){});
+         try{ localStorage.setItem(LS_PAY(), JSON.stringify(payments)); }catch(e){}
+       }
        renderUcretOgrenci();
        _renderOverduePanel();
        if(currentApp==='ucret') renderUcretGenel();
