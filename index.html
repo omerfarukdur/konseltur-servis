@@ -6318,44 +6318,49 @@ function loadPayments(){
 }
 
 function _loadPaymentsFromFirebase(){
- const path = 'konseltur/' + _activeSchoolKey + '/payments';
- // Aktif okul payments'ını dinle
- window._fbOnValue(window._fbRef(window._fbDb, path), snapshot=>{
-   if(snapshot.exists()){
+ if(!window._fbDb || !window._fbOnValue || !window._fbRef) return;
+
+ // 1. GLOBAL payments path'ini realtime dinle (yeni sistem)
+ window._fbOnValue(window._fbRef(window._fbDb, 'konseltur/GLOBAL/ucret_payments'), function(snapshot){
+   if(snapshot && snapshot.exists()){
      const d = snapshot.val();
      if(d && typeof d==='object'){
-       payments = Object.assign({}, payments, d);
+       payments = d;
        try{ localStorage.setItem(LS_PAY(), JSON.stringify(payments)); }catch(e){}
+       renderUcretOgrenci();
+       _renderOverduePanel();
+       if(currentApp==='ucret') renderUcretGenel();
+       if(currentApp==='sofor') renderSoforListe();
      }
+   } else {
+     // GLOBAL boş — eski okul bazlı path'lerden yükle ve migrate et
+     _migrateOldPayments();
    }
-   renderUcretOgrenci();
-   _renderOverduePanel();
-   if(currentApp==='ucret') renderUcretGenel();
-   if(currentApp==='sofor') renderSoforListe();
  });
+}
 
- // Tüm okulların payments'larını da yükle (şoförlere farklı okuldan öğrenci eklenmiş olabilir)
+function _migrateOldPayments(){
+ // Eski sistemden payments'ları yükle ve GLOBAL path'e yaz
+ var allPay = Object.assign({}, payments);
+ var pending = SCHOOLS.length;
  SCHOOLS.forEach(function(sch){
-   if(sch.key === _activeSchoolKey) return; // zaten yüklendi
-   const schPath = 'konseltur/' + sch.key + '/payments';
-   // localStorage'dan önce yükle
-   try{
-     const raw = localStorage.getItem('konseltur_pay_v1_' + sch.key);
-     if(raw){ const d=JSON.parse(raw); if(d) payments = Object.assign({}, d, payments); }
-   }catch(e){}
-   // Firebase'den yükle
-   if(window._fbGet && window._fbRef && window._fbDb){
-     window._fbGet(window._fbRef(window._fbDb, schPath)).then(function(snap){
-       if(snap && snap.exists()){
-         const d = snap.val();
-         if(d && typeof d==='object'){
-           payments = Object.assign({}, d, payments); // aktif okul öncelikli
-           try{ localStorage.setItem('konseltur_pay_v1_'+sch.key, JSON.stringify(d)); }catch(e){}
-           if(currentApp==='ucret') renderUcretGenel();
-         }
-       }
-     }).catch(function(){});
-   }
+   var path = 'konseltur/' + sch.key + '/payments';
+   window._fbGet(window._fbRef(window._fbDb, path)).then(function(snap){
+     if(snap && snap.exists()){
+       var d = snap.val();
+       if(d && typeof d==='object') allPay = Object.assign({}, d, allPay);
+     }
+     pending--;
+     if(pending <= 0 && Object.keys(allPay).length > 0){
+       // Tüm okullar yüklendi — GLOBAL'e yaz
+       payments = allPay;
+       window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/ucret_payments'), allPay).catch(()=>{});
+       try{ localStorage.setItem(LS_PAY(), JSON.stringify(payments)); }catch(e){}
+       renderUcretOgrenci();
+       _renderOverduePanel();
+       if(currentApp==='ucret') renderUcretGenel();
+     }
+   }).catch(function(){ pending--; });
  });
 }
 
@@ -6780,14 +6785,12 @@ function clearStudents(){
 function _savePaymentsOnly(){
  const str = _serialize(payments);
  try{ localStorage.setItem(LS_PAY(), str||'{}'); }catch(e){}
- // Offline'da pending işaretle
- if(!window._fbReady || !_isOnline){
- _markPendingPay();
- } else if(window._fbReady){
- const path = 'konseltur/' + _activeSchoolKey + '/payments';
- window._fbSet(window._fbRef(window._fbDb, path), payments)
- .then(()=>{ _clearPendingPay(); flashSaveDot(); })
- .catch(e=>{ _markPendingPay(); console.warn('_savePaymentsOnly Firebase hatası:', e); });
+ if(window._fbReady && window._fbDb){
+   window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/ucret_payments'), payments)
+     .then(()=>{ _clearPendingPay(); flashSaveDot(); })
+     .catch(e=>{ _markPendingPay(); console.warn('_savePaymentsOnly Firebase hatası:', e); });
+ } else {
+   _markPendingPay();
  }
 }
 
@@ -8855,20 +8858,18 @@ function savePayments(){
    toast('✅ Ödeme kaydedildi');
    flashSaveDot();
  };
- if(window._fbReady && _isOnline && _s){
-   const schIdx = _s._schIdx !== undefined ? _s._schIdx : _s.school;
-   const schKey = (SCHOOLS[schIdx]||SCHOOLS[0]).key;
-   const ID_OFFSET = schIdx * 100000;
-   const schPay = {};
-   students.filter(st=>(st._schIdx===schIdx||st.school===schIdx)).forEach(st=>{
-     if(payments[st.id]){
-       const origId = st._origId !== undefined ? st._origId : (st.id - ID_OFFSET);
-       schPay[origId] = payments[st.id];
-     }
-   });
-   window._fbSet(window._fbRef(window._fbDb,'konseltur/'+schKey+'/payments'), schPay)
+ if(window._fbReady && window._fbDb){
+   // Global ID ile doğrudan GLOBAL/payments path'ine yaz — tüm cihazlar aynı path'i okur
+   window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/ucret_payments'), payments)
      .then(()=>{ _clearPendingPay(); _doAfterSave(); })
      .catch(e=>{ console.warn('Firebase ödeme kayıt:',e); _markPendingPay(); _doAfterSave(); });
+   // Ayrıca okul bazlı path'e de yaz (geriye uyumluluk)
+   if(_s){
+     const schIdx = _s._schIdx !== undefined ? _s._schIdx : _s.school;
+     const schKey = (SCHOOLS[schIdx]||SCHOOLS[0]).key;
+     window._fbSet(window._fbRef(window._fbDb,'konseltur/'+schKey+'/payments'), payments)
+       .catch(()=>{});
+   }
  } else { _markPendingPay(); _doAfterSave(); }
 }
 
