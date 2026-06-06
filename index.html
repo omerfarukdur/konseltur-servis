@@ -3349,6 +3349,12 @@ setInterval(updateLoginClock, 30000);
         <div style="font-size:12px;color:var(--muted2);margin-top:3px;">Şoföre tıklayın → öğrenci ödemelerini görün</div>
       </div>
     </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button onclick="openUcretYeniSoforModal()" style="padding:9px 16px;border-radius:10px;border:1px solid rgba(139,92,246,.35);background:rgba(139,92,246,.08);color:#a78bfa;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;display:flex;align-items:center;gap:6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Yeni Şoför Ekle
+      </button>
+    </div>
     <div id="ucret-sofor-list" style="display:flex;flex-direction:column;gap:10px;"></div>
     <div id="ucret-sofor-empty" style="display:none;" class="empty">
       <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg></div>
@@ -11652,13 +11658,28 @@ function saveSoforModal(){
     const idx = soforler.findIndex(x=>x.id===editId);
     if(idx>=0) soforler[idx]={...soforler[idx], name, tip, ph, plaka, color, maas, okulYovmiye};
   } else {
-    soforler.push({id:nSid2++, name, tip, ph, plaka, color, maas, okulYovmiye});
+    const _newSid = nSid2++;
+    soforler.push({id:_newSid, name, tip, ph, plaka, color, maas, okulYovmiye});
+    // Ücret yönetimine de ekle
+    if(!window._soforOgrenciler) window._soforOgrenciler = {};
+    if(!window._soforOgrenciler[String(_newSid)]){
+      window._soforOgrenciler[String(_newSid)] = [];
+      _saveSoforOgrenciler();
+    }
+    if(typeof renderUcretSoforList==='function') renderUcretSoforList();
   }
   saveSoforData();
   document.getElementById('sofor-add-modal').classList.remove('open');
   toast(editId?'✏️ Şoför güncellendi':'✅ Şoför eklendi');
   if(editId && window._activeSoforId===editId) renderSoforDetay(editId);
   else gotoS('sofor-liste');
+}
+
+function openUcretYeniSoforModal(){
+  // Sofor add modal'ı Ücret modunda aç
+  window._editSoforId = null;
+  _soforModalFill(null);
+  document.getElementById('sofor-add-modal').classList.add('open');
 }
 
 function deleteUcretSofor(id){
@@ -12893,7 +12914,7 @@ document.addEventListener('DOMContentLoaded',function(){
     </h2>
     <input type="hidden" id="cari-edit-id" value="">
     <div class="field"><label>Cari İsmi *</label><input id="cm-isim" maxlength="100" placeholder="Örn: Ali Yılmaz"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
       <div class="field" id="cm-tur-field"><label>Cari Türü</label>
         <select id="cm-tur" onchange="_toggleCariYovmiye(this.value)">
           <option value="kasa">Kasa</option>
@@ -12905,6 +12926,7 @@ document.addEventListener('DOMContentLoaded',function(){
         </select>
       </div>
       <div class="field"><label>Servis No</label><input id="cm-servis" maxlength="20" placeholder="Örn: S-01"></div>
+      <div class="field"><label>Cari Kodu</label><input id="cm-kod" maxlength="20" placeholder="Örn: C-001" style="text-transform:uppercase;"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div class="field"><label>Plaka</label><input id="cm-plaka" maxlength="20" placeholder="65 XX 001" style="text-transform:uppercase;"></div>
@@ -13027,6 +13049,14 @@ document.addEventListener('DOMContentLoaded',function(){
 
     <!-- Açıklama -->
     <div class="field"><label>Açıklama</label><input id="ch-aciklama" maxlength="200" placeholder="Örn: Ocak ayı yevmiye, Avans..."></div>
+
+    <!-- Karşı Hesap -->
+    <div class="field">
+      <label>Karşı Hesap <span style="font-weight:400;color:var(--muted);font-size:10px;">(opsiyonel — seçilirse otomatik yansır)</span></label>
+      <select id="ch-karsi-hesap" style="color-scheme:dark;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 12px;width:100%;font-family:Outfit,sans-serif;font-size:13px;outline:none;">
+        <option value="">— Karşı hesap seçin —</option>
+      </select>
+    </div>
 
     <!-- Kaydet -->
     <button onclick="saveCariHareket()"
@@ -13571,7 +13601,7 @@ function _renderSadecaHareketList(id){
 function openCariAddModal(){
   document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> ' + (window._kasaModOnly ? 'Yeni Kasa Hareketi' : 'Yeni Cari Hesap');
   document.getElementById('cari-edit-id').value='';
-  ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>document.getElementById(x).value='');
+  ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not','cm-kod'].forEach(x=>{ const el=document.getElementById(x); if(el) el.value=''; });
   document.getElementById('cm-tur').value = window._kasaModOnly ? 'kasa' : 'personel';
   const _defaultTur = window._kasaModOnly ? 'kasa' : 'personel';
   const _rows2 = document.getElementById('cm-okul-rows');
@@ -13589,6 +13619,7 @@ function openCariEditModal(id){
   document.getElementById('cari-modal-title').innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> Cari Düzenle';
   document.getElementById('cari-edit-id').value=id;
   document.getElementById('cm-isim').value=c.isim||'';
+  const _ke=document.getElementById('cm-kod'); if(_ke) _ke.value=c.kod||'';
   document.getElementById('cm-tur').value=c.tur||'diger';
   document.getElementById('cm-servis').value=c.servis||'';
   document.getElementById('cm-plaka').value=c.plaka||'';
@@ -13619,6 +13650,8 @@ function saveCariModal(){
   _cariData[id].firma=(document.getElementById('cm-firma').value||'').trim();
   _cariData[id].tel=(document.getElementById('cm-tel').value||'').trim();
   _cariData[id].not=(document.getElementById('cm-not').value||'').trim();
+  const _kodEl = document.getElementById('cm-kod');
+  if(_kodEl) _cariData[id].kod = _kodEl.value.trim().toUpperCase();
   const _tur = _cariData[id].tur;
   if(_tur==='taseron'){
     const _oyList = _cariGetOkulYovmiye();
@@ -13646,6 +13679,19 @@ function saveCariModal(){
 function openCariHareketModal(){
   const id=window._activeCariId;
   if(!id||!_cariData[id]) return;
+  // Karşı hesap listesini doldur
+  const karsiSel = document.getElementById('ch-karsi-hesap');
+  if(karsiSel){
+    karsiSel.innerHTML = '<option value="">— Seçin (otomatik yansır) —</option>';
+    Object.values(_cariData).forEach(c=>{
+      if(c.id !== id){
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = (c.kod?'['+c.kod+'] ':'')+c.isim;
+        karsiSel.appendChild(opt);
+      }
+    });
+  }
   document.getElementById('ch-cari-label').textContent=_cariData[id].isim||'—';
   document.getElementById('ch-tarih').value=new Date().toISOString().split('T')[0];
   document.getElementById('ch-tutar').value='';
@@ -13670,7 +13716,21 @@ function saveCariHareket(){
   const aciklama=(document.getElementById('ch-aciklama').value||'').trim();
   if(!_cariData[id].hareketler) _cariData[id].hareketler={};
   const hid=_newHareketId();
-  _cariData[id].hareketler[hid]={tarih,aciklama:aciklama||(tip==='borc'?'Alınan':'Verilen'),borc:tip==='borc'?tutar:0,alacak:tip==='alacak'?tutar:0,ts:Date.now()};
+  const hObj={tarih,aciklama:aciklama||(tip==='borc'?'Alınan':'Verilen'),borc:tip==='borc'?tutar:0,alacak:tip==='alacak'?tutar:0,ts:Date.now()};
+  _cariData[id].hareketler[hid]=hObj;
+  // Karşı hesap seçilmişse oraya da ters hareket ekle
+  const karsiSel = document.getElementById('ch-karsi-hesap');
+  const karsiId = karsiSel ? karsiSel.value : '';
+  if(karsiId && _cariData[karsiId]){
+    if(!_cariData[karsiId].hareketler) _cariData[karsiId].hareketler={};
+    const karsiHid = _newHareketId()+'k';
+    _cariData[karsiId].hareketler[karsiHid]={
+      tarih, ts:Date.now()+1,
+      aciklama:(aciklama||(tip==='borc'?'Alınan':'Verilen'))+' ('+(_cariData[id].isim||'')+')',
+      borc: tip==='alacak'?tutar:0,  // ters
+      alacak: tip==='borc'?tutar:0
+    };
+  }
   _saveCariToStorage();
   document.getElementById('cari-hareket-modal').classList.remove('open');
   showToast((tip==='borc'?'Alınan':'Verilen')+' kaydedildi: '+_fmtPara(tutar),'success');
@@ -13741,6 +13801,10 @@ function _trashLabel(type, data) {
 
 function _trashSave() {
   try { localStorage.setItem('konseltur_trash_v1', JSON.stringify(window._trash)); } catch(e) {}
+  // Firebase'e de kaydet
+  if(window._fbReady && window._fbDb && window._fbSet && window._fbRef){
+    window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/trash'), window._trash||[]).catch(()=>{});
+  }
 }
 
 function _trashLoad() {
@@ -13748,6 +13812,28 @@ function _trashLoad() {
     const raw = localStorage.getItem('konseltur_trash_v1');
     window._trash = raw ? JSON.parse(raw) : [];
   } catch(e) { window._trash = []; }
+  // Firebase'den yükle — daha fazla veri orada olabilir
+  const _doTrashLoad = () => {
+    if(!window._fbDb) return;
+    window._fbOnValue(window._fbRef(window._fbDb,'konseltur/GLOBAL/trash'), snap => {
+      if(snap && snap.exists()){
+        const fb = snap.val();
+        if(Array.isArray(fb) && fb.length > (window._trash||[]).length){
+          window._trash = fb;
+          try{ localStorage.setItem('konseltur_trash_v1', JSON.stringify(fb)); }catch(e){}
+          _trashUpdateBadge();
+          // Modal açıksa yenile
+          const modal = document.getElementById('trash-modal');
+          if(modal && modal.style.display !== 'none') _trashRender();
+        }
+      } else if((window._trash||[]).length > 0){
+        // Firebase boş, local'i yaz
+        window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/trash'), window._trash).catch(()=>{});
+      }
+    });
+  };
+  if(window._fbReady) _doTrashLoad();
+  else window.addEventListener('firebase-ready', _doTrashLoad, {once:true});
   _trashUpdateBadge();
 }
 
@@ -15285,7 +15371,7 @@ function _openAracTakipEkran(){
         +'<button id="at-iptal" style="padding:10px 16px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.5);font-size:13px;font-weight:700;cursor:pointer;">İptal</button>'
       +'</div>'
     +'</div>'
-    +'<div id="at-tab-araclar-content" style="display:block;">'+'<div id="at-liste" style="padding:16px 16px 60px;"></div>'+'</div>'+'<div id="at-tab-giderler-content" style="display:none;padding:16px;">'+'<div id="at-gider-form" style="display:none;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:16px;margin-bottom:16px;">'+'<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fbbf24;margin-bottom:14px;">Gider Ekle</div>'+'<input type="hidden" id="at-gider-arac-id">'+'<div style="margin-bottom:10px;"><div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:6px;">ARAÇ SEÇ</div>'+'<select id="at-gider-arac" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;color-scheme:dark;box-sizing:border-box;"></select></div>'+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">'+'<div><div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:6px;">TARİH</div>'+'<input id="at-gider-tarih" type="date" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:13px;outline:none;color-scheme:dark;box-sizing:border-box;"></div>'+'<div><div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:6px;">TUTAR (₺)</div>'+'<input id="at-gider-tutar" type="number" placeholder="0" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:13px;outline:none;box-sizing:border-box;"></div></div>'+'<div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:6px;">AÇIKLAMA *</div>'+'<textarea id="at-gider-aciklama" placeholder="Yağ ve filtre değişimi, lastik tamiri..." rows="2" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;resize:none;"></textarea></div>'+'<div style="display:flex;gap:8px;">'+'<button id="at-gider-kaydet" style="padding:10px 22px;border-radius:9px;border:none;background:#f59e0b;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">Kaydet</button>'+'<button id="at-gider-iptal" style="padding:10px 16px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.5);font-size:13px;font-weight:700;cursor:pointer;">İptal</button>'+'</div></div>'+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+'<span style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;">Gider Geçmişi</span>'+'<button id="at-gider-yeni-btn" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.08);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer;">+ Gider Ekle</button>'+'</div>'+'<div style="margin-bottom:10px;"><select id="at-gider-filtre" style="width:100%;padding:8px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#fff;font-size:12px;font-family:Outfit,sans-serif;outline:none;color-scheme:dark;">'+'<option value="">Tüm Araçlar</option>'+'</select></div>'+'<div id="at-gider-liste" style="padding-bottom:60px;"></div>'+'</div>';
+    +'<div id="at-tab-araclar-content" style="display:block;">'+'<div id="at-liste" style="padding:16px 16px 60px;"></div>'+'</div>'+'<div id="at-tab-giderler-content" style="display:none;padding:16px;">'+'<div id="at-gider-form" style="display:none;background:rgba(245,158,11,.05);border:1px solid rgba(245,158,11,.2);border-radius:14px;padding:16px;margin-bottom:16px;">'+'<div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fbbf24;margin-bottom:14px;">Gider Ekle</div>'+'<input type="hidden" id="at-gider-arac-id">'+'<div style="margin-bottom:10px;"><div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:6px;">ARAÇ SEÇ</div>'+'<select id="at-gider-arac" style="width:100%;padding:10px 12px;background:#1a1f2e;border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;color-scheme:dark;box-sizing:border-box;"></select></div>'+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">'+'<div><div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:6px;">TARİH</div>'+'<input id="at-gider-tarih" type="date" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:13px;outline:none;color-scheme:dark;box-sizing:border-box;"></div>'+'<div><div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:6px;">TUTAR (₺)</div>'+'<input id="at-gider-tutar" type="number" placeholder="0" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:13px;outline:none;box-sizing:border-box;"></div></div>'+'<div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:6px;">AÇIKLAMA *</div>'+'<textarea id="at-gider-aciklama" placeholder="Yağ ve filtre değişimi, lastik tamiri..." rows="2" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-size:13px;font-family:Outfit,sans-serif;outline:none;box-sizing:border-box;resize:none;"></textarea></div>'+'<div style="display:flex;gap:8px;">'+'<button id="at-gider-kaydet" style="padding:10px 22px;border-radius:9px;border:none;background:#f59e0b;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">Kaydet</button>'+'<button id="at-gider-iptal" style="padding:10px 16px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.5);font-size:13px;font-weight:700;cursor:pointer;">İptal</button>'+'</div></div>'+'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'+'<span style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;">Gider Geçmişi</span>'+'<button id="at-gider-yeni-btn" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.08);color:#fbbf24;font-size:12px;font-weight:700;cursor:pointer;">+ Gider Ekle</button>'+'</div>'+'<div style="margin-bottom:10px;"><select id="at-gider-filtre" style="width:100%;padding:8px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#fff;font-size:12px;font-family:Outfit,sans-serif;outline:none;color-scheme:dark;">'+'<option value="">Tüm Araçlar</option>'+'</select></div>'+'<div id="at-gider-liste" style="padding-bottom:60px;"></div>'+'</div>';
 
   document.body.appendChild(scr);
 
@@ -15474,7 +15560,7 @@ function _atGiderKaydet(){
   _saveGiderler(list);
   form.style.display='none';
   form.removeAttribute('data-edit-id');
-  _atRenderGiderListe();
+  setTimeout(function(){ _atRenderGiderListe(); }, 100);
   if(typeof toast==='function') toast('Gider kaydedildi ✓','success');
 }
 
