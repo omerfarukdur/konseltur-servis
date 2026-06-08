@@ -3195,6 +3195,7 @@ setInterval(updateLoginClock, 30000);
  <div style="display:flex;align-items:center;gap:8px;">
  <div id="r-stats" style="display:none;font-size:11px;color:var(--muted2);"></div>
  <button class="btn btn-ghost btn-sm" onclick="exportRotalarPDF()" style="display:flex;align-items:center;gap:5px;">PDF'e Aktar</button>
+ <button class="btn btn-sm" style="background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.3);color:#34d399;" onclick="openVeliBasvurulari()">👨‍👩‍👧 Veli Başvuruları</button>
  </div>
  </div>
 
@@ -13623,7 +13624,7 @@ function openCariEditModal(id){
   document.getElementById('cm-isim').value=c.isim||'';
   const _ke=document.getElementById('cm-kod'); if(_ke) _ke.value=c.kod||'';
   document.getElementById('cm-tur').value=c.tur||'diger';
-  document.getElementById('cm-servis').value=c.servis||'';
+  // cm-servis kaldırıldı
   document.getElementById('cm-plaka').value=c.plaka||'';
   document.getElementById('cm-firma').value=c.firma||'';
   document.getElementById('cm-tel').value=c.tel||'';
@@ -13647,7 +13648,7 @@ function saveCariModal(){
   if(!_cariData[id]) _cariData[id]={hareketler:{}};
   _cariData[id].isim=isim;
   _cariData[id].tur=document.getElementById('cm-tur').value||'diger';
-  _cariData[id].servis=(document.getElementById('cm-servis').value||'').trim();
+  _cariData[id].servis=''; // Servis No alanı kaldırıldı
   _cariData[id].plaka=(document.getElementById('cm-plaka').value||'').trim().toUpperCase();
   _cariData[id].firma=(document.getElementById('cm-firma').value||'').trim();
   _cariData[id].tel=(document.getElementById('cm-tel').value||'').trim();
