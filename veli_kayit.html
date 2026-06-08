@@ -367,15 +367,18 @@ var servisSec = '';
 var FB_URL = "https://konseltur-servis-5a6b8-default-rtdb.europe-west1.firebasedatabase.app";
 
 function firebasePush(path, data) {
+  // Firebase Realtime Database REST API - public write
   var url = FB_URL + path + '.json';
-  console.log('POST:', url);
+  console.log('Gönderiliyor:', url);
   return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-    mode: 'cors'
+    body: JSON.stringify(data)
   }).then(function(r) {
-    console.log('Response status:', r.status);
+    console.log('Yanıt:', r.status, r.statusText);
+    if (r.status === 401 || r.status === 403) {
+      throw new Error('Erişim reddedildi (Firebase kuralları). Lütfen yönetici ile iletişime geçin.');
+    }
     if (!r.ok) return r.text().then(function(t){ throw new Error('HTTP ' + r.status + ': ' + t); });
     return r.json();
   });

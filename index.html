@@ -2509,18 +2509,6 @@ function _addManagedListener(target, event, handler, options) {
         <div id="arac-takip-uyari" style="display:none;min-width:22px;height:22px;border-radius:11px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;align-items:center;justify-content:center;flex-shrink:0;padding:0 5px;">!</div>
       </button>
 
-      <!-- Veli Başvuruları -->
-      <button onclick="openVeliBasvurulari()"
-        style="width:100%;background:#13171f;border:1px solid rgba(52,211,153,.15);border-radius:12px;padding:10px 14px;text-align:left;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;margin-bottom:8px;"
-        onmouseover="this.style.borderColor='rgba(52,211,153,.4)';this.style.background='#171c26'"
-        onmouseout="this.style.borderColor='rgba(52,211,153,.15)';this.style.background='#13171f'">
-        <div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);display:flex;align-items:center;justify-content:center;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </div>
-        <div><div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;">Veli Başvuruları</div>
-        <div style="font-size:10px;color:#34d399;font-family:Outfit,sans-serif;">Kayıt formu dolduran veliler</div></div>
-      </button>
-
       <!-- İş Başvuruları -->
       <button onclick="openBasvuruModal()" 
         style="width:100%;background:#13171f;border:1px solid rgba(251,146,60,.15);border-radius:12px;padding:10px 14px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;margin-bottom:8px;"
@@ -3082,6 +3070,7 @@ setInterval(updateLoginClock, 30000);
  <div><h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;">Kayıtlı Öğrenciler</h2><div style="font-size:12px;color:var(--muted2);margin-top:2px;" id="s-lbl">–</div></div>
  <div style="display:flex;gap:6px;">
  <button class="btn btn-ghost btn-sm" onclick="exportOgrenciExcel()">Excel Aktar</button>
+ <button class="btn btn-sm" style="background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.3);color:#34d399;" onclick="openVeliBasvurulari()">👨‍👩‍👧 Veli Başvuruları</button>
  <button class="btn btn-red btn-sm" onclick="clearStudents()">Temizle</button>
  </div>
  </div>
@@ -12937,8 +12926,7 @@ document.addEventListener('DOMContentLoaded',function(){
           <option value="diger">Diğer</option>
         </select>
       </div>
-      <div class="field"><label>Servis No</label><input id="cm-servis" maxlength="20" placeholder="Örn: S-01"></div>
-      <div class="field"><label>Cari Kodu</label><input id="cm-kod" maxlength="20" placeholder="Örn: C-001" style="text-transform:uppercase;"></div>
+      <div class="field"><label>Cari Kodu</label><input id="cm-kod" maxlength="20" placeholder="Otomatik" style="text-transform:uppercase;" readonly></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div class="field"><label>Plaka</label><input id="cm-plaka" maxlength="20" placeholder="65 XX 001" style="text-transform:uppercase;"></div>
@@ -13705,6 +13693,15 @@ function openCariHareketModal(){
         karsiSel.appendChild(opt);
       }
     });
+    // Karşı hesap seçilince açıklamaya adı yaz
+    karsiSel.onchange = function(){
+      const karsiC = _cariData[this.value];
+      const acEl = document.getElementById('ch-aciklama');
+      if(karsiC && acEl && !acEl.value){
+        // Açıklama boşsa karşı taraf adını yaz
+        acEl.placeholder = karsiC.isim + ' ile işlem';
+      }
+    };
   }
   document.getElementById('ch-cari-label').textContent=_cariData[id].isim||'—';
   document.getElementById('ch-tarih').value=new Date().toISOString().split('T')[0];
@@ -13741,7 +13738,9 @@ function saveCariHareket(){
     const aktivIsim = _cariData[id].isim || '';
     const karsiIsim = _cariData[karsiId].isim || '';
     // Aktif hesabın açıklamasına karşı hesap adını ekle
-    _cariData[id].hareketler[hid].aciklama = (aciklama||(tip==='borc'?'Alındı':'Verildi'))+' — '+karsiIsim;
+    // Açıklamaya karşı hesap adını ekle (yoksa sadece isim yaz)
+    const _baseAciklama = aciklama || (tip==='borc'?'Alındı':'Verildi');
+    _cariData[id].hareketler[hid].aciklama = _baseAciklama + ' — ' + karsiIsim;
     // Karşı hesaba TERS yönde hareket ekle
     // Aktif hesapta ALINDI (borc=tutar) ise karşı hesapta VERİLDİ (alacak=tutar)
     // Kasa'da "Alındı (borc=tutar)" → Kasa Furkan'a borçlandı → Furkan'da da "Alınan (borc=tutar)"
