@@ -13611,19 +13611,20 @@ function _renderSadecaHareketList(id){
 }
 // Modal: Cari Ekle
 function openCariAddModal(){
-  document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> ' + (window._kasaModOnly ? 'Yeni Kasa Hareketi' : 'Yeni Cari Hesap');
-  document.getElementById('cari-edit-id').value='';
-  ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>{ const el=document.getElementById(x); if(el) el.value=''; });
-  const _kodEl2=document.getElementById('cm-kod'); if(_kodEl2) _kodEl2.value=_autoKodUret();
-  document.getElementById('cm-tur').value = window._kasaModOnly ? 'kasa' : 'personel';
-  const _defaultTur = window._kasaModOnly ? 'kasa' : 'personel';
-  const _rows2 = document.getElementById('cm-okul-rows');
-  if(_rows2) _rows2.innerHTML = '';
-  _cariSetBasvuruFields({}); // Başvuru alanlarını temizle
-  _toggleCariYovmiye(_defaultTur);
-  // Kasa modunda tur seçimini gizle (sadece kasa)
-  const _turField = document.getElementById('cm-tur-field');
-  if(_turField) _turField.style.display = window._kasaModOnly ? 'none' : '';
+  try{
+    document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> ' + (window._kasaModOnly ? 'Yeni Kasa Hareketi' : 'Yeni Cari Hesap');
+    document.getElementById('cari-edit-id').value='';
+    ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>{ const el=document.getElementById(x); if(el) el.value=''; });
+    const _kodEl2=document.getElementById('cm-kod'); if(_kodEl2){ try{ _kodEl2.value=_autoKodUret(); }catch(e){ _kodEl2.value=''; } }
+    document.getElementById('cm-tur').value = window._kasaModOnly ? 'kasa' : 'personel';
+    const _defaultTur = window._kasaModOnly ? 'kasa' : 'personel';
+    const _rows2 = document.getElementById('cm-okul-rows');
+    if(_rows2) _rows2.innerHTML = '';
+    try{ _cariSetBasvuruFields({}); }catch(e){}
+    try{ _toggleCariYovmiye(_defaultTur); }catch(e){}
+    const _turField = document.getElementById('cm-tur-field');
+    if(_turField) _turField.style.display = window._kasaModOnly ? 'none' : '';
+  }catch(e){ console.warn('openCariAddModal hata:', e); }
   document.getElementById('cari-add-modal').classList.add('open');
 }
 function openCariEditModal(id){
@@ -13743,12 +13744,14 @@ function saveCariHareket(){
     _cariData[id].hareketler[hid].aciklama = (aciklama||(tip==='borc'?'Alındı':'Verildi'))+' — '+karsiIsim;
     // Karşı hesaba TERS yönde hareket ekle
     // Aktif hesapta ALINDI (borc=tutar) ise karşı hesapta VERİLDİ (alacak=tutar)
+    // Kasa'da "Alındı (borc=tutar)" → Kasa Furkan'a borçlandı → Furkan'da da "Alınan (borc=tutar)"
+    // Kasa'da "Verildi (alacak=tutar)" → Furkan Kasa'ya borçlandı → Furkan'da da "Verilen (alacak=tutar)"
     _cariData[karsiId].hareketler[karsiHid]={
       id: karsiHid,
       tarih, ts:Date.now()+1,
-      aciklama:(aciklama||(tip==='borc'?'Verildi':'Alındı'))+' — '+aktivIsim,
-      borc: tip==='borc'?0:tutar,
-      alacak: tip==='borc'?tutar:0
+      aciklama:(aciklama||(tip==='borc'?'Alındı':'Verildi'))+' — '+aktivIsim,
+      borc: tip==='borc'?tutar:0,
+      alacak: tip==='alacak'?tutar:0
     };
   }
   _saveCariToStorage();

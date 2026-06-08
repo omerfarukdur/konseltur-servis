@@ -367,12 +367,16 @@ var servisSec = '';
 var FB_URL = "https://konseltur-servis-5a6b8-default-rtdb.europe-west1.firebasedatabase.app";
 
 function firebasePush(path, data) {
-  return fetch(FB_URL + path + '.json', {
+  var url = FB_URL + path + '.json';
+  console.log('POST:', url);
+  return fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
+    mode: 'cors'
   }).then(function(r) {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
+    console.log('Response status:', r.status);
+    if (!r.ok) return r.text().then(function(t){ throw new Error('HTTP ' + r.status + ': ' + t); });
     return r.json();
   });
 }
@@ -486,14 +490,17 @@ function formGonder() {
 
   if (!db) { err.textContent = 'Bağlantı hatası. Lütfen sayfayı yenileyip tekrar deneyin.'; err.style.display = 'block'; btn.disabled = false; load.style.display = 'none'; return; }
 
+  console.log('Firebase gönderiliyor...');
   firebasePush('/konseltur/GLOBAL/veli_basvurulari', veri)
-    .then(function() {
+    .then(function(result) {
+      console.log('Başarılı:', result);
       document.getElementById('form-container').style.display = 'none';
       document.getElementById('success-msg').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     })
     .catch(function(e) {
-      err.textContent = 'Kayıt hatası: ' + e.message;
+      console.error('Firebase hata:', e);
+      err.textContent = 'Kayıt hatası: ' + e.message + ' (İnternet bağlantınızı kontrol edin)';
       err.style.display = 'block';
       btn.disabled = false;
       load.style.display = 'none';
