@@ -2509,8 +2509,20 @@ function _addManagedListener(target, event, handler, options) {
         <div id="arac-takip-uyari" style="display:none;min-width:22px;height:22px;border-radius:11px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;align-items:center;justify-content:center;flex-shrink:0;padding:0 5px;">!</div>
       </button>
 
+      <!-- Veli Başvuruları -->
+      <button onclick="openVeliBasvurulari()"
+        style="width:100%;background:#13171f;border:1px solid rgba(52,211,153,.15);border-radius:12px;padding:10px 14px;text-align:left;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;margin-bottom:8px;"
+        onmouseover="this.style.borderColor='rgba(52,211,153,.4)';this.style.background='#171c26'"
+        onmouseout="this.style.borderColor='rgba(52,211,153,.15)';this.style.background='#13171f'">
+        <div style="width:32px;height:32px;flex-shrink:0;border-radius:9px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);display:flex;align-items:center;justify-content:center;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div><div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#fff;">Veli Başvuruları</div>
+        <div style="font-size:10px;color:#34d399;font-family:Outfit,sans-serif;">Kayıt formu dolduran veliler</div></div>
+      </button>
+
       <!-- İş Başvuruları -->
-      <button onclick="openBasvuruModal()"
+      <button onclick="openBasvuruModal()" 
         style="width:100%;background:#13171f;border:1px solid rgba(251,146,60,.15);border-radius:12px;padding:10px 14px;text-align:left;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;margin-bottom:8px;"
         onmouseover="this.style.borderColor='rgba(251,146,60,.4)';this.style.background='#171c26';this.style.transform='translateY(-1px)'"
         onmouseout="this.style.borderColor='rgba(251,146,60,.15)';this.style.background='#13171f';this.style.transform='none'">
@@ -13601,7 +13613,8 @@ function _renderSadecaHareketList(id){
 function openCariAddModal(){
   document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> ' + (window._kasaModOnly ? 'Yeni Kasa Hareketi' : 'Yeni Cari Hesap');
   document.getElementById('cari-edit-id').value='';
-  ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not','cm-kod'].forEach(x=>{ const el=document.getElementById(x); if(el) el.value=''; });
+  ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>{ const el=document.getElementById(x); if(el) el.value=''; });
+  const _kodEl2=document.getElementById('cm-kod'); if(_kodEl2) _kodEl2.value=_autoKodUret();
   document.getElementById('cm-tur').value = window._kasaModOnly ? 'kasa' : 'personel';
   const _defaultTur = window._kasaModOnly ? 'kasa' : 'personel';
   const _rows2 = document.getElementById('cm-okul-rows');
@@ -13724,10 +13737,17 @@ function saveCariHareket(){
   if(karsiId && _cariData[karsiId]){
     if(!_cariData[karsiId].hareketler) _cariData[karsiId].hareketler={};
     const karsiHid = _newHareketId()+'k';
+    const aktivIsim = _cariData[id].isim || '';
+    const karsiIsim = _cariData[karsiId].isim || '';
+    // Aktif hesabın açıklamasına karşı hesap adını ekle
+    _cariData[id].hareketler[hid].aciklama = (aciklama||(tip==='borc'?'Alındı':'Verildi'))+' — '+karsiIsim;
+    // Karşı hesaba TERS yönde hareket ekle
+    // Aktif hesapta ALINDI (borc=tutar) ise karşı hesapta VERİLDİ (alacak=tutar)
     _cariData[karsiId].hareketler[karsiHid]={
+      id: karsiHid,
       tarih, ts:Date.now()+1,
-      aciklama:(aciklama||(tip==='borc'?'Alınan':'Verilen'))+' ('+(_cariData[id].isim||'')+')',
-      borc: tip==='alacak'?tutar:0,  // ters
+      aciklama:(aciklama||(tip==='borc'?'Verildi':'Alındı'))+' — '+aktivIsim,
+      borc: tip==='borc'?0:tutar,
       alacak: tip==='borc'?tutar:0
     };
   }
@@ -14792,6 +14812,113 @@ function clearCariHareketler(){
   toast('✅ '+count+' hareket silindi. Son Silinenlerden geri alabilirsiniz.','success');
 }
 
+// ══════════════════════════════════════
+// VELİ BAŞVURULARI
+// ══════════════════════════════════════
+function openVeliBasvurulari(){
+  if(!window._fbDb) return;
+  // Modal oluştur
+  var old = document.getElementById('veli-basvuru-modal');
+  if(old) old.parentNode.removeChild(old);
+
+  var modal = document.createElement('div');
+  modal.id = 'veli-basvuru-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 16px;';
+  modal.innerHTML = '<div style="background:#0e1420;border:1px solid rgba(255,255,255,.1);border-radius:20px;width:100%;max-width:700px;overflow:hidden;">'
+    +'<div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center;">'
+      +'<div style="font-family:Syne,sans-serif;font-size:16px;font-weight:900;color:#fff;">📋 Veli Başvuruları</div>'
+    +'<button data-modal="veli-basvuru-modal" onclick="var el=document.getElementById(this.dataset.modal);if(el)el.parentNode.removeChild(el);" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:24px;">×</button>'
+    +'</div>'
+    +'<div id="veli-basvuru-liste" style="padding:16px 24px 24px;min-height:100px;">'
+      +'<div style="color:rgba(255,255,255,.3);text-align:center;padding:40px;">⏳ Yükleniyor...</div>'
+    +'</div>'
+  +'</div>';
+  document.body.appendChild(modal);
+
+  // Firebase'den yükle
+  window._fbGet(window._fbRef(window._fbDb,'konseltur/GLOBAL/veli_basvurulari')).then(function(snap){
+    var liste = document.getElementById('veli-basvuru-liste');
+    if(!liste) return;
+    if(!snap || !snap.exists()){
+      liste.innerHTML='<div style="color:rgba(255,255,255,.3);text-align:center;padding:40px;">Henüz başvuru yok</div>';
+      return;
+    }
+    var data = snap.val();
+    var html = '';
+    var bekleyenSayisi = 0;
+    Object.entries(data).sort(function(a,b){ return (b[1].tarih||'').localeCompare(a[1].tarih||''); })
+    .forEach(function(entry){
+      var key = entry[0], v = entry[1];
+      var isBekleyen = v.durum === 'beklemede';
+      if(isBekleyen) bekleyenSayisi++;
+      var tarih = v.tarih ? new Date(v.tarih).toLocaleDateString('tr-TR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+      html += '<div style="background:rgba(255,255,255,.02);border:1px solid '+(isBekleyen?'rgba(245,158,11,.3)':'rgba(34,197,94,.2)')+';border-radius:12px;padding:14px 16px;margin-bottom:10px;">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">'
+          +'<div>'
+            +'<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:900;color:#fff;">'+v.ogrenciAdi+'</div>'
+            +'<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">'+v.sinif+' · '+v.ilce+(v.mahalle?' / '+v.mahalle:'')+'</div>'
+            +'<div style="font-size:11px;color:rgba(255,255,255,.4);">Veli: '+v.veliAdi+' · '+v.telefon+'</div>'
+            +(v.ucret?'<div style="font-size:11px;color:#4ade80;">₺'+v.ucret+'/ay · '+(v.kayitAy||'')+'</div>':'')
+            +'<div style="font-size:10px;color:rgba(255,255,255,.25);margin-top:3px;">'+tarih+'</div>'
+          +'</div>'
+          +'<span style="font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;'+(isBekleyen?'background:rgba(245,158,11,.12);color:#fbbf24;':'background:rgba(34,197,94,.1);color:#4ade80;')+'">'+( isBekleyen?'Beklemede':'Onaylandı')+'</span>'
+        +'</div>'
+        +(v.notlar?'<div style="font-size:11px;color:rgba(255,255,255,.35);font-style:italic;margin-bottom:8px;">Not: '+v.notlar+'</div>':'')
+        +(isBekleyen?'<button data-bkey="'+key+'" onclick="veliBasvuruOnayla(this.dataset.bkey)" style="padding:7px 16px;border-radius:8px;border:none;background:#22c55e;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">✓ Onayla & Programa Ekle</button>':'')
+      +'</div>';
+    });
+    liste.innerHTML = html || '<div style="color:rgba(255,255,255,.3);text-align:center;padding:40px;">Başvuru bulunamadı</div>';
+  }).catch(function(e){
+    var liste = document.getElementById('veli-basvuru-liste');
+    if(liste) liste.innerHTML='<div style="color:#f87171;padding:20px;">Hata: '+e.message+'</div>';
+  });
+}
+
+function veliBasvuruOnayla(key){
+  if(!window._fbDb) return;
+  // Firebase'den o başvuruyu al
+  window._fbGet(window._fbRef(window._fbDb,'konseltur/GLOBAL/veli_basvurulari/'+key)).then(function(snap){
+    if(!snap || !snap.exists()) return;
+    var v = snap.val();
+    // students dizisine ekle
+    var yeniId = nSid++;
+    var schIdx = getSchoolIdx(_activeSchoolKey);
+    var yeniOgrenci = {
+      id: yeniId,
+      _origId: yeniId,
+      _schIdx: schIdx,
+      school: schIdx,
+      name: v.ogrenciAdi,
+      mah: v.mahalle||'',
+      ilce: v.ilce||'',
+      cls: v.sinif||'',
+      tel: v.telefon||'',
+      veli: v.veliAdi||'',
+      kayitAy: v.kayitAy||'',
+      not: v.notlar||'',
+      adres: v.adres||''
+    };
+    students.push(yeniOgrenci);
+    // Aylık ücreti varsa payments'a ekle
+    if(v.ucret && v.kayitAy){
+      if(!payments[yeniId]) payments[yeniId] = {};
+      var AYLAR_LOCAL = ['eylul','ekim','kasim','aralik','ocak','subat','mart','nisan','mayis','haziran'];
+      var baslangic = AYLAR_LOCAL.indexOf(v.kayitAy);
+      if(baslangic >= 0){
+        AYLAR_LOCAL.slice(baslangic).forEach(function(ay){
+          payments[yeniId][ay] = {paid:false, amount:v.ucret};
+        });
+      }
+    }
+    saveData();
+    _savePaymentsOnly();
+    // Başvuruyu onaylandı yap
+    window._fbSet(window._fbRef(window._fbDb,'konseltur/GLOBAL/veli_basvurulari/'+key+'/durum'), 'onaylandi').catch(function(){});
+    if(typeof toast==='function') toast('✅ '+v.ogrenciAdi+' programa eklendi','success');
+    // Modali yenile
+    openVeliBasvurulari();
+  }).catch(function(e){ if(typeof toast==='function') toast('Hata: '+e.message,'error'); });
+}
 // ── Kasa Cari Excel Import ─────────────────────────────────
 function importKasaFromExcel(event){
   const file = event.target.files[0];
