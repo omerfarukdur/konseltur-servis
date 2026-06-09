@@ -13608,21 +13608,17 @@ function openCariAddModal(){
   try{
     document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> ' + (window._kasaModOnly ? 'Yeni Kasa Hareketi' : 'Yeni Cari Hesap');
     document.getElementById('cari-edit-id').value='';
-    ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>{ const el=document.getElementById(x); if(el) el.value=''; });
+    ['cm-isim','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>{ const el=document.getElementById(x); if(el) el.value=''; });
     const _kodEl2=document.getElementById('cm-kod');
-    if(_kodEl2){
-      var _yeniKod = _autoKodUret();
-      _kodEl2.value = _yeniKod;
-      console.log('Otomatik cari kodu:', _yeniKod);
-    }
-    document.getElementById('cm-tur').value = window._kasaModOnly ? 'firma' : 'firma';
-    const _defaultTur = window._kasaModOnly ? 'firma' : 'firma';
+    if(_kodEl2){ try{ _kodEl2.value=_autoKodUret(); }catch(e){ _kodEl2.value=''; } }
+    const _cmTur = document.getElementById('cm-tur');
+    if(_cmTur) _cmTur.value='firma';
     const _rows2 = document.getElementById('cm-okul-rows');
-    if(_rows2) _rows2.innerHTML = '';
+    if(_rows2) _rows2.innerHTML='';
     try{ _cariSetBasvuruFields({}); }catch(e){}
-    try{ _toggleCariYovmiye(_defaultTur); }catch(e){}
+    try{ _toggleCariYovmiye('firma'); }catch(e){}
     const _turField = document.getElementById('cm-tur-field');
-    if(_turField) _turField.style.display = window._kasaModOnly ? 'none' : '';
+    if(_turField) _turField.style.display='';
   }catch(e){ console.warn('openCariAddModal hata:', e); }
   document.getElementById('cari-add-modal').classList.add('open');
 }
