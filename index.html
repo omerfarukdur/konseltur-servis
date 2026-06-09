@@ -12925,7 +12925,6 @@ document.addEventListener('DOMContentLoaded',function(){
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
       <div class="field" id="cm-tur-field"><label>Cari Türü</label>
         <select id="cm-tur" onchange="_toggleCariYovmiye(this.value)">
-          <option value="kasa">Kasa</option>
           <!-- başvuru tipi kaldırıldı - İş Başvuruları modali kullanılıyor -->
           <option value="firma">Firma / Okul</option>
           <option value="personel">Personel</option>
@@ -13616,8 +13615,8 @@ function openCariAddModal(){
       _kodEl2.value = _yeniKod;
       console.log('Otomatik cari kodu:', _yeniKod);
     }
-    document.getElementById('cm-tur').value = window._kasaModOnly ? 'kasa' : 'personel';
-    const _defaultTur = window._kasaModOnly ? 'kasa' : 'personel';
+    document.getElementById('cm-tur').value = window._kasaModOnly ? 'firma' : 'firma';
+    const _defaultTur = window._kasaModOnly ? 'firma' : 'firma';
     const _rows2 = document.getElementById('cm-okul-rows');
     if(_rows2) _rows2.innerHTML = '';
     try{ _cariSetBasvuruFields({}); }catch(e){}
@@ -13697,10 +13696,12 @@ function openCariHareketModal(){
   const karsiSel = document.getElementById('ch-karsi-hesap');
   if(karsiSel){
     karsiSel.innerHTML = '<option value="">— Seçin (otomatik yansır) —</option>';
-    Object.values(_cariData).forEach(c=>{
-      if(c.id !== id){
+    Object.entries(_cariData).forEach(function(entry){
+      const key = entry[0], c = entry[1];
+      // Aktif cari hariç hepsini ekle (hem key hem id ile kontrol)
+      if(key !== id && String(c.id) !== String(id)){
         const opt = document.createElement('option');
-        opt.value = c.id;
+        opt.value = key;  // _cariData key'ini kullan - kesin eşleşme sağlar
         opt.textContent = (c.kod?'['+c.kod+'] ':'')+c.isim;
         karsiSel.appendChild(opt);
       }
@@ -13745,10 +13746,9 @@ function saveCariHareket(){
   const karsiSel = document.getElementById('ch-karsi-hesap');
   const karsiId = karsiSel ? karsiSel.value : '';
   // _cariData'da bu ID var mı - string ve sayısal her iki formatta dene
-  const _karsiCari = karsiId ? (_cariData[karsiId] || Object.values(_cariData).find(function(c){ return String(c.id)===String(karsiId); })) : null;
+  // karsiId artık _cariData key'i - direkt erişim
+  const _karsiCari = karsiId ? _cariData[karsiId] : null;
   if(karsiId && _karsiCari){
-    // karsiId'yi gerçek key ile güncelle
-    const _realKarsiId = _karsiCari.id || karsiId;
     if(!_karsiCari.hareketler) _karsiCari.hareketler={};
     const karsiHid = _newHareketId()+'k';
     const aktivIsim = _cariData[id].isim || '';
