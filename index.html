@@ -13794,8 +13794,13 @@ function saveCariHareket(){
       tarih, ts:Date.now()+1,
       aciklama:(aciklama||(tip==='borc'?'Alındı':'Verildi'))+' — '+aktivIsim,
       borc: tip==='borc'?tutar:0,
-      alacak: tip==='alacak'?tutar:0
+      alacak: tip==='alacak'?tutar:0,
+      _karsiCariId: id,
+      _karsiHareketId: hid
     };
+    // Aktif harekete de karşı referansı kaydet
+    _cariData[id].hareketler[hid]._karsiCariId = karsiId;
+    _cariData[id].hareketler[hid]._karsiHareketId = karsiHid;
   }
   _saveCariToStorage();
   document.getElementById('cari-hareket-modal').classList.remove('open');
@@ -14528,31 +14533,52 @@ function _echKaydet(){
   };
 
   // Karşı carideki bağlantılı hareketi de güncelle
-  const karsiHareketId = hareketId + 'k';
-  Object.keys(_cariData).forEach(function(karsiCariKey){
-    if(karsiCariKey === cariId) return;
-    const karsiC = _cariData[karsiCariKey];
-    if(!karsiC || !karsiC.hareketler) return;
-    if(karsiC.hareketler[karsiHareketId]){
-      const aktivIsim = (_cariData[cariId] && _cariData[cariId].isim) || '';
-      const eskiAciklama = (karsiC.hareketler[karsiHareketId].aciklama || '');
-      // Açıklamada " — KasaAdı" kısmı varsa koru, sadece başı güncelle
-      const aciklamaBaz = aciklama || (tip==='borc'?'Alındı':'Verildi');
-      const dashIdx = eskiAciklama.lastIndexOf(' — ');
-      const karsiAciklama = dashIdx >= 0
-        ? aciklamaBaz + ' — ' + eskiAciklama.slice(dashIdx + 3)
-        : aciklamaBaz + (aktivIsim ? ' — ' + aktivIsim : '');
-      // Karşı caride yön aynı (Kasa aldıysa karşı taraf da aldı)
-      karsiC.hareketler[karsiHareketId] = {
-        id: karsiHareketId,
+  const _mevcutH = _cariData[cariId].hareketler[hareketId];
+  const _karsiCariId = _mevcutH && _mevcutH._karsiCariId;
+  const _karsiHid = _mevcutH && _mevcutH._karsiHareketId;
+
+  if(_karsiCariId && _karsiHid && _cariData[_karsiCariId] && _cariData[_karsiCariId].hareketler[_karsiHid]){
+    // Doğrudan referansla güncelle
+    const aktivIsim = (_cariData[cariId] && _cariData[cariId].isim) || '';
+    const eskiAciklama = _cariData[_karsiCariId].hareketler[_karsiHid].aciklama || '';
+    const aciklamaBaz = aciklama || (tip==='borc'?'Alındı':'Verildi');
+    const dashIdx = eskiAciklama.lastIndexOf(' — ');
+    const karsiAciklama = dashIdx >= 0
+      ? aciklamaBaz + ' — ' + eskiAciklama.slice(dashIdx + 3)
+      : aciklamaBaz + (aktivIsim ? ' — ' + aktivIsim : '');
+    _cariData[_karsiCariId].hareketler[_karsiHid] = Object.assign(
+      {}, _cariData[_karsiCariId].hareketler[_karsiHid],
+      {
         tarih: tarih || new Date().toISOString().split('T')[0],
         aciklama: karsiAciklama,
         borc:   tip==='borc' ? tutar : 0,
         alacak: tip==='alacak' ? tutar : 0,
         ts: Date.now() + 1
-      };
-    }
-  });
+      }
+    );
+  } else {
+    // Eski yöntemle ara (referans yoksa)
+    Object.keys(_cariData).forEach(function(key){
+      if(key === cariId) return;
+      const karsiC = _cariData[key];
+      if(!karsiC || !karsiC.hareketler) return;
+      // Bu caride hareketId'ye referans veren hareket var mı?
+      Object.keys(karsiC.hareketler).forEach(function(khid){
+        const kh = karsiC.hareketler[khid];
+        if(kh && kh._karsiHareketId === hareketId){
+          const aktivIsim = (_cariData[cariId] && _cariData[cariId].isim) || '';
+          const aciklamaBaz = aciklama || (tip==='borc'?'Alındı':'Verildi');
+          karsiC.hareketler[khid] = Object.assign({}, kh, {
+            tarih: tarih || new Date().toISOString().split('T')[0],
+            aciklama: aciklamaBaz + ' — ' + aktivIsim,
+            borc:   tip==='borc' ? tutar : 0,
+            alacak: tip==='alacak' ? tutar : 0,
+            ts: Date.now() + 1
+          });
+        }
+      });
+    });
+  }
 
   _saveCariToStorage();
   _echKapat();
