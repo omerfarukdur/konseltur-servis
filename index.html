@@ -3573,22 +3573,43 @@ setInterval(updateLoginClock, 30000);
       <h2 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="cdet-name">Cari Adı</h2>
       <div style="font-size:11px;color:var(--muted2);margin-top:2px;" id="cdet-subtitle">—</div>
     </div>
-    <div style="display:flex;gap:6px;">
-      <button onclick="openCariEditModal(window._activeCariId)" style="padding:8px 14px;border-radius:9px;border:1px solid var(--border);background:var(--card2);color:var(--muted2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;" onmouseover="this.style.borderColor='rgba(59,130,246,.4)';this.style.color='#60a5fa'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted2)'">Düzenle</button>
-      <button onclick="openCariHareketModal()" class="detay-hareket-btn" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(59,130,246,.35);background:rgba(59,130,246,.1);color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;">+ Hareket</button>
-      <button onclick="document.getElementById('kasa-excel-import-input').click()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.08);color:#4ade80;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Excel'den Aktar
+    <div style="display:flex;gap:8px;align-items:center;">
+      <!-- Hareket Ekle - biraz büyük -->
+      <button onclick="openCariHareketModal()" class="detay-hareket-btn"
+        style="padding:10px 18px;border-radius:10px;border:1px solid rgba(59,130,246,.4);background:rgba(59,130,246,.12);color:#60a5fa;font-size:12px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;white-space:nowrap;display:flex;align-items:center;gap:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Hareket Ekle
       </button>
+
+      <!-- Diğer işlemler - dropdown -->
+      <div style="position:relative;">
+        <button id="cdet-more-btn" onclick="toggleCdetMenu()" 
+          style="padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--muted2);cursor:pointer;display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;font-family:'Outfit',sans-serif;white-space:nowrap;"
+          onmouseover="this.style.borderColor='rgba(255,255,255,.25)'" onmouseout="this.style.borderColor='var(--border)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          İşlemler
+        </button>
+        <div id="cdet-more-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:#1a1f2e;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:6px;min-width:180px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.5);">
+          <button onclick="openCariEditModal(window._activeCariId);toggleCdetMenu()" style="width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Düzenle
+          </button>
+          <button onclick="document.getElementById('kasa-excel-import-input').click();toggleCdetMenu()" style="width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Excel'den Aktar
+          </button>
+          <button onclick="exportCariDetayPDF();toggleCdetMenu()" style="width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            PDF'e Aktar
+          </button>
+          <div style="height:1px;background:rgba(255,255,255,.07);margin:4px 8px;"></div>
+          <button onclick="clearCariHareketler();toggleCdetMenu()" style="width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;color:#f87171;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(239,68,68,.08)'" onmouseout="this.style.background='transparent'">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            Tümünü Temizle
+          </button>
+        </div>
+      </div>
       <input type="file" id="kasa-excel-import-input" accept=".xlsx,.xls" style="display:none;" onchange="importKasaFromExcel(event)">
-      <button onclick="clearCariHareketler()" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.06);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-        Tümünü Temizle
-      </button>
-      <button onclick="exportCariDetayPDF()" class="detay-pdf-btn" style="padding:8px 14px;border-radius:9px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#f87171;font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        PDF'e Aktar
-      </button>
     </div>
   </div>
 
@@ -14817,6 +14838,24 @@ function clearHareketSearch(){
   if(srch) srch.value = '';
   filterCariHareketler('');
   if(srch) srch.focus();
+}
+
+function toggleCdetMenu(){
+  var menu = document.getElementById('cdet-more-menu');
+  if(!menu) return;
+  var isOpen = menu.style.display !== 'none';
+  menu.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen){
+    // Dışarı tıklayınca kapat
+    setTimeout(function(){
+      document.addEventListener('click', function closeCdet(e){
+        if(!e.target.closest('#cdet-more-menu') && e.target.id !== 'cdet-more-btn'){
+          menu.style.display = 'none';
+        }
+        document.removeEventListener('click', closeCdet);
+      });
+    }, 50);
+  }
 }
 
 function clearCariHareketler(){
