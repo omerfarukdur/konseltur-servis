@@ -2890,6 +2890,12 @@ setInterval(updateLoginClock, 30000);
    <span class="nav-btn-text">Geri Al</span>
    <span id="trash-badge-nav" style="display:none;position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;align-items:center;justify-content:center;padding:0 3px;">0</span>
  </button>
+ <button onclick="openDokumModal()" title="Döküm Al" class="nav-action-btn"
+   style="border:1px solid rgba(139,92,246,.2);background:rgba(139,92,246,.06);color:#a78bfa;"
+   onmouseover="this.style.background='rgba(139,92,246,.14)'" onmouseout="this.style.background='rgba(139,92,246,.06)'">
+   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+   <span class="nav-btn-text">Döküm</span>
+ </button>
  </div>
 
  <!-- ORTA: Logo + Okul + Sekmeler -->
@@ -12927,7 +12933,7 @@ document.addEventListener('DOMContentLoaded',function(){
           <option value="diger">Diğer</option>
         </select>
       </div>
-      <div class="field"><label>Cari Kodu</label><input id="cm-kod" maxlength="20" placeholder="Otomatik" style="text-transform:uppercase;" readonly></div>
+      <div class="field"><label>Cari Kodu</label><input id="cm-kod" maxlength="20" placeholder="C-001" style="text-transform:uppercase;"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
       <div class="field"><label>Plaka</label><input id="cm-plaka" maxlength="20" placeholder="65 XX 001" style="text-transform:uppercase;"></div>
@@ -13604,7 +13610,12 @@ function openCariAddModal(){
     document.getElementById('cari-modal-title').innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" style="vertical-align:middle;margin-right:6px;"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8"/></svg> ' + (window._kasaModOnly ? 'Yeni Kasa Hareketi' : 'Yeni Cari Hesap');
     document.getElementById('cari-edit-id').value='';
     ['cm-isim','cm-servis','cm-plaka','cm-firma','cm-tel','cm-not'].forEach(x=>{ const el=document.getElementById(x); if(el) el.value=''; });
-    const _kodEl2=document.getElementById('cm-kod'); if(_kodEl2){ try{ _kodEl2.value=_autoKodUret(); }catch(e){ _kodEl2.value=''; } }
+    const _kodEl2=document.getElementById('cm-kod');
+    if(_kodEl2){
+      var _yeniKod = _autoKodUret();
+      _kodEl2.value = _yeniKod;
+      console.log('Otomatik cari kodu:', _yeniKod);
+    }
     document.getElementById('cm-tur').value = window._kasaModOnly ? 'kasa' : 'personel';
     const _defaultTur = window._kasaModOnly ? 'kasa' : 'personel';
     const _rows2 = document.getElementById('cm-okul-rows');
@@ -13733,20 +13744,18 @@ function saveCariHareket(){
   // Karşı hesap seçilmişse oraya da ters hareket ekle
   const karsiSel = document.getElementById('ch-karsi-hesap');
   const karsiId = karsiSel ? karsiSel.value : '';
-  if(karsiId && _cariData[karsiId]){
-    if(!_cariData[karsiId].hareketler) _cariData[karsiId].hareketler={};
+  // _cariData'da bu ID var mı - string ve sayısal her iki formatta dene
+  const _karsiCari = karsiId ? (_cariData[karsiId] || Object.values(_cariData).find(function(c){ return String(c.id)===String(karsiId); })) : null;
+  if(karsiId && _karsiCari){
+    // karsiId'yi gerçek key ile güncelle
+    const _realKarsiId = _karsiCari.id || karsiId;
+    if(!_karsiCari.hareketler) _karsiCari.hareketler={};
     const karsiHid = _newHareketId()+'k';
     const aktivIsim = _cariData[id].isim || '';
-    const karsiIsim = _cariData[karsiId].isim || '';
-    // Aktif hesabın açıklamasına karşı hesap adını ekle
-    // Açıklamaya karşı hesap adını ekle (yoksa sadece isim yaz)
+    const karsiIsim = _karsiCari.isim || '';
     const _baseAciklama = aciklama || (tip==='borc'?'Alındı':'Verildi');
     _cariData[id].hareketler[hid].aciklama = _baseAciklama + ' — ' + karsiIsim;
-    // Karşı hesaba TERS yönde hareket ekle
-    // Aktif hesapta ALINDI (borc=tutar) ise karşı hesapta VERİLDİ (alacak=tutar)
-    // Kasa'da "Alındı (borc=tutar)" → Kasa Furkan'a borçlandı → Furkan'da da "Alınan (borc=tutar)"
-    // Kasa'da "Verildi (alacak=tutar)" → Furkan Kasa'ya borçlandı → Furkan'da da "Verilen (alacak=tutar)"
-    _cariData[karsiId].hareketler[karsiHid]={
+    _karsiCari.hareketler[karsiHid]={
       id: karsiHid,
       tarih, ts:Date.now()+1,
       aciklama:(aciklama||(tip==='borc'?'Alındı':'Verildi'))+' — '+aktivIsim,
@@ -14815,10 +14824,230 @@ function clearCariHareketler(){
   toast('✅ '+count+' hareket silindi. Son Silinenlerden geri alabilirsiniz.','success');
 }
 
+
+// ══════════════════════════════════════
+// DÖKÜM ALMA SİSTEMİ
+// ══════════════════════════════════════
+function openDokumModal(){
+  const modal = document.getElementById('dokum-modal');
+  if(modal){ modal.style.display='flex'; }
+}
+function closeDokumModal(){
+  const modal = document.getElementById('dokum-modal');
+  if(modal){ modal.style.display='none'; }
+}
+
+function dokumAl(){
+  const secUcret = document.getElementById('dok-ucret')?.checked;
+  const secCari   = document.getElementById('dok-cari')?.checked;
+  const secKasa   = document.getElementById('dok-kasa')?.checked;
+  const secRota   = document.getElementById('dok-rota')?.checked;
+  const secArac   = document.getElementById('dok-arac')?.checked;
+
+  if(!secUcret && !secCari && !secKasa && !secRota && !secArac){
+    if(typeof toast==='function') toast('Lütfen en az bir bölüm seçin','error'); return;
+  }
+
+  const now = new Date();
+  const tarihStr = now.toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  let html = `<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8">
+  <title>Konseltur Döküm - ${tarihStr}</title>
+  <style>
+    body{font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:20px;color:#111;background:#fff;}
+    .header{text-align:center;margin-bottom:28px;padding-bottom:16px;border-bottom:3px solid #1B2B5E;}
+    .header h1{font-size:20px;color:#1B2B5E;margin:0 0 4px;}
+    .header p{font-size:12px;color:#666;margin:0;}
+    .bolum{margin-bottom:28px;page-break-inside:avoid;}
+    .bolum-baslik{background:#1B2B5E;color:#fff;padding:10px 16px;font-size:14px;font-weight:700;border-radius:6px 6px 0 0;margin:0;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    th{background:#f0f3fa;padding:8px 10px;text-align:left;font-weight:700;border:1px solid #dde2ee;color:#1B2B5E;}
+    td{padding:7px 10px;border:1px solid #dde2ee;}
+    tr:nth-child(even) td{background:#f9fafc;}
+    .bakiye-pos{color:#16a34a;font-weight:700;}
+    .bakiye-neg{color:#dc2626;font-weight:700;}
+    .paid{color:#16a34a;}
+    .unpaid{color:#dc2626;}
+    .footer{text-align:center;font-size:11px;color:#999;margin-top:24px;padding-top:12px;border-top:1px solid #eee;}
+    @media print{body{padding:10px;}.header h1{font-size:16px;}}
+  </style></head><body>
+  <div class="header">
+    <h1>KONSELTUR TAŞIMACILIK</h1>
+    <p>Döküm Tarihi: ${tarihStr}</p>
+  </div>`;
+
+  // ÜCRET YÖNETİMİ
+  if(secUcret){
+    html += '<div class="bolum"><div class="bolum-baslik">💰 Ücret Yönetimi</div>';
+    html += '<table><tr><th>Şoför</th><th>Plaka</th><th>Öğrenci Sayısı</th><th>Güncel Ödemeler</th><th>Bekleyen</th><th>Toplam Tahsilat</th></tr>';
+    const _so = window._soforOgrenciler || {};
+    soforler.forEach(function(drv){
+      const list = _getSoforOgrenciListesi(drv.id);
+      let guncel=0, bekleyen=0, toplam=0;
+      list.forEach(function(o){
+        const s = students.find(function(x){return x.id===o.id;})||o;
+        const aktifAylar = getAktifAylar(s);
+        const t = calcStudentTotalsForAylar(o.id, aktifAylar);
+        toplam += t.totalAmount;
+        if(aktifAylar.length>0 && t.paidMonths>=aktifAylar.length) guncel++;
+        else bekleyen++;
+      });
+      html += '<tr><td>'+_esc(drv.name)+'</td><td>'+(drv.plaka||'—')+'</td><td>'+list.length+'</td>';
+      html += '<td class="paid">'+guncel+'</td><td class="unpaid">'+bekleyen+'</td>';
+      html += '<td><b>₺'+toplam.toLocaleString('tr-TR')+'</b></td></tr>';
+    });
+    html += '</table></div>';
+  }
+
+  // CARİ HESAPLAR
+  if(secCari || secKasa){
+    const cariler = Object.values(_cariData||{});
+    const filtre = secKasa && !secCari ? ['kasa'] : (secCari && !secKasa ? ['personel','firma','taseron','diger','sofor'] : null);
+
+    html += '<div class="bolum"><div class="bolum-baslik">💳 '+(secKasa&&!secCari?'Kasa Cari':secCari&&!secKasa?'Cari Hesaplar':'Cari Hesaplar & Kasa')+'</div>';
+    html += '<table><tr><th>Kod</th><th>Hesap Adı</th><th>Tür</th><th>Alınan</th><th>Verilen</th><th>Bakiye</th></tr>';
+    cariler.forEach(function(c){
+      if(filtre && !filtre.includes(c.tur)) return;
+      const calc = _cariCalcBakiye(c);
+      const bak = calc.bakiye;
+      const bakCls = bak>=0?'bakiye-pos':'bakiye-neg';
+      html += '<tr><td>'+(c.kod||'—')+'</td><td><b>'+_esc(c.isim)+'</b></td><td>'+(c.tur||'—')+'</td>';
+      html += '<td class="paid">₺'+calc.toplamBorc.toLocaleString('tr-TR')+'</td>';
+      html += '<td class="unpaid">₺'+calc.toplamAlacak.toLocaleString('tr-TR')+'</td>';
+      html += '<td class="'+bakCls+'">₺'+Math.abs(bak).toLocaleString('tr-TR')+(bak<0?' (Borçlu)':bak>0?' (Alacaklı)':'')+'</td></tr>';
+    });
+    html += '</table></div>';
+  }
+
+  // ROTA / ÖĞRENCİ
+  if(secRota){
+    html += '<div class="bolum"><div class="bolum-baslik">🎒 Öğrenci Listesi</div>';
+    html += '<table><tr><th>#</th><th>Adı Soyadı</th><th>İlçe</th><th>Mahalle</th><th>Sınıf</th><th>Telefon</th></tr>';
+    students.forEach(function(s,i){
+      html += '<tr><td>'+(i+1)+'</td><td>'+_esc(s.name)+'</td><td>'+(s.ilce||'')+'</td><td>'+(s.mah||'')+'</td><td>'+(s.cls||'')+'</td><td>'+(s.tel||'—')+'</td></tr>';
+    });
+    html += '</table></div>';
+  }
+
+  // ARAÇ TAKİP
+  if(secArac){
+    const araclar = _loadAraclar();
+    const giderler = _loadGiderler();
+    html += '<div class="bolum"><div class="bolum-baslik">🚌 Araç Takip</div>';
+    html += '<table><tr><th>Plaka</th><th>Tip</th><th>Sigorta</th><th>Muayene</th></tr>';
+    araclar.forEach(function(a){
+      html += '<tr><td><b>'+_esc(a.plaka)+'</b></td><td>'+(a.tip||'')+'</td><td>'+(a.sigorta||'—')+'</td><td>'+(a.muayene||'—')+'</td></tr>';
+    });
+    html += '</table>';
+    if(giderler.length){
+      const toplamGider = giderler.reduce(function(s,g){return s+(g.tutar||0);},0);
+      html += '<br><table><tr><th>Tarih</th><th>Araç</th><th>Açıklama</th><th>Tutar</th></tr>';
+      giderler.sort(function(a,b){return (b.tarih||'').localeCompare(a.tarih||'');}).forEach(function(g){
+        const arac = araclar.find(function(a){return a.id===g.aracId;})||{};
+        html += '<tr><td>'+(g.tarih||'—')+'</td><td>'+(arac.plaka||'—')+'</td><td>'+_esc(g.aciklama)+'</td><td>₺'+Number(g.tutar||0).toLocaleString('tr-TR')+'</td></tr>';
+      });
+      html += '<tr style="background:#f0f3fa;"><td colspan="3"><b>TOPLAM GİDER</b></td><td><b>₺'+toplamGider.toLocaleString('tr-TR')+'</b></td></tr>';
+      html += '</table>';
+    }
+    html += '</div>';
+  }
+
+  html += '<div class="footer">Konseltur Taşımacılık · Demiryolu Cad. No:48/c · Selçuklu, Konya · 0332 235 55 30</div>';
+  html += '</body></html>';
+
+  // Yeni pencerede aç ve yazdır
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){ win.print(); }, 500);
+  closeDokumModal();
+}
+
+function dokumExcel(){
+  if(!window.XLSX){ if(typeof _ensureXLSX==='function'){ _ensureXLSX(dokumExcel); return; } toast('Excel kütüphanesi yüklenemedi','error'); return; }
+  const secUcret = document.getElementById('dok-ucret')?.checked;
+  const secCari   = document.getElementById('dok-cari')?.checked;
+  const secKasa   = document.getElementById('dok-kasa')?.checked;
+  const secRota   = document.getElementById('dok-rota')?.checked;
+  const secArac   = document.getElementById('dok-arac')?.checked;
+  if(!secUcret && !secCari && !secKasa && !secRota && !secArac){ if(typeof toast==='function') toast('Lütfen en az bir bölüm seçin','error'); return; }
+
+  const wb = XLSX.utils.book_new();
+
+  if(secUcret){
+    const rows = [['Şoför','Plaka','Öğrenci Sayısı','Güncel Ödemeler','Bekleyen','Toplam Tahsilat']];
+    soforler.forEach(function(drv){
+      const list = _getSoforOgrenciListesi(drv.id);
+      let guncel=0,bekleyen=0,toplam=0;
+      list.forEach(function(o){
+        const s=students.find(function(x){return x.id===o.id;})||o;
+        const t=calcStudentTotalsForAylar(o.id,getAktifAylar(s));
+        toplam+=t.totalAmount;
+        if(getAktifAylar(s).length>0&&t.paidMonths>=getAktifAylar(s).length) guncel++; else bekleyen++;
+      });
+      rows.push([drv.name,drv.plaka||'',list.length,guncel,bekleyen,toplam]);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Ücret Yönetimi');
+  }
+
+  if(secCari||secKasa){
+    const rows=[['Kod','Hesap Adı','Tür','Alınan','Verilen','Bakiye']];
+    const filtre = secKasa&&!secCari?['kasa']:secCari&&!secKasa?['personel','firma','taseron','diger','sofor']:null;
+    Object.values(_cariData||{}).forEach(function(c){
+      if(filtre&&!filtre.includes(c.tur)) return;
+      const calc=_cariCalcBakiye(c);
+      rows.push([c.kod||'',c.isim,c.tur||'',calc.toplamBorc,calc.toplamAlacak,calc.bakiye]);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), secKasa&&!secCari?'Kasa Cari':'Cari Hesaplar');
+  }
+
+  if(secRota){
+    const rows=[['#','Adı Soyadı','İlçe','Mahalle','Sınıf','Telefon']];
+    students.forEach(function(s,i){ rows.push([i+1,s.name,s.ilce||'',s.mah||'',s.cls||'',s.tel||'']); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Öğrenci Listesi');
+  }
+
+  if(secArac){
+    const rows=[['Plaka','Tip','Sigorta','Muayene']];
+    _loadAraclar().forEach(function(a){ rows.push([a.plaka,a.tip||'',a.sigorta||'',a.muayene||'']); });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Araç Takip');
+    const gRows=[['Tarih','Araç','Açıklama','Tutar']];
+    _loadGiderler().forEach(function(g){
+      const arac=_loadAraclar().find(function(a){return a.id===g.aracId;})||{};
+      gRows.push([g.tarih||'',arac.plaka||'',g.aciklama||'',g.tutar||0]);
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(gRows), 'Sanayi Giderleri');
+  }
+
+  const now=new Date();
+  const fname='Konseltur_Dokum_'+now.getFullYear()+(now.getMonth()+1).toString().padStart(2,'0')+now.getDate().toString().padStart(2,'0')+'.xlsx';
+  XLSX.writeFile(wb, fname);
+  closeDokumModal();
+  if(typeof toast==='function') toast('Excel indirildi ✓','success');
+}
+
 // ══════════════════════════════════════
 // VELİ BAŞVURULARI
 // ══════════════════════════════════════
+function _veliSyncPending(){
+  // localStorage'daki pending veli başvurularını Firebase'e yaz
+  try{
+    var pending = JSON.parse(localStorage.getItem('veli_pending_v1')||'[]');
+    if(!pending.length) return;
+    if(!window._fbDb || !window._fbRef || !window._fbSet) return;
+    pending.forEach(function(v){
+      var key = 'konseltur/GLOBAL/veli_basvurulari/'+v._pendingId;
+      delete v._pendingId;
+      v.durum = v.durum||'beklemede';
+      window._fbSet(window._fbRef(window._fbDb, key), v).catch(function(){});
+    });
+    localStorage.removeItem('veli_pending_v1');
+    if(typeof toast==='function') toast(pending.length+' veli başvurusu senkronize edildi','success');
+  }catch(e){ console.warn('Pending sync:', e); }
+}
+
 function openVeliBasvurulari(){
+  // Pending localStorage kayıtlarını Firebase'e yaz
+  _veliSyncPending();
   if(!window._fbDb) return;
   // Modal oluştur
   var old = document.getElementById('veli-basvuru-modal');
@@ -15381,6 +15610,46 @@ try{ _updateLoginBasvuruCount(); }catch(e){}
 <!-- ════════════════════════════════════════
      SON SİLİNENLER MODELİ
      ════════════════════════════════════════ -->
+
+<!-- DÖKÜM ALMA MODALİ -->
+<div id="dokum-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;" onclick="if(event.target===this)closeDokumModal()">
+  <div style="background:#0e1420;border:1px solid rgba(255,255,255,.1);border-radius:20px;width:100%;max-width:540px;margin:16px;overflow:hidden;">
+    <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:900;color:#fff;">📄 Döküm Al</div>
+      <button onclick="closeDokumModal()" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:24px;line-height:1;">×</button>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:14px;">Döküm almak istediğiniz bölümleri seçin:</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer;">
+          <input type="checkbox" id="dok-ucret" style="width:16px;height:16px;accent-color:#a78bfa;">
+          <div><div style="font-size:13px;font-weight:700;color:#fff;">Ücret Yönetimi</div><div style="font-size:11px;color:rgba(255,255,255,.4);">Şoförler, öğrenciler ve ödeme durumları</div></div>
+        </label>
+        <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer;">
+          <input type="checkbox" id="dok-cari" style="width:16px;height:16px;accent-color:#a78bfa;">
+          <div><div style="font-size:13px;font-weight:700;color:#fff;">Cari Hesaplar</div><div style="font-size:11px;color:rgba(255,255,255,.4);">Tüm cari hesaplar ve bakiyeleri</div></div>
+        </label>
+        <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer;">
+          <input type="checkbox" id="dok-kasa" style="width:16px;height:16px;accent-color:#a78bfa;">
+          <div><div style="font-size:13px;font-weight:700;color:#fff;">Kasa Cari</div><div style="font-size:11px;color:rgba(255,255,255,.4);">Kasa hareketleri ve bakiyesi</div></div>
+        </label>
+        <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer;">
+          <input type="checkbox" id="dok-rota" style="width:16px;height:16px;accent-color:#a78bfa;">
+          <div><div style="font-size:13px;font-weight:700;color:#fff;">Rota / Öğrenci Listesi</div><div style="font-size:11px;color:rgba(255,255,255,.4);">Tüm öğrenciler ve rota bilgileri</div></div>
+        </label>
+        <label style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px;cursor:pointer;">
+          <input type="checkbox" id="dok-arac" style="width:16px;height:16px;accent-color:#a78bfa;">
+          <div><div style="font-size:13px;font-weight:700;color:#fff;">Araç Takip & Sanayi Giderleri</div><div style="font-size:11px;color:rgba(255,255,255,.4);">Araç bilgileri ve gider geçmişi</div></div>
+        </label>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:18px;">
+        <button onclick="dokumAl()" style="flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif;">🖨️ PDF Olarak Al</button>
+        <button onclick="dokumExcel()" style="flex:1;padding:12px;border-radius:10px;border:1px solid rgba(34,197,94,.3);background:rgba(34,197,94,.08);color:#4ade80;font-size:13px;font-weight:800;cursor:pointer;font-family:Outfit,sans-serif;">📊 Excel'e Aktar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="trash-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);align-items:center;justify-content:center;" onclick="if(event.target===this)closeTrashModal()">
   <div style="background:#0e1120;border:1px solid rgba(239,68,68,.2);border-radius:22px;width:680px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.9);">
     
