@@ -366,6 +366,19 @@ var servisSec = '';
 
 var FB_URL = "https://konseltur-servis-5a6b8-default-rtdb.europe-west1.firebasedatabase.app";
 
+// Yedek kayıt: Firebase'e yazamazsa localStorage'a yaz
+// Program açıkken "Veli Başvuruları" butonuna basılınca otomatik Firebase'e aktarılır
+function yerelKaydet(veri) {
+  try {
+    var pending = JSON.parse(localStorage.getItem('veli_pending_v1') || '[]');
+    veri._pendingId = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    veri._kayitTarihi = new Date().toLocaleString('tr-TR');
+    pending.push(veri);
+    localStorage.setItem('veli_pending_v1', JSON.stringify(pending));
+    return true;
+  } catch(e) { return false; }
+}
+
 function firebasePush(path, data) {
   // Firebase Realtime Database REST API
   var url = FB_URL + path + '.json';
@@ -520,11 +533,21 @@ function formGonder() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     })
     .catch(function(e) {
-      console.error('Firebase hata:', e);
-      err.textContent = 'Kayıt hatası: ' + e.message + ' (İnternet bağlantınızı kontrol edin)';
-      err.style.display = 'block';
-      btn.disabled = false;
-      load.style.display = 'none';
+      console.warn('Firebase hata, yerel kayıt deneniyor:', e.message);
+      // Firebase başarısız - yerel kayıt yap
+      if (yerelKaydet(veri)) {
+        document.getElementById('form-container').style.display = 'none';
+        document.getElementById('success-msg').style.display = 'block';
+        // Başarı mesajına not ekle
+        var p = document.querySelector('#success-msg p');
+        if(p) p.innerHTML = 'Kayıt formunuz alındı.<br><small style="color:#9ca3af;">Not: Başvurunuz yerel olarak kaydedildi, yönetici programa girdiğinde sisteme aktarılacaktır.</small>';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        err.textContent = 'Kayıt başarısız. Lütfen internet bağlantınızı kontrol edin.';
+        err.style.display = 'block';
+        btn.disabled = false;
+        load.style.display = 'none';
+      }
     });
 }
 </script>
