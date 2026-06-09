@@ -14518,6 +14518,7 @@ function _echKaydet(){
   const tutar     = parseFloat(document.getElementById('ech-tutar')?.value||0)||0;
   if(!tutar||tutar<=0){ showToast('Geçerli bir tutar girin','error'); return; }
   if(!_cariData[cariId]||!_cariData[cariId].hareketler) return;
+  const _eskiH = _cariData[cariId].hareketler[hareketId] || {};
   _cariData[cariId].hareketler[hareketId] = {
     tarih:    tarih || new Date().toISOString().split('T')[0],
     aciklama: aciklama || (tip==='borc'?'Alınan':'Verilen'),
@@ -14525,6 +14526,34 @@ function _echKaydet(){
     alacak:   tip==='alacak' ? tutar : 0,
     ts:       Date.now()
   };
+
+  // Karşı carideki bağlantılı hareketi de güncelle
+  const karsiHareketId = hareketId + 'k';
+  Object.keys(_cariData).forEach(function(karsiCariKey){
+    if(karsiCariKey === cariId) return;
+    const karsiC = _cariData[karsiCariKey];
+    if(!karsiC || !karsiC.hareketler) return;
+    if(karsiC.hareketler[karsiHareketId]){
+      const aktivIsim = (_cariData[cariId] && _cariData[cariId].isim) || '';
+      const eskiAciklama = (karsiC.hareketler[karsiHareketId].aciklama || '');
+      // Açıklamada " — KasaAdı" kısmı varsa koru, sadece başı güncelle
+      const aciklamaBaz = aciklama || (tip==='borc'?'Alındı':'Verildi');
+      const dashIdx = eskiAciklama.lastIndexOf(' — ');
+      const karsiAciklama = dashIdx >= 0
+        ? aciklamaBaz + ' — ' + eskiAciklama.slice(dashIdx + 3)
+        : aciklamaBaz + (aktivIsim ? ' — ' + aktivIsim : '');
+      // Karşı caride yön aynı (Kasa aldıysa karşı taraf da aldı)
+      karsiC.hareketler[karsiHareketId] = {
+        id: karsiHareketId,
+        tarih: tarih || new Date().toISOString().split('T')[0],
+        aciklama: karsiAciklama,
+        borc:   tip==='borc' ? tutar : 0,
+        alacak: tip==='alacak' ? tutar : 0,
+        ts: Date.now() + 1
+      };
+    }
+  });
+
   _saveCariToStorage();
   _echKapat();
   renderCariDetay(cariId);
