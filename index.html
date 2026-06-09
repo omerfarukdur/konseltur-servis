@@ -2890,12 +2890,7 @@ setInterval(updateLoginClock, 30000);
    <span class="nav-btn-text">Geri Al</span>
    <span id="trash-badge-nav" style="display:none;position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;align-items:center;justify-content:center;padding:0 3px;">0</span>
  </button>
- <button onclick="openDokumModal()" title="Döküm Al" class="nav-action-btn"
-   style="border:1px solid rgba(139,92,246,.2);background:rgba(139,92,246,.06);color:#a78bfa;"
-   onmouseover="this.style.background='rgba(139,92,246,.14)'" onmouseout="this.style.background='rgba(139,92,246,.06)'">
-   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-   <span class="nav-btn-text">Döküm</span>
- </button>
+
  </div>
 
  <!-- ORTA: Logo + Okul + Sekmeler -->
@@ -3601,6 +3596,10 @@ setInterval(updateLoginClock, 30000);
           <button onclick="exportCariDetayPDF();toggleCdetMenu()" style="width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;color:rgba(255,255,255,.8);font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             PDF'e Aktar
+          </button>
+          <button onclick="openDokumModal();toggleCdetMenu()" style="width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;color:#a78bfa;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(139,92,246,.1)'" onmouseout="this.style.background='transparent'">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Döküm Al
           </button>
           <div style="height:1px;background:rgba(255,255,255,.07);margin:4px 8px;"></div>
           <button onclick="clearCariHareketler();toggleCdetMenu()" style="width:100%;padding:9px 12px;border-radius:8px;border:none;background:transparent;color:#f87171;font-size:12px;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;transition:background .15s;" onmouseover="this.style.background='rgba(239,68,68,.08)'" onmouseout="this.style.background='transparent'">
@@ -14524,57 +14523,72 @@ function _echKaydet(){
   if(!tutar||tutar<=0){ showToast('Geçerli bir tutar girin','error'); return; }
   if(!_cariData[cariId]||!_cariData[cariId].hareketler) return;
   const _eskiH = _cariData[cariId].hareketler[hareketId] || {};
+  // Eski değerleri sakla (karşı cariyi bulmak için)
+  const _eskiBorc   = _eskiH.borc   || 0;
+  const _eskiAlacak = _eskiH.alacak || 0;
+  const _eskiTarih  = _eskiH.tarih  || '';
+  const _eskiTutar  = _eskiBorc > 0 ? _eskiBorc : _eskiAlacak;
+
   _cariData[cariId].hareketler[hareketId] = {
     tarih:    tarih || new Date().toISOString().split('T')[0],
     aciklama: aciklama || (tip==='borc'?'Alınan':'Verilen'),
     borc:     tip==='borc' ? tutar : 0,
     alacak:   tip==='alacak' ? tutar : 0,
-    ts:       Date.now()
+    ts:       Date.now(),
+    _karsiCariId:    _eskiH._karsiCariId,
+    _karsiHareketId: _eskiH._karsiHareketId
   };
 
   // Karşı carideki bağlantılı hareketi de güncelle
   const _mevcutH = _cariData[cariId].hareketler[hareketId];
-  const _karsiCariId = _mevcutH && _mevcutH._karsiCariId;
-  const _karsiHid = _mevcutH && _mevcutH._karsiHareketId;
+  const aktivIsim = (_cariData[cariId] && _cariData[cariId].isim) || '';
+  const yeniTarih = tarih || new Date().toISOString().split('T')[0];
+  const aciklamaBaz = aciklama || (tip==='borc'?'Alındı':'Verildi');
+  let _karsiGuncellendi = false;
 
-  if(_karsiCariId && _karsiHid && _cariData[_karsiCariId] && _cariData[_karsiCariId].hareketler[_karsiHid]){
-    // Doğrudan referansla güncelle
-    const aktivIsim = (_cariData[cariId] && _cariData[cariId].isim) || '';
-    const eskiAciklama = _cariData[_karsiCariId].hareketler[_karsiHid].aciklama || '';
-    const aciklamaBaz = aciklama || (tip==='borc'?'Alındı':'Verildi');
-    const dashIdx = eskiAciklama.lastIndexOf(' — ');
-    const karsiAciklama = dashIdx >= 0
-      ? aciklamaBaz + ' — ' + eskiAciklama.slice(dashIdx + 3)
-      : aciklamaBaz + (aktivIsim ? ' — ' + aktivIsim : '');
-    _cariData[_karsiCariId].hareketler[_karsiHid] = Object.assign(
-      {}, _cariData[_karsiCariId].hareketler[_karsiHid],
-      {
-        tarih: tarih || new Date().toISOString().split('T')[0],
-        aciklama: karsiAciklama,
-        borc:   tip==='borc' ? tutar : 0,
-        alacak: tip==='alacak' ? tutar : 0,
-        ts: Date.now() + 1
-      }
-    );
-  } else {
-    // Eski yöntemle ara (referans yoksa)
+  // 1. Referans varsa direkt güncelle
+  const _refCariId = _eskiH._karsiCariId;
+  const _refHid    = _eskiH._karsiHareketId;
+  if(_refCariId && _refHid && _cariData[_refCariId] && _cariData[_refCariId].hareketler && _cariData[_refCariId].hareketler[_refHid]){
+    const kh = _cariData[_refCariId].hareketler[_refHid];
+    _cariData[_refCariId].hareketler[_refHid] = Object.assign({}, kh, {
+      tarih: yeniTarih,
+      aciklama: aciklamaBaz + ' — ' + aktivIsim,
+      borc:   tip==='borc' ? tutar : 0,
+      alacak: tip==='alacak' ? tutar : 0,
+      ts: Date.now() + 1
+    });
+    _karsiGuncellendi = true;
+  }
+
+  // 2. Referans yoksa — tüm carilerde eşleşen hareketi bul
+  if(!_karsiGuncellendi){
     Object.keys(_cariData).forEach(function(key){
-      if(key === cariId) return;
+      if(key === cariId || _karsiGuncellendi) return;
       const karsiC = _cariData[key];
       if(!karsiC || !karsiC.hareketler) return;
-      // Bu caride hareketId'ye referans veren hareket var mı?
       Object.keys(karsiC.hareketler).forEach(function(khid){
+        if(_karsiGuncellendi) return;
         const kh = karsiC.hareketler[khid];
-        if(kh && kh._karsiHareketId === hareketId){
-          const aktivIsim = (_cariData[cariId] && _cariData[cariId].isim) || '';
-          const aciklamaBaz = aciklama || (tip==='borc'?'Alındı':'Verildi');
-          karsiC.hareketler[khid] = Object.assign({}, kh, {
-            tarih: tarih || new Date().toISOString().split('T')[0],
+        if(!kh) return;
+        // _karsiHareketId referansı var mı?
+        const refEslesti = kh._karsiHareketId === hareketId || kh._karsiCariId === cariId;
+        // Ya da tarih + tutar eşleşiyor mu?
+        const khTutar = (kh.borc||0) > 0 ? (kh.borc||0) : (kh.alacak||0);
+        const tarihEslesti = kh.tarih === _eskiTarih;
+        const tutarEslesti = Math.abs(khTutar - _eskiTutar) < 0.01;
+        // Açıklamada aktif carinin adı geçiyor mu?
+        const aciklamaEslesti = (kh.aciklama||'').toLowerCase().indexOf(aktivIsim.toLowerCase()) >= 0;
+
+        if(refEslesti || (tarihEslesti && tutarEslesti && aciklamaEslesti)){
+          _cariData[key].hareketler[khid] = Object.assign({}, kh, {
+            tarih: yeniTarih,
             aciklama: aciklamaBaz + ' — ' + aktivIsim,
             borc:   tip==='borc' ? tutar : 0,
             alacak: tip==='alacak' ? tutar : 0,
             ts: Date.now() + 1
           });
+          _karsiGuncellendi = true;
         }
       });
     });
