@@ -13664,13 +13664,13 @@ function saveCariModal(){
   const isim=(document.getElementById('cm-isim').value||'').trim();
   if(!isim){ showToast('Cari ismi zorunludur','error'); return; }
   const editId=document.getElementById('cari-edit-id').value;
-  // editId yoksa activeCariId'yi kullan (Kasa Cari düzenleme için)
-  const id = editId || window._activeCariId || _newCariId();
+  // editId varsa düzenleme, yoksa yeni kayıt
+  const id = editId || _newCariId();
   if(!_cariData[id]) _cariData[id]={hareketler:{}};
   _cariData[id].isim=isim;
-  // Kasa türünü koruyalım — form türü kasa değilse mevcut türü koru
   const _formTur = document.getElementById('cm-tur').value||'diger';
-  _cariData[id].tur = (_cariData[id].tur==='kasa') ? 'kasa' : _formTur;
+  // Kasa türünü koru, diğerlerinde form değerini kullan
+  _cariData[id].tur = (!editId) ? _formTur : ((_cariData[id].tur==='kasa') ? 'kasa' : _formTur);
   _cariData[id].servis=''; // Servis No alanı kaldırıldı
   _cariData[id].plaka=(document.getElementById('cm-plaka').value||'').trim().toUpperCase();
   _cariData[id].firma=(document.getElementById('cm-firma').value||'').trim();
