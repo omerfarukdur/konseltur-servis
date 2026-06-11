@@ -2019,7 +2019,11 @@ function _showUpdateBanner(newVer){
   document.body.appendChild(banner);
 }
 
-// _checkForUpdate kaldırıldı (ölü fonksiyon — zombi interval temizlendi)
+// Sayfa açılışında ve her 5 dakikada güncelleme kontrol et
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(_checkForUpdate, 5000);
+  setInterval(_checkForUpdate, 5 * 60 * 1000);
+});
 
 function forgotPassword(){
   const email = (document.getElementById('pw-email').value||'').trim();
@@ -12206,6 +12210,13 @@ function soforAyDurumu(s, ayKey){
 }
 
 // ─── RENDER: LİSTE ───
+// Debounce — her tuş basışında değil, 300ms sonra render et
+let _soforListeTimer = null;
+function renderSoforListeDebounced(){
+  clearTimeout(_soforListeTimer);
+  _soforListeTimer = setTimeout(renderSoforListe, 300);
+}
+
 function renderSoforListe(){
  try {
 
@@ -13334,6 +13345,13 @@ function openCariDetay(id){
   const c = _cariData[id];
   if(dtabText && c) dtabText.textContent = c.isim||'Detay';
   gotoC('cari-detay');
+}
+
+// Cari hareket arama debounce
+let _cariDetayTimer = null;
+function renderCariDetayDebounced(id){
+  clearTimeout(_cariDetayTimer);
+  _cariDetayTimer = setTimeout(()=>renderCariDetay(id), 250);
 }
 
 function renderCariDetay(id){
