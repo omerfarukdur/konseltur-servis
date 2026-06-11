@@ -2019,11 +2019,7 @@ function _showUpdateBanner(newVer){
   document.body.appendChild(banner);
 }
 
-// Sayfa açılışında ve her 5 dakikada güncelleme kontrol et
-document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(_checkForUpdate, 5000);
-  setInterval(_checkForUpdate, 5 * 60 * 1000);
-});
+// _checkForUpdate kaldırıldı (ölü fonksiyon — zombi interval temizlendi)
 
 function forgotPassword(){
   const email = (document.getElementById('pw-email').value||'').trim();
