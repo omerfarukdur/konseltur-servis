@@ -1442,44 +1442,86 @@ body.light .pm-group-label { color: rgba(0,0,0,.3); border-bottom-color: rgba(0,
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <!-- Firebase SDK -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+ import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+ import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDYZhw_ETJhgu31A16QwMLHFfeB0IPF8vY",
-    authDomain: "konseltur-servis-5a6b8.firebaseapp.com",
-    databaseURL: "https://konseltur-servis-5a6b8-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "konseltur-servis-5a6b8",
-    storageBucket: "konseltur-servis-5a6b8.firebasestorage.app",
-    messagingSenderId: "860137032539",
-    appId: "1:860137032539:web:79b53bb6a4c7de44a1687e"
-  };
+ // ÖNEMLİ: Firebase Console → Realtime Database → Rules ayarlayın!
+ const firebaseConfig = {
+ apiKey: "AIzaSyDYZhw_ETJhgu31A16QwMLHFfeB0IPF8vY",
+ authDomain: "konseltur-servis-5a6b8.firebaseapp.com",
+ databaseURL: "https://konseltur-servis-5a6b8-default-rtdb.europe-west1.firebasedatabase.app",
+ projectId: "konseltur-servis-5a6b8",
+ storageBucket: "konseltur-servis-5a6b8.firebasestorage.app",
+ messagingSenderId: "860137032539",
+ appId: "1:860137032539:web:79b53bb6a4c7de44a1687e"
+ };
 
-  const _fbApp  = initializeApp(firebaseConfig);
-  const _fbDb   = getDatabase(_fbApp);
-  const _fbAuth = getAuth(_fbApp);
+ const _fbApp = initializeApp(firebaseConfig);
+ const _fbDb  = getDatabase(_fbApp);
+ const _fbAuth = getAuth(_fbApp);
 
-  window._fbRef    = ref;
-  window._fbSet    = set;
-  window._fbGet    = get;
-  window._fbOnValue = onValue;
-  window._fbRemove  = remove;
-  window._fbDb     = _fbDb;
-  window._fbAuth   = _fbAuth;
-  window._fbSignIn  = (email, password) => signInWithEmailAndPassword(_fbAuth, email, password);
-  window._fbSignOut = () => signOut(_fbAuth);
+ // Global erişim için window'a aktar
+ window._fbRef    = ref;
+ window._fbSet    = set;
+ window._fbGet    = get;
+ window._fbOnValue = onValue;
+ window._fbRemove = remove;
+ window._fbDb     = _fbDb;
+ window._fbAuth   = _fbAuth;
+ window._fbSignIn = (email, password) => signInWithEmailAndPassword(_fbAuth, email, password);
   window._fbResetPassword = (email) => sendPasswordResetEmail(_fbAuth, email);
-  window._fbReady  = true;
+ window._fbSignOut = () => signOut(_fbAuth);
+ window._fbReady  = true;
 
-  onAuthStateChanged(_fbAuth, (user) => {
-    window._fbUser      = user ?? null;
-    window._fbAuthReady = true;
-    window.dispatchEvent(new CustomEvent('fb-auth-changed', { detail: { user } }));
-  });
+ // Auth durum değişikliği — sadece user bilgisini sakla ve event gönder
+ onAuthStateChanged(_fbAuth, (user) => {
+   window._fbUser = user || null;
+   window._fbAuthReady = true;
+   window.dispatchEvent(new CustomEvent('fb-auth-changed', { detail: { user } }));
+ });
 
-  window.dispatchEvent(new Event('firebase-ready'));
+ // Sayfa yüklenince Firebase hazır sinyali ver
+ window.dispatchEvent(new Event('firebase-ready'));
+
+// Klavye kısayolları
+document.addEventListener('keydown', function(e){
+ // ESC → modalları kapat
+ if(e.key === 'Escape'){
+ const deleteSchoolModal = document.getElementById('delete-school-modal');
+ if(deleteSchoolModal && deleteSchoolModal.style.display !== 'none'){
+ closeDeleteSchoolModal(); return;
+ }
+ const addSchoolModal = document.getElementById('add-school-modal');
+ if(addSchoolModal && addSchoolModal.style.display !== 'none'){
+ closeAddSchoolModal(); return;
+ }
+ const confirmModal = document.getElementById('confirm-modal');
+ if(confirmModal && confirmModal.style.display !== 'none'){
+ confirmModal.style.display = 'none'; return;
+ }
+ const modal = document.getElementById('modal');
+ if(modal && modal.classList.contains('open')){
+ closeModal(); return;
+ }
+ const excelModal = document.getElementById('excel-modal');
+ if(excelModal && excelModal.classList.contains('open')){
+ excelModal.classList.remove('open'); return;
+ }
+ // Diğer tüm .modal-bg.open modalları ESC ile kapat
+ const _openBgs = document.querySelectorAll('.modal-bg.open');
+ if(_openBgs.length > 0){ _openBgs[_openBgs.length-1].classList.remove('open'); return; }
+ }
+ // Ctrl+S → kaydet (feedback)
+ if((e.ctrlKey || e.metaKey) && e.key === 's'){
+ e.preventDefault();
+ saveData();
+ toast('Kaydedildi');
+ }
+});
+
 </script>
+
 <script>
 // Service Worker — Güncelleme Yönetimi
 // sw.js'e şunları ekleyin:
@@ -1977,7 +2019,11 @@ function _showUpdateBanner(newVer){
   document.body.appendChild(banner);
 }
 
-
+// Sayfa açılışında ve her 5 dakikada güncelleme kontrol et
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(_checkForUpdate, 5000);
+  setInterval(_checkForUpdate, 5 * 60 * 1000);
+});
 
 function forgotPassword(){
   const email = (document.getElementById('pw-email').value||'').trim();
@@ -2055,7 +2101,7 @@ function checkPassword(){
 
   // Firebase hazır olana kadar bekle, sonra giriş yap
   function _doSignIn(){
-    if(!window._fbSignIn && !window._fbAuth){
+    if(!window._fbSignIn){
       if(errEl) errEl.textContent = 'Firebase bağlanıyor...';
       setTimeout(_doSignIn, 300);
       return;
@@ -9495,10 +9541,9 @@ function exportRotalarPDF(){
  <span>Belge No: KNS-${Date.now().toString(36).toUpperCase().slice(-6)}</span>
  </div>
 
-<div id="konseltur-react-root" style="display:none"></div>
 </body>
-</html>
-
+</html>`);
+}
 
 
 
