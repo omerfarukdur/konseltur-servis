@@ -2019,11 +2019,7 @@ function _showUpdateBanner(newVer){
   document.body.appendChild(banner);
 }
 
-// Sayfa açılışında ve her 5 dakikada güncelleme kontrol et
-document.addEventListener('DOMContentLoaded', function(){
-  setTimeout(_checkForUpdate, 5000);
-  setInterval(_checkForUpdate, 5 * 60 * 1000);
-});
+// _checkForUpdate kaldırıldı (ölü fonksiyon — zombi interval temizlendi)
 
 function forgotPassword(){
   const email = (document.getElementById('pw-email').value||'').trim();
@@ -7070,7 +7066,12 @@ function clearDrivers(){
  }
  );
 }
-function searchD(q){dSr=q.toLocaleLowerCase('tr-TR');renderDrivers();}
+let _searchDTimer = null;
+function searchD(q){
+  dSr=q.toLocaleLowerCase('tr-TR');
+  clearTimeout(_searchDTimer);
+  _searchDTimer = setTimeout(renderDrivers, 250);
+}
 
 function renderDrivers(){
  try {
@@ -12210,13 +12211,6 @@ function soforAyDurumu(s, ayKey){
 }
 
 // ─── RENDER: LİSTE ───
-// Debounce — her tuş basışında değil, 300ms sonra render et
-let _soforListeTimer = null;
-function renderSoforListeDebounced(){
-  clearTimeout(_soforListeTimer);
-  _soforListeTimer = setTimeout(renderSoforListe, 300);
-}
-
 function renderSoforListe(){
  try {
 
@@ -13345,13 +13339,6 @@ function openCariDetay(id){
   const c = _cariData[id];
   if(dtabText && c) dtabText.textContent = c.isim||'Detay';
   gotoC('cari-detay');
-}
-
-// Cari hareket arama debounce
-let _cariDetayTimer = null;
-function renderCariDetayDebounced(id){
-  clearTimeout(_cariDetayTimer);
-  _cariDetayTimer = setTimeout(()=>renderCariDetay(id), 250);
 }
 
 function renderCariDetay(id){
@@ -14908,11 +14895,16 @@ function importCariFromExcel(event){
 }
 
 // ── Cari Hareketleri Toplu Sil ─────────────────────────────
+let _cariHareketFilterTimer = null;
 function filterCariHareketler(q){
   window._cdetHareketFilter = (q||'').trim().toLowerCase();
   const clr = document.getElementById('cdet-hareket-search-clear');
   if(clr) clr.style.display = window._cdetHareketFilter ? 'block' : 'none';
-  if(window._activeCariId) _renderSadecaHareketList(window._activeCariId);
+  // Debounce: yazarken her harfte değil, 250ms sonra render et
+  clearTimeout(_cariHareketFilterTimer);
+  _cariHareketFilterTimer = setTimeout(()=>{
+    if(window._activeCariId) _renderSadecaHareketList(window._activeCariId);
+  }, 250);
 }
 window.filterCariHareketler = filterCariHareketler;
 
