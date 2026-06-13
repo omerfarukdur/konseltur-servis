@@ -10642,7 +10642,7 @@ function assignServiceFromExcel(event){
 
    const cols = Object.keys(rows[0]);
    const nameCol = cols.find(c=>/ad[ıi]?\s*soyad|öğrenci.*ad/i.test(c)) || cols[1];
-   const servisCol = cols.find(c=>/servis/i.test(c));
+   const servisCol = cols.find(c=>/serv[iİıi̇]s/i.test(c));
    if(!nameCol || !servisCol){ toast('Ad Soyad veya Servis No sütunu bulunamadı','error'); return; }
 
    const _activeIdx = getSchoolIdx(_activeSchoolKey);
