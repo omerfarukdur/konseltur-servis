@@ -6911,6 +6911,12 @@ function _savePaymentsOnly(){
 
 // GELİŞMİŞ ÖĞRENCİ FİLTRE 
 var _sfIlce='', _sfSinif='', _sfRota='';
+var _sSort='', _sSortDir=1; // sıralama: alan adı ve yön (1=artan,-1=azalan)
+function sortStudents(field){
+ if(_sSort===field) _sSortDir=-_sSortDir;
+ else { _sSort=field; _sSortDir=1; }
+ renderSTable();
+}
 function filterStudentsAdvanced(){
  var il=document.getElementById('sf-ilce');
  var si=document.getElementById('sf-sinif');
@@ -6949,7 +6955,28 @@ function renderSTable(){
  if(sSr)L=L.filter(s=>s.name.toLocaleLowerCase('tr-TR').includes(sSr)||(s.mah||'').toLocaleLowerCase('tr-TR').includes(sSr)||(s.ilce||'').toLocaleLowerCase('tr-TR').includes(sSr)||(s.sok||'').toLocaleLowerCase('tr-TR').includes(sSr));
  _setText('s-lbl', L.length+' öğrenci'+(sSr?' (arama sonucu)':''));
  if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>Arama sonucu bulunamadı.</div>';return;}
- w.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Ad Soyad</th><th>İlçe</th><th>Mahalle</th><th>Cadde/Sokak</th><th>Sınıf</th><th>Telefon</th><th>Servis</th><th></th><th></th><th></th></tr></thead><tbody>`+
+ // Sıralama
+ if(_sSort){
+ L = L.slice().sort((a,b)=>{
+  let va, vb;
+  if(_sSort==='servis'){
+   const ra=routes.find(r=>r.students.some(rs=>rs.id===a.id));
+   const rb=routes.find(r=>r.students.some(rs=>rs.id===b.id));
+   va = ra?ra.label:''; vb = rb?rb.label:'';
+   if(!ra && !rb) return 0;
+   if(!ra) return _sSortDir;
+   if(!rb) return -_sSortDir;
+  } else {
+   va = a[_sSort]; vb = b[_sSort];
+  }
+  va = (va==null?'':va).toString().toLocaleLowerCase('tr-TR');
+  vb = (vb==null?'':vb).toString().toLocaleLowerCase('tr-TR');
+  return va.localeCompare(vb,'tr-TR') * _sSortDir;
+ });
+ }
+ const _arrow = (f)=> _sSort===f ? (_sSortDir===1?' ▲':' ▼') : '';
+ const _th = (f,label)=> `<th onclick="sortStudents('${f}')" style="cursor:pointer;user-select:none;white-space:nowrap;">${label}${_arrow(f)}</th>`;
+ w.innerHTML=`<table class="tbl"><thead><tr><th>#</th>${_th('name','Ad Soyad')}${_th('ilce','İlçe')}${_th('mah','Mahalle')}${_th('sok','Cadde/Sokak')}${_th('cls','Sınıf')}${_th('ph','Telefon')}${_th('servis','Servis')}<th></th><th></th><th></th></tr></thead><tbody>`+
  L.map((s,i)=>{
  const _rt = routes.find(r=>r.students.some(rs=>rs.id===s.id));
  const _servisCell = _rt
