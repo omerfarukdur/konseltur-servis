@@ -9105,65 +9105,66 @@ function handleFileSelect(input){if(input.files[0])parseExcelFile(input.files[0]
 // AKILLI ADRES PARSER 
 // Tek sütundaki adresi İlçe, Mahalle, Sokak olarak ayırır
 // Örnek: "Bosna Hersek Mah. Osmanlı Cad. Selçuklu" → {ilce:"Selçuklu", mah:"Bosna Hersek Mah.", sok:"Osmanlı Cad."}
-function _parseAddress(fullAddr){
+ function _parseAddress(fullAddr){
  if(!fullAddr) return {ilce:'',mah:'',sok:''};
  var addr = fullAddr.toString().trim();
  var result = {ilce:'',mah:'',sok:''};
- 
- // 1. İlçeyi bul (Selçuklu, Meram, Karatay)
+
+ // 1. İlçeyi bul
  var ilceList = ['Selçuklu','Meram','Karatay'];
  var normAddr = _normalizeText(addr);
  for(var i=0;i<ilceList.length;i++){
  var normIlce = _normalizeText(ilceList[i]);
  if(normAddr.indexOf(normIlce) !== -1){
  result.ilce = ilceList[i];
- // İlçeyi adresten çıkar
  var regex = new RegExp(ilceList[i], 'gi');
  addr = addr.replace(regex,'').trim();
- // Normalize versiyonuyla da dene
  var parts = addr.split(/\s+/);
  addr = parts.filter(function(p){ return _normalizeText(p) !== normIlce; }).join(' ');
  break;
  }
  }
- 
+
  // Konya kelimesini de çıkar
  addr = addr.replace(/konya/gi,'').trim();
- // Başındaki ve sonundaki virgül, tire, slash temizle
  addr = addr.replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
- 
- // 2. Mahalleyi bul — MAHALLES veritabanından eşleştir
+
+ // 2. Mahalleyi bul — veritabanından eşleştir
  if(!MAHALLES) _ensureMAHALLES();
  var bestMah = '';
  var bestMahScore = 0;
  var bestMahIlce = result.ilce;
- 
+
  var searchIlces = result.ilce ? [result.ilce] : ilceList;
  var normAddrClean = _normalizeText(addr);
- 
+
  for(var ii=0;ii<searchIlces.length;ii++){
  var ilce = searchIlces[ii];
  if(!MAHALLES || !MAHALLES[ilce]) continue;
  var mahList = Object.keys(MAHALLES[ilce]);
  for(var mi=0;mi<mahList.length;mi++){
  var mahName = mahList[mi];
- // "Mah." soneki olmadan mahalle adı
+ // "Mah." soneki olmadan normalize mahalle adı
  var mahClean = _normalizeText(mahName).replace(/\s*mah\.?\s*$/,'').trim();
  if(mahClean.length < 3) continue;
- 
- // Adres metninde mahalle adı geçiyor mu?
- if(normAddrClean.indexOf(mahClean) !== -1){
- // Uzun eşleşme daha iyi (daha spesifik)
- if(mahClean.length >bestMahScore){
+
+ // Adres içinde tam kelime olarak geçmeli (başka bir kelimenin parçası olmamalı)
+ var mahIdx = normAddrClean.indexOf(mahClean);
+ if(mahIdx === -1) continue;
+ var charBefore = mahIdx > 0 ? normAddrClean[mahIdx-1] : ' ';
+ var charAfter = mahIdx+mahClean.length < normAddrClean.length ? normAddrClean[mahIdx+mahClean.length] : ' ';
+ if(/[a-z0-9]/.test(charBefore) || /[a-z0-9]/.test(charAfter)) continue;
+
+ // Daha uzun eşleşme daha spesifik
+ if(mahClean.length > bestMahScore){
  bestMahScore = mahClean.length;
  bestMah = mahName;
  if(!result.ilce) bestMahIlce = ilce;
  }
  }
  }
- }
- 
- // Tam substring eşleşmesi bulunamadıysa, esnek eşleştirmeyi dene (örn. "Ulubatlı Hasan Mah" -> "Ulubatlihasan Mah.")
+
+ // Esnek fallback (boşluk/karakter farklılığı toleransı)
  if(!bestMah && result.ilce && addr.trim()){
  var flexMah = _bestMatchMahalle(result.ilce, addr);
  if(flexMah && flexMah !== addr){
@@ -9171,24 +9172,20 @@ function _parseAddress(fullAddr){
  bestMahIlce = result.ilce;
  }
  }
- 
+
  if(bestMah){
  result.mah = bestMah;
  if(!result.ilce) result.ilce = bestMahIlce;
- 
- // Mahalle adını adresten çıkar → kalan sokak
  var mahCleanForRemove = bestMah.replace(/\s*Mah\.?\s*$/i,'').trim();
- // Regex ile mahalle adını çıkar (büyük/küçük harf duyarsız)
  var mahRegex = new RegExp(mahCleanForRemove, 'gi');
  addr = addr.replace(mahRegex,'').trim();
  addr = addr.replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
  }
- 
+
  // 3. Kalan metin = sokak/cadde
  result.sok = addr.trim();
- // Sokaktaki gereksiz karakterleri temizle
  result.sok = result.sok.replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
- 
+
  return result;
 }
 
