@@ -9106,6 +9106,15 @@ function _parseAddress(fullAddr){
  }
  }
  
+ // Tam substring eşleşmesi bulunamadıysa, esnek eşleştirmeyi dene (örn. "Ulubatlı Hasan Mah" -> "Ulubatlihasan Mah.")
+ if(!bestMah && result.ilce && addr.trim()){
+ var flexMah = _bestMatchMahalle(result.ilce, addr);
+ if(flexMah && flexMah !== addr){
+ bestMah = flexMah;
+ bestMahIlce = result.ilce;
+ }
+ }
+ 
  if(bestMah){
  result.mah = bestMah;
  if(!result.ilce) result.ilce = bestMahIlce;
