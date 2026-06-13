@@ -8352,7 +8352,7 @@ function renderRoutes(){
  <div class="route-header" onclick="toggleR(${r.id})">
  <div class="route-dot" style="background:${r.color}"></div>
  <div style="flex:1">
- <div class="route-name">${r.label}<span style="font-size:10px;background:${r.color}22;color:${r.color};padding:2px 6px;border-radius:4px;margin-left:4px">${sch.short}</span><span style="font-size:10px;color:${capColor};background:${capColor}22;padding:2px 6px;border-radius:4px;margin-left:4px">${r.students.length} &ouml;&#x11F;renci</span>${capWarning}${timeBadge}${outlierIds.size?`<span style="font-size:10px;color:var(--red);background:rgba(239,68,68,.12);padding:2px 6px;border-radius:4px;margin-left:4px">&#x1F534; ${outlierIds.size} ayk&#x131;r&#x131;</span>`:''}</div>
+ <div class="route-name">${r.label}<span onclick="event.stopPropagation();renameRoute(${r.id})" style="cursor:pointer;font-size:12px;margin-left:6px;opacity:.6" title="Adını Değiştir">✏️</span><span style="font-size:10px;background:${r.color}22;color:${r.color};padding:2px 6px;border-radius:4px;margin-left:4px">${sch.short}</span><span style="font-size:10px;color:${capColor};background:${capColor}22;padding:2px 6px;border-radius:4px;margin-left:4px">${r.students.length} &ouml;&#x11F;renci</span>${capWarning}${timeBadge}${outlierIds.size?`<span style="font-size:10px;color:var(--red);background:rgba(239,68,68,.12);padding:2px 6px;border-radius:4px;margin-left:4px">&#x1F534; ${outlierIds.size} ayk&#x131;r&#x131;</span>`:''}</div>
  <div class="route-meta">${fmtKm(r.km)} &middot; <span style="color:${r.overTime?'var(--amber)':'var(--muted2)'}">~${fmtMin(r.min)}</span> &middot; <span style="color:${hc};font-weight:600">${hLabel} (${hs})</span>${ad?' &middot; &#x1F9D1;&#x200D;&#x2708;&#xFE0F; '+ad.name:' &middot; <span style="color:var(--red)">&#x15E;of&ouml;r atanmad&#x131;</span>'}</div>
  </div>
  <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openRouteEdit(${r.id})" style="margin-right:6px;font-size:11px;">Düzenle</button>
@@ -10716,6 +10716,19 @@ function closeMoveModal(){
  document.getElementById('move-student-modal').classList.remove('open');
  _moveStudentId = null;
  _moveFromRoute = null;
+}
+
+function renameRoute(rid){
+ const r = routes.find(x=>x.id===rid);
+ if(!r) return;
+ const yeni = prompt('Yeni güzergah adı:', r.label);
+ if(yeni===null) return;
+ const trimmed = yeni.trim();
+ if(!trimmed){ toast('Güzergah adı boş bırakılamaz','error'); return; }
+ r.label = trimmed;
+ renderRoutes(); saveData();
+ if(typeof renderMapLayers==='function') renderMapLayers();
+ toast('✅ Güzergah adı güncellendi: '+trimmed);
 }
 
 function openRouteEdit(rid){
