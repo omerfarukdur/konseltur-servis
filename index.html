@@ -3193,6 +3193,7 @@ setInterval(updateLoginClock, 30000);
  <div><h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;">Optimize Edilmiş Rotalar</h2><div style="font-size:12px;color:var(--muted2);margin-top:2px;" id="r-lbl">–</div></div>
  <div style="display:flex;align-items:center;gap:8px;">
  <div id="r-stats" style="display:none;font-size:11px;color:var(--muted2);"></div>
+ <button class="btn btn-ghost btn-sm" onclick="refreshAllCoords()" style="display:flex;align-items:center;gap:5px;" title="Tüm öğrencilerin mahalle koordinatını veritabanına göre yeniden hesaplar">📍 Koordinatları Yenile</button>
  <button class="btn btn-ghost btn-sm" onclick="checkCoordIssues()" style="display:flex;align-items:center;gap:5px;" title="Mahalle koordinatı bulunamayan / tahmini konuma düşen öğrencileri listeler">🧭 Koordinat Kontrolü</button>
  <button class="btn btn-ghost btn-sm" onclick="exportRotalarPDF()" style="display:flex;align-items:center;gap:5px;">PDF'e Aktar</button>
  <button class="btn btn-sm" style="background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.3);color:#34d399;" onclick="openVeliBasvurulari()">👨‍👩‍👧 Veli Başvuruları</button>
@@ -6797,7 +6798,13 @@ function cascadeMahalle(p){
 }
 function getCoord(ilce,mah){
  const _M=_ensureMAHALLES();
- const d=_M[ilce]&&_M[ilce][mah];
+ let d=_M[ilce]&&_M[ilce][mah];
+ if(!d && _M[ilce] && mah){
+  // Tam eşleşme yoksa, normalize edilmiş (Türkçe karakter/boşluk farkı yok sayılarak) eşleştirme dene
+  const target = _normalizeText(mah);
+  const foundKey = Object.keys(_M[ilce]).find(k=>_normalizeText(k)===target);
+  if(foundKey) d = _M[ilce][foundKey];
+ }
  if(d)return{lat:d.lat,lng:d.lng};
  var _hS=(ilce||'')+'|'+(mah||''),_hV=0;
  for(var _i=0;_i<_hS.length;_i++){_hV=((_hV<<5)-_hV+_hS.charCodeAt(_i))|0;}
@@ -10656,7 +10663,12 @@ function checkCoordIssues(){
   const activeRoutes = routes.filter(r=>r.school===getSchoolIdx(_activeSchoolKey));
   activeRoutes.forEach(r=>{
    r.students.forEach(s=>{
-    const md = MAHALLES[s.ilce] && MAHALLES[s.ilce][s.mah];
+    const md = MAHALLES[s.ilce] && (MAHALLES[s.ilce][s.mah] || (function(){
+     if(!s.mah) return null;
+     const target=_normalizeText(s.mah);
+     const fk=Object.keys(MAHALLES[s.ilce]).find(k=>_normalizeText(k)===target);
+     return fk?MAHALLES[s.ilce][fk]:null;
+    })());
     let reason = null;
     if(!s.ilce || !s.mah || !md){
      reason = 'Mahalle veritabanında bulunamadı — rastgele/tahmini koordinat kullanılıyor';
@@ -10694,6 +10706,35 @@ function checkCoordIssues(){
  }catch(err){
   console.error('checkCoordIssues hata:', err);
   toast('Kontrol hatası: '+err.message,'error');
+ }
+}
+
+
+// TÜM ÖĞRENCİ KOORDİNATLARINI YENİDEN HESAPLA (mahalle veritabanına göre)
+function refreshAllCoords(){
+ try{
+  _ensureMAHALLES();
+  let changed = 0;
+  students.forEach(s=>{
+   if(!s.ilce || !s.mah) return;
+   const c = getCoord(s.ilce, s.mah);
+   if(c.lat!==s.lat || c.lng!==s.lng){
+    s.lat = c.lat; s.lng = c.lng; changed++;
+   }
+  });
+  // Rotalardaki kopyaları da güncelle
+  routes.forEach(r=>{
+   r.students.forEach(rs=>{
+    const orig = students.find(s=>s.id===rs.id);
+    if(orig){ rs.lat = orig.lat; rs.lng = orig.lng; }
+   });
+  });
+  renderRoutes(); renderSTable(); saveData();
+  if(typeof renderMapLayers==='function') renderMapLayers();
+  toast(`📍 ${changed} öğrencinin koordinatı güncellendi`);
+ }catch(err){
+  console.error('refreshAllCoords hata:', err);
+  toast('Koordinat yenileme hatası: '+err.message,'error');
  }
 }
 
