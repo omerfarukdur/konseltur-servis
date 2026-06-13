@@ -6949,8 +6949,13 @@ function renderSTable(){
  if(sSr)L=L.filter(s=>s.name.toLocaleLowerCase('tr-TR').includes(sSr)||(s.mah||'').toLocaleLowerCase('tr-TR').includes(sSr)||(s.ilce||'').toLocaleLowerCase('tr-TR').includes(sSr)||(s.sok||'').toLocaleLowerCase('tr-TR').includes(sSr));
  _setText('s-lbl', L.length+' öğrenci'+(sSr?' (arama sonucu)':''));
  if(!L.length){w.innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>Arama sonucu bulunamadı.</div>';return;}
- w.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Ad Soyad</th><th>İlçe</th><th>Mahalle</th><th>Cadde/Sokak</th><th>Sınıf</th><th>Telefon</th><th></th><th></th></tr></thead><tbody>`+
- L.map((s,i)=>`<tr>
+ w.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Ad Soyad</th><th>İlçe</th><th>Mahalle</th><th>Cadde/Sokak</th><th>Sınıf</th><th>Telefon</th><th>Servis</th><th></th><th></th><th></th></tr></thead><tbody>`+
+ L.map((s,i)=>{
+ const _rt = routes.find(r=>r.students.some(rs=>rs.id===s.id));
+ const _servisCell = _rt
+  ? `<div style="display:flex;align-items:center;gap:6px"><div style="width:8px;height:8px;border-radius:3px;background:${_rt.color};flex-shrink:0"></div><span style="font-size:12px;font-weight:600">${escHtml(_rt.label)}</span></div>`
+  : `<span style="font-size:11px;color:var(--red);font-weight:600">Atanmamış</span>`;
+ return `<tr>
  <td style="color:var(--muted2);font-size:11px">${i+1}</td>
  <td><div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:${SC[s.school]};flex-shrink:0"></div><span style="font-weight:600">${escHtml(s.name)}</span></div></td>
  
@@ -6959,9 +6964,12 @@ function renderSTable(){
  <td style="color:var(--muted2);font-size:12px">${escHtml(s.sok||'–')}</td>
  <td style="color:var(--muted2);font-size:12px">${escHtml(s.cls||'–')}</td>
  <td style="color:var(--muted2);font-size:12px">${escHtml(s.ph||'–')}</td>
+ <td>${_servisCell}</td>
+ <td><button class="btn btn-ghost btn-sm" onclick="startMoveStudent(${s.id}, ${_rt?_rt.id:'null'})" style="padding:4px 10px;font-size:13px;" title="Servisini Değiştir">🚌</button></td>
  <td><button class="btn btn-red btn-sm" onclick="removeStudent(${s.id})" style="padding:4px 10px;font-size:13px;" title="Sil">🗑</button></td>
  <td><button class="btn btn-ghost btn-sm" onclick="openStudentEdit(${s.id})" style="padding:4px 10px;font-size:13px;" title="Düzenle">✏️</button></td>
- </tr>`).join('')+`</tbody></table>`;
+ </tr>`;
+ }).join('')+`</tbody></table>`;
 
  } catch(e){ console.error("renderSTable hata:", e); }
 }
@@ -10607,7 +10615,7 @@ function startMoveStudent(studentId, fromRouteId){
  if(!modal) return;
  
  const _msn=document.getElementById('ms-student-name'); if(_msn) _msn.textContent = escHtml(s.name);
- document.getElementById('ms-from-route').textContent = routes.find(function(r){return r.id===fromRouteId;})?.label || '?';
+ document.getElementById('ms-from-route').textContent = (fromRouteId!==null ? (routes.find(function(r){return r.id===fromRouteId;})?.label || '?') : 'Servis Atanmamış');
  
  // Hedef rotaları listele
  var list = document.getElementById('ms-route-list');
@@ -10638,27 +10646,33 @@ function startMoveStudent(studentId, fromRouteId){
 }
 
 function executeMoveStudent(toRouteId){
- if(!_moveStudentId || _moveFromRoute===null) return;
+ if(!_moveStudentId) return;
  
- var fromRoute = routes.find(function(r){return r.id===_moveFromRoute;});
+ var fromRoute = (_moveFromRoute!==null) ? routes.find(function(r){return r.id===_moveFromRoute;}) : null;
  var toRoute = routes.find(function(r){return r.id===toRouteId;});
- if(!fromRoute || !toRoute) return;
+ if(!toRoute) return;
+ if(_moveFromRoute!==null && !fromRoute) return;
  
- // Öğrenciyi kaynak rotadan çıkar
- var student = fromRoute.students.find(function(s){return s.id===_moveStudentId;});
+ // Öğrenciyi bul (kaynak rotadan veya genel listeden)
+ var student = fromRoute
+  ? fromRoute.students.find(function(s){return s.id===_moveStudentId;})
+  : students.find(function(s){return s.id===_moveStudentId;});
  if(!student) return;
  
- fromRoute.students = fromRoute.students.filter(function(s){return s.id!==_moveStudentId;});
- toRoute.students.push(student);
+ if(fromRoute){
+  fromRoute.students = fromRoute.students.filter(function(s){return s.id!==_moveStudentId;});
+ }
+ toRoute.students.push({...student});
  
  // Her iki rotayı yeniden optimize et
- var sch1 = SCHOOLS[fromRoute.school];
+ // Her iki rotayı yeniden optimize et
  var sch2 = SCHOOLS[toRoute.school];
  var safetyP = parseInt(document.getElementById('r-safety').value)||10;
- var direction = fromRoute.direction||'pickup';
+ var direction = (fromRoute?fromRoute.direction:toRoute.direction)||'pickup';
  
  // Kaynak rota
- if(fromRoute.students.length > 0){
+ if(fromRoute && fromRoute.students.length > 0){
+ var sch1 = SCHOOLS[fromRoute.school];
  var ordered1 = tsp(fromRoute.students, sch1, null);
  fromRoute.students = ordered1;
  var dur1 = estimateRouteDuration(ordered1, sch1, null);
