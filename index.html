@@ -3193,12 +3193,25 @@ setInterval(updateLoginClock, 30000);
  <div><h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;">Optimize Edilmiş Rotalar</h2><div style="font-size:12px;color:var(--muted2);margin-top:2px;" id="r-lbl">–</div></div>
  <div style="display:flex;align-items:center;gap:8px;">
  <div id="r-stats" style="display:none;font-size:11px;color:var(--muted2);"></div>
+ <button class="btn btn-ghost btn-sm" onclick="checkCoordIssues()" style="display:flex;align-items:center;gap:5px;" title="Mahalle koordinatı bulunamayan / tahmini konuma düşen öğrencileri listeler">🧭 Koordinat Kontrolü</button>
  <button class="btn btn-ghost btn-sm" onclick="exportRotalarPDF()" style="display:flex;align-items:center;gap:5px;">PDF'e Aktar</button>
  <button class="btn btn-sm" style="background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.3);color:#34d399;" onclick="openVeliBasvurulari()">👨‍👩‍👧 Veli Başvuruları</button>
  </div>
  </div>
 
  <div id="r-wrap"><div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="m16 8 6 2v5h-6"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>Henüz rota oluşturulmadı.</div></div>
+ </div>
+</div>
+
+<!-- Koordinat Kontrol Raporu -->
+<div class="modal-bg" id="coord-report-modal" onclick="if(event.target===this){document.getElementById('coord-report-modal').classList.remove('open')}">
+ <div class="modal" style="max-width:680px;">
+ <h2>🧭 Koordinat Kontrolü</h2>
+ <div style="font-size:13px;color:var(--muted2);margin-bottom:14px;" id="coord-report-sub">–</div>
+ <div id="coord-report-body" style="max-height:420px;overflow-y:auto;"></div>
+ <div style="margin-top:18px;display:flex;gap:8px;">
+  <button class="btn btn-ghost" onclick="document.getElementById('coord-report-modal').classList.remove('open')">Kapat</button>
+ </div>
  </div>
 </div>
 
@@ -10624,6 +10637,66 @@ function injectDriverSheetButtons(){
 // 
 // ROTA DÜZENLEME — Manuel Öğrenci Ekle / Çıkar
 // 
+
+// KOORDİNAT KONTROL RAPORU
+function checkCoordIssues(){
+ try{
+  _ensureMAHALLES();
+  // Tekrarlanan / yer tutucu koordinatları bul (2+ mahalle aynı koordinatı paylaşıyorsa şüpheli)
+  const coordCount = {};
+  Object.keys(MAHALLES).forEach(ilce=>{
+   Object.keys(MAHALLES[ilce]).forEach(mah=>{
+    const d = MAHALLES[ilce][mah];
+    const key = d.lat+','+d.lng;
+    coordCount[key] = (coordCount[key]||0)+1;
+   });
+  });
+
+  const issues = [];
+  const activeRoutes = routes.filter(r=>r.school===getSchoolIdx(_activeSchoolKey));
+  activeRoutes.forEach(r=>{
+   r.students.forEach(s=>{
+    const md = MAHALLES[s.ilce] && MAHALLES[s.ilce][s.mah];
+    let reason = null;
+    if(!s.ilce || !s.mah || !md){
+     reason = 'Mahalle veritabanında bulunamadı — rastgele/tahmini koordinat kullanılıyor';
+    } else {
+     const key = md.lat+','+md.lng;
+     if(coordCount[key] > 1){
+      reason = 'Bu mahalle birden fazla mahalle ile AYNI koordinatı paylaşıyor (yer tutucu koordinat olabilir)';
+     }
+    }
+    if(reason){
+     issues.push({name:s.name, ilce:s.ilce||'–', mah:s.mah||'–', sok:s.sok||'–', route:r.label, reason});
+    }
+   });
+  });
+
+  const sub = document.getElementById('coord-report-sub');
+  const body = document.getElementById('coord-report-body');
+  if(!issues.length){
+   sub.textContent = 'Sorun bulunamadı — tüm öğrencilerin mahalle koordinatı veritabanında mevcut ve benzersiz.';
+   body.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted2)">🎉 Aktif okulda koordinat sorunu tespit edilmedi.</div>';
+  } else {
+   sub.textContent = `${issues.length} öğrenci, haritada hatalı/tahmini konumda görünebilir. Aşağıdaki listeyi kontrol edip gerçek adresleriyle karşılaştır.`;
+   body.innerHTML = '<table class="tbl"><thead><tr><th>Ad Soyad</th><th>Servis</th><th>İlçe</th><th>Mahalle</th><th>Sebep</th></tr></thead><tbody>'+
+    issues.map(it=>`<tr>
+     <td style="font-weight:600">${escHtml(it.name)}</td>
+     <td>${escHtml(it.route)}</td>
+     <td>${escHtml(it.ilce)}</td>
+     <td>${escHtml(it.mah)}</td>
+     <td style="font-size:11px;color:var(--amber)">${escHtml(it.reason)}</td>
+    </tr>`).join('')+
+    '</tbody></table>';
+  }
+
+  document.getElementById('coord-report-modal').classList.add('open');
+ }catch(err){
+  console.error('checkCoordIssues hata:', err);
+  toast('Kontrol hatası: '+err.message,'error');
+ }
+}
+
 let _remRouteId = null; // düzenlenen rota id
 let _remStudents = []; // mevcut çalışma kopyası
 let _remSchool = null;
