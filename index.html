@@ -3066,6 +3066,8 @@ setInterval(updateLoginClock, 30000);
  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
  <div><h2 style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;">Kayıtlı Öğrenciler</h2><div style="font-size:12px;color:var(--muted2);margin-top:2px;" id="s-lbl">–</div></div>
  <div style="display:flex;gap:6px;">
+ <button class="btn btn-ghost btn-sm" onclick="document.getElementById('servis-assign-input').click()">📋 Servis Excel'den Ata</button>
+ <input type="file" id="servis-assign-input" accept=".xlsx,.xls" style="display:none;" onchange="assignServiceFromExcel(event)">
  <button class="btn btn-ghost btn-sm" onclick="exportOgrenciExcel()">Excel Aktar</button>
  <button class="btn btn-sm" style="background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.3);color:#34d399;" onclick="openVeliBasvurulari()">👨‍👩‍👧 Veli Başvuruları</button>
  <button class="btn btn-red btn-sm" onclick="clearStudents()">Temizle</button>
@@ -10625,6 +10627,113 @@ function injectDriverSheetButtons(){
 let _remRouteId = null; // düzenlenen rota id
 let _remStudents = []; // mevcut çalışma kopyası
 let _remSchool = null;
+
+// EXCEL'DEN SERVİS NO'YA GÖRE TOPLU ATAMA
+function assignServiceFromExcel(event){
+ const file = event.target.files[0];
+ if(!file) return;
+ const reader = new FileReader();
+ reader.onload = function(e){
+  try{
+   const wb = XLSX.read(e.target.result, {type:'array'});
+   const ws = wb.Sheets[wb.SheetNames[0]];
+   const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+   if(!rows.length){ toast('Excel boş görünüyor','error'); return; }
+
+   const cols = Object.keys(rows[0]);
+   const nameCol = cols.find(c=>/ad[ıi]?\s*soyad|öğrenci.*ad/i.test(c)) || cols[1];
+   const servisCol = cols.find(c=>/servis/i.test(c));
+   if(!nameCol || !servisCol){ toast('Ad Soyad veya Servis No sütunu bulunamadı','error'); return; }
+
+   const _activeIdx = getSchoolIdx(_activeSchoolKey);
+   const norm = s => _normalizeText((s||'').toString()).replace(/\s+/g,' ').trim();
+
+   const studentMap = {};
+   students.filter(s=>s.school===_activeIdx).forEach(s=>{ studentMap[norm(s.name)] = s; });
+
+   const groups = {};
+   const unmatched = [];
+   rows.forEach(r=>{
+    const nm = (r[nameCol]||'').toString().trim();
+    if(!nm || nm==='**') return;
+    const no = (r[servisCol]||'').toString().trim();
+    if(!no) return;
+    const st = studentMap[norm(nm)];
+    if(!st){ unmatched.push(nm); return; }
+    (groups[no] = groups[no] || []).push(st);
+   });
+
+   if(!Object.keys(groups).length){ toast('Eşleşen öğrenci bulunamadı','error'); return; }
+
+   const safetyP = parseInt(document.getElementById('r-safety').value)||10;
+   const COLORS = ['#3b82f6','#f59e0b','#22c55e','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316','#14b8a6','#a3e635'];
+   const touchedRoutes = new Set();
+
+   Object.keys(groups).sort((a,b)=>(+a)-(+b)).forEach((no,gi)=>{
+    const label = no+' NOLU SERVİS';
+    let target = routes.find(r=>r.school===_activeIdx && r.label===label);
+    if(!target){
+     const maxId = routes.reduce((m,r)=>Math.max(m,r.id),-1);
+     target = {
+      id: maxId+1, label, color: COLORS[gi % COLORS.length], school: _activeIdx,
+      students: [], legs: [], km: 0, min: 0, mapsUrl: '', driverId: null,
+      overTime: false, direction: 'pickup', schedule: null, pickupStartMin: 0,
+      hardTimeLimit: HARD_TIME, removedForTime: []
+     };
+     routes.push(target);
+    }
+
+    groups[no].forEach(st=>{
+     routes.forEach(r=>{
+      if(r===target) return;
+      const before = r.students.length;
+      r.students = r.students.filter(rs=>rs.id!==st.id);
+      if(r.students.length!==before) touchedRoutes.add(r);
+     });
+     if(!target.students.some(rs=>rs.id===st.id)) target.students.push({...st});
+    });
+    touchedRoutes.add(target);
+   });
+
+   touchedRoutes.forEach(r=>{
+    if(r.students.length===0) return;
+    const sch = SCHOOLS[r.school];
+    const ordered = tsp(r.students, sch, null);
+    r.students = ordered;
+    const dur = estimateRouteDuration(ordered, sch, null);
+    const sched = getSchedule(sch, r.direction||'pickup', safetyP, dur);
+    const start = (r.direction||'pickup')==='pickup' ? sched.firstPickup : sched.departureTarget;
+    const drv = r.driverId ? drivers.find(d=>d.id===r.driverId)||null : null;
+    const m = calcRouteMetrics(drv, ordered, sch, start);
+    r.legs=m.legs; r.km=m.totalKm; r.min=m.totalMin;
+    r.schedule=sched; r.pickupStartMin=start;
+    r.overTime = m.totalMin>r.hardTimeLimit;
+    r.mapsUrl = buildGoogleMapsUrl(drv, ordered, sch);
+   });
+
+   routes = routes.filter(r=>r.students.length>0);
+
+   renderRoutes(); renderSTable(); updateDash(); saveData();
+   if(typeof renderMapLayers==='function') renderMapLayers();
+
+   const matchedCount = rows.filter(r=>{
+    const nm=(r[nameCol]||'').toString().trim();
+    return nm && nm!=='**' && studentMap[norm(nm)];
+   }).length;
+   let msg = `✅ ${matchedCount} öğrencinin servisi güncellendi`;
+   if(unmatched.length) msg += ` · ${unmatched.length} eşleşmedi: ${unmatched.slice(0,5).join(', ')}${unmatched.length>5?'...':''}`;
+   toast(msg, unmatched.length?'info':'success');
+
+  }catch(err){
+   console.error('assignServiceFromExcel hata:', err);
+   toast('Servis atama hatası: '+err.message,'error');
+  } finally {
+   event.target.value = '';
+  }
+ };
+ reader.readAsArrayBuffer(file);
+}
+
 
 
 // ÖĞRENCİ ROTA ARASI TAŞIMA 
