@@ -9114,78 +9114,78 @@ function handleFileSelect(input){if(input.files[0])parseExcelFile(input.files[0]
  var ilceList = ['Selçuklu','Meram','Karatay'];
  var normAddr = _normalizeText(addr);
  for(var i=0;i<ilceList.length;i++){
- var normIlce = _normalizeText(ilceList[i]);
- if(normAddr.indexOf(normIlce) !== -1){
- result.ilce = ilceList[i];
- var regex = new RegExp(ilceList[i], 'gi');
- addr = addr.replace(regex,'').trim();
- var parts = addr.split(/\s+/);
- addr = parts.filter(function(p){ return _normalizeText(p) !== normIlce; }).join(' ');
- break;
+  var normIlce = _normalizeText(ilceList[i]);
+  if(normAddr.indexOf(normIlce) !== -1){
+   result.ilce = ilceList[i];
+   addr = addr.replace(new RegExp(ilceList[i],'gi'),'').trim();
+   addr = addr.split(/\s+/).filter(function(p){return _normalizeText(p)!==normIlce;}).join(' ');
+   break;
+  }
  }
- }
-
- // Konya kelimesini de çıkar
  addr = addr.replace(/konya/gi,'').trim();
  addr = addr.replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
 
- // 2. Mahalleyi bul — veritabanından eşleştir
  if(!MAHALLES) _ensureMAHALLES();
- var bestMah = '';
- var bestMahScore = 0;
- var bestMahIlce = result.ilce;
-
+ var bestMah = '', bestScore = 0, bestIlce = result.ilce;
  var searchIlces = result.ilce ? [result.ilce] : ilceList;
  var normAddrClean = _normalizeText(addr);
 
+ // 2a. Mahalle adı doğrudan adres içinde geçiyor mu? (tam kelime eşleşmesi)
  for(var ii=0;ii<searchIlces.length;ii++){
- var ilce = searchIlces[ii];
- if(!MAHALLES || !MAHALLES[ilce]) continue;
- var mahList = Object.keys(MAHALLES[ilce]);
- for(var mi=0;mi<mahList.length;mi++){
- var mahName = mahList[mi];
- // "Mah." soneki olmadan normalize mahalle adı
- var mahClean = _normalizeText(mahName).replace(/\s*mah\.?\s*$/,'').trim();
- if(mahClean.length < 3) continue;
-
- // Adres içinde tam kelime olarak geçmeli (başka bir kelimenin parçası olmamalı)
- var mahIdx = normAddrClean.indexOf(mahClean);
- if(mahIdx === -1) continue;
- var charBefore = mahIdx > 0 ? normAddrClean[mahIdx-1] : ' ';
- var charAfter = mahIdx+mahClean.length < normAddrClean.length ? normAddrClean[mahIdx+mahClean.length] : ' ';
- if(/[a-z0-9]/.test(charBefore) || /[a-z0-9]/.test(charAfter)) continue;
-
- // Daha uzun eşleşme daha spesifik
- if(mahClean.length > bestMahScore){
- bestMahScore = mahClean.length;
- bestMah = mahName;
- if(!result.ilce) bestMahIlce = ilce;
- }
- }
+  var ilce = searchIlces[ii];
+  if(!MAHALLES[ilce]) continue;
+  var mahList = Object.keys(MAHALLES[ilce]);
+  for(var mi=0;mi<mahList.length;mi++){
+   var mahName = mahList[mi];
+   var mahClean = _normalizeText(mahName).replace(/\s*mah\.?\s*$/,'').trim();
+   if(mahClean.length < 3) continue;
+   var mahIdx = normAddrClean.indexOf(mahClean);
+   if(mahIdx === -1) continue;
+   var cb = mahIdx > 0 ? normAddrClean[mahIdx-1] : ' ';
+   var ca = mahIdx+mahClean.length < normAddrClean.length ? normAddrClean[mahIdx+mahClean.length] : ' ';
+   if(/[a-z0-9]/.test(cb) || /[a-z0-9]/.test(ca)) continue;
+   if(mahClean.length > bestScore){ bestScore=mahClean.length; bestMah=mahName; bestIlce=ilce; }
+  }
  }
 
- // Esnek fallback (boşluk/karakter farklılığı toleransı)
+ // 2b. Mahalle adı bulunamadıysa, sokak adından tahmin et
+ if(!bestMah){
+  for(var ii=0;ii<searchIlces.length;ii++){
+   var ilce = searchIlces[ii];
+   if(!MAHALLES[ilce]) continue;
+   var mahList = Object.keys(MAHALLES[ilce]);
+   for(var mi=0;mi<mahList.length;mi++){
+    var mahName = mahList[mi];
+    var sokList = MAHALLES[ilce][mahName].sokak || [];
+    for(var si=0;si<sokList.length;si++){
+     var sn = _normalizeText(sokList[si]).replace(/\s*(sk|cd|cad|sokak|cadde|bulvar|blv)\s*$/,'').trim();
+     if(sn.length < 5) continue;
+     var sidx = normAddrClean.indexOf(sn);
+     if(sidx === -1) continue;
+     var cb2 = sidx > 0 ? normAddrClean[sidx-1] : ' ';
+     var ca2 = sidx+sn.length < normAddrClean.length ? normAddrClean[sidx+sn.length] : ' ';
+     if(/[a-z0-9]/.test(cb2) || /[a-z0-9]/.test(ca2)) continue;
+     if(sn.length > bestScore){ bestScore=sn.length; bestMah=mahName; bestIlce=ilce; }
+    }
+   }
+  }
+ }
+
+ // 2c. Hâlâ bulunamadıysa esnek _bestMatchMahalle dene
  if(!bestMah && result.ilce && addr.trim()){
- var flexMah = _bestMatchMahalle(result.ilce, addr);
- if(flexMah && flexMah !== addr){
- bestMah = flexMah;
- bestMahIlce = result.ilce;
- }
+  var flexMah = _bestMatchMahalle(result.ilce, addr);
+  if(flexMah && flexMah !== addr){ bestMah=flexMah; bestIlce=result.ilce; }
  }
 
  if(bestMah){
- result.mah = bestMah;
- if(!result.ilce) result.ilce = bestMahIlce;
- var mahCleanForRemove = bestMah.replace(/\s*Mah\.?\s*$/i,'').trim();
- var mahRegex = new RegExp(mahCleanForRemove, 'gi');
- addr = addr.replace(mahRegex,'').trim();
- addr = addr.replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
+  result.mah = bestMah;
+  if(!result.ilce) result.ilce = bestIlce;
+  var mahRm = bestMah.replace(/\s*Mah\.?\s*$/i,'').trim();
+  addr = addr.replace(new RegExp(mahRm,'gi'),'').trim();
+  addr = addr.replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
  }
 
- // 3. Kalan metin = sokak/cadde
- result.sok = addr.trim();
- result.sok = result.sok.replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
-
+ result.sok = addr.trim().replace(/^[,\/\-\s]+|[,\/\-\s]+$/g,'').trim();
  return result;
 }
 
