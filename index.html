@@ -10661,10 +10661,6 @@ function startMoveStudent(studentId, fromRouteId){
  if(full) html += '<span style="font-size:10px;color:var(--red);">Dolu</span>';
  else html += '<span style="font-size:18px;">→</span>';
  html += '</div>';
- html += '<div style="font-size:11px;color:var(--muted2);">'+count+'/20 öğrenci · ~'+Math.round(dur)+' dk</div></div>';
- if(full) html += '<span style="font-size:10px;color:var(--red);">Dolu</span>';
- else html += '<span style="font-size:18px;">→</span>';
- html += '</div>';
  });
  if(!html) html = '<div style="color:var(--muted2);padding:20px;text-align:center;">Taşınabilecek başka rota yok</div>';
  list.innerHTML = html;
