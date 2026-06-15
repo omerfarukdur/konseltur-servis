@@ -2612,6 +2612,42 @@ setInterval(updateLoginClock, 30000);
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
 </button>
 
+<!-- HESAP MAKİNESİ BUTONU -->
+<button onclick="toggleCalcWidget()" id="calc-toggle-btn"
+  style="position:fixed;left:20px;bottom:76px;z-index:499;width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(34,197,94,.08));border:1px solid rgba(34,197,94,.35);backdrop-filter:blur(12px);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.4);transition:all .2s;" title="Hesap Makinesi">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
+</button>
+<div id="calc-widget" style="position:fixed;left:78px;bottom:76px;z-index:500;pointer-events:none;background:rgba(8,12,24,.95);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:14px;width:220px;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;backdrop-filter:blur(20px);">
+  <div style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:#4ade80;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+    <span>🧮 Hesap Makinesi</span>
+    <button onclick="toggleCalcWidget()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:16px;padding:0;line-height:1;">×</button>
+  </div>
+  <input id="calc-display" readonly style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:#fff;text-align:right;box-sizing:border-box;margin-bottom:8px;" value="0">
+  <div id="calc-expr" style="font-size:10px;color:rgba(255,255,255,.3);text-align:right;min-height:14px;margin-bottom:8px;font-family:Outfit,sans-serif;"></div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">
+    <button class="calc-btn" onclick="calcInput('C')" style="grid-column:span 2;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25);color:#f87171;">C</button>
+    <button class="calc-btn" onclick="calcInput('back')" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.15);color:#f87171;">⌫</button>
+    <button class="calc-btn" onclick="calcInput('/')" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);color:#a5b4fc;">÷</button>
+    <button class="calc-btn" onclick="calcInput('7')">7</button>
+    <button class="calc-btn" onclick="calcInput('8')">8</button>
+    <button class="calc-btn" onclick="calcInput('9')">9</button>
+    <button class="calc-btn" onclick="calcInput('*')" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);color:#a5b4fc;">×</button>
+    <button class="calc-btn" onclick="calcInput('4')">4</button>
+    <button class="calc-btn" onclick="calcInput('5')">5</button>
+    <button class="calc-btn" onclick="calcInput('6')">6</button>
+    <button class="calc-btn" onclick="calcInput('-')" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);color:#a5b4fc;">−</button>
+    <button class="calc-btn" onclick="calcInput('1')">1</button>
+    <button class="calc-btn" onclick="calcInput('2')">2</button>
+    <button class="calc-btn" onclick="calcInput('3')">3</button>
+    <button class="calc-btn" onclick="calcInput('+')" style="background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.25);color:#a5b4fc;">+</button>
+    <button class="calc-btn" onclick="calcInput('negate')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);">±</button>
+    <button class="calc-btn" onclick="calcInput('0')">0</button>
+    <button class="calc-btn" onclick="calcInput('.')">.</button>
+    <button class="calc-btn" onclick="calcInput('=')" style="background:rgba(34,197,94,.2);border:1px solid rgba(34,197,94,.35);color:#4ade80;font-weight:800;">=</button>
+  </div>
+</div>
+<style>.calc-btn{padding:10px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font-family:Outfit,sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;}.calc-btn:hover{background:rgba(255,255,255,.13);}</style>
+
 <!-- KDV WİDGET -->
 <div id="kdv-widget" style="position:fixed;left:78px;bottom:74px;z-index:500;pointer-events:none;background:rgba(8,12,24,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.1);border-radius:20px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:none;overflow:hidden;">
   <div style="padding:16px 18px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;">
@@ -5591,6 +5627,30 @@ window._calDate = new Date();
 window._calSelected = null;
 window._alarmIntervalId = null;
 
+
+// HESAP MAKİNESİ
+var _calcExpr='', _calcResult='0', _calcJustEvaled=false;
+function toggleCalcWidget(){
+ var w=document.getElementById('calc-widget');
+ var b=document.getElementById('calc-toggle-btn');
+ if(!w) return;
+ var open=w.style.opacity==='1';
+ w.style.opacity=open?'0':'1';
+ w.style.visibility=open?'hidden':'visible';
+ w.style.pointerEvents=open?'none':'auto';
+}
+function calcInput(k){
+ var disp=document.getElementById('calc-display');
+ var expr=document.getElementById('calc-expr');
+ if(k==='C'){ _calcExpr=''; _calcResult='0'; _calcJustEvaled=false; }
+ else if(k==='back'){ if(_calcJustEvaled){_calcExpr='';_calcResult='0';_calcJustEvaled=false;} else { _calcExpr=_calcExpr.slice(0,-1)||''; _calcResult=_calcExpr||'0'; } }
+ else if(k==='='){ try{ var res=Function('"use strict";return ('+_calcExpr.replace(/,/g,'.')+')' )(); _calcResult=parseFloat(res.toFixed(10)).toString(); if(expr) expr.textContent=_calcExpr+'='; _calcExpr=_calcResult; _calcJustEvaled=true; }catch(e){ _calcResult='Hata'; } }
+ else if(k==='negate'){ if(_calcResult!=='0'&&_calcResult!=='Hata'){ _calcResult=_calcResult.startsWith('-')?_calcResult.slice(1):'-'+_calcResult; _calcExpr=_calcJustEvaled?_calcResult:_calcExpr; } }
+ else { if(_calcJustEvaled && /[0-9.]/.test(k)){_calcExpr='';_calcResult='0';} _calcJustEvaled=false; _calcExpr+=k; try{var v=Function('"use strict";return ('+_calcExpr.replace(/,/g,'.')+')')(); _calcResult=isNaN(v)?_calcExpr:parseFloat(v.toFixed(10)).toString();}catch(e){_calcResult=_calcExpr;} }
+ if(disp) disp.value=_calcResult;
+ if(!_calcJustEvaled && expr) expr.textContent=_calcExpr;
+}
+
 function toggleCalendar(){
   const w = document.getElementById('calendar-widget');
   if(!w) return;
@@ -6521,9 +6581,21 @@ function switchApp(app){
  document.getElementById('tabs-rota').style.display = app==='rota'?'flex':'none';
  document.getElementById('tabs-ucret').style.display = app==='ucret'?'flex':'none';
  document.getElementById('tabs-cari').style.display = app==='cari'?'flex':'none';
+ // Takvim ve tevkifat sadece anasayfada görünsün
+ _updateWidgetVisibility(app==='rota' ? 'dashboard' : app);
  if(app==='rota') goto('dashboard');
  else if(app==='ucret') gotoU('ucret-genel');
  else if(app==='cari') gotoC('cari-liste');
+}
+function _updateWidgetVisibility(page){
+ var onDash = (page==='dashboard');
+ var calBtn=document.getElementById('cal-toggle-btn');
+ var kdvBtn=document.getElementById('kdv-toggle-btn');
+ var calW=document.getElementById('cal-widget');
+ var kdvW=document.getElementById('kdv-widget');
+ if(calBtn) calBtn.style.display = onDash?'flex':'none';
+ if(kdvBtn) kdvBtn.style.display = onDash?'flex':'none';
+ if(!onDash){ if(calW) calW.style.pointerEvents='none', calW.style.opacity='0', calW.style.visibility='hidden'; if(kdvW) kdvW.style.pointerEvents='none', kdvW.style.opacity='0', kdvW.style.visibility='hidden'; }
 }
 
 const ALL_PAGES = ['dashboard','students','drivers','routes','gorev','map','ucret-genel','ucret-ogrenci','cari-liste','cari-detay'];
@@ -6659,6 +6731,7 @@ function _gotoNoHistory(p){
  if(target) target.classList.add('active');
  _updateRotaTabs(p);
  updateRPanel();
+ if(typeof _updateWidgetVisibility==='function') _updateWidgetVisibility(p);
  if(p==='map'){
  setTimeout(()=>{
  initMap();
@@ -8847,12 +8920,11 @@ function renderUcretGenel(){
    if(_uc) _uc.querySelector('.page-inner').appendChild(_sb);
  }
 
- const sc=el('u-school-cards');
- if(sc) sc.innerHTML=`<div style="background:var(--card);border:1px solid ${_ugCol}22;border-top:3px solid ${_ugCol};border-radius:var(--radius);padding:16px;display:inline-block;min-width:200px;">
- <div style="font-size:10px;color:var(--muted2);font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;">${_ugSch.short}</div>
- <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${_ugCol};">₺${totalAmount.toLocaleString('tr-TR')}</div>
- <div style="font-size:10px;color:var(--muted2);margin-top:4px;">${totalS} öğrenci</div>
- </div>`;
+ const sc=el('u-school-cards'); if(sc) sc.innerHTML='';
+
+
+
+
 
  const mb=el('u-month-bars');
  if(mb){
@@ -9796,8 +9868,10 @@ window.onload=()=>{
 <\/script>
 </body></html>`;
 
-  const w = window.open('','_blank');
-  if(w){ w.document.write(html); w.document.close(); }
+  var _pf2=document.getElementById('_print-frame');
+  if(!_pf2){_pf2=document.createElement('iframe');_pf2.id='_print-frame';_pf2.style.cssText='position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;';document.body.appendChild(_pf2);}
+  _pf2.onload=function(){try{_pf2.contentWindow.focus();_pf2.contentWindow.print();}catch(e){var w=window.open('','_blank');if(w){w.document.write(html);w.document.close();setTimeout(function(){w.print();},400);}}};
+  _pf2.srcdoc=html;
 }
 function exportOgrenciExcel(){
  if(!students.length){ toast('Öğrenci bulunamadı','error'); return; }
@@ -15307,12 +15381,13 @@ function dokumAl(){
   // CARİ HESAPLAR
   if(secCari || secKasa){
     const cariler = Object.values(_cariData||{});
-    const filtre = secKasa && !secCari ? ['kasa'] : (secCari && !secKasa ? ['personel','firma','taseron','diger','sofor'] : null);
+    const filtre = secKasa && !secCari ? ['kasa'] : (secCari && !secKasa ? ['personel','firma','taseron','diger','sofor','okul','basvuru'] : null);
 
     html += '<div class="bolum"><div class="bolum-baslik">💳 '+(secKasa&&!secCari?'Kasa Cari':secCari&&!secKasa?'Cari Hesaplar':'Cari Hesaplar & Kasa')+'</div>';
     html += '<table><tr><th>Kod</th><th>Hesap Adı</th><th>Tür</th><th>Alınan</th><th>Verilen</th><th>Bakiye</th></tr>';
     cariler.forEach(function(c){
-      if(filtre && !filtre.includes(c.tur)) return;
+      if(filtre && c.tur && !filtre.includes(c.tur)) return;
+      if(filtre && !c.tur && !filtre.includes('diger')) return;
       const calc = _cariCalcBakiye(c);
       const bak = calc.bakiye;
       const bakCls = bak>=0?'bakiye-pos':'bakiye-neg';
@@ -15360,11 +15435,11 @@ function dokumAl(){
   html += '<div class="footer">Konseltur Taşımacılık · Demiryolu Cad. No:48/c · Selçuklu, Konya · 0332 235 55 30</div>';
   html += '</body></html>';
 
-  // Yeni pencerede aç ve yazdır
-  const win = window.open('','_blank');
-  win.document.write(html);
-  win.document.close();
-  setTimeout(function(){ win.print(); }, 500);
+  // Yazdır (mobil uyumlu: iframe kullan)
+  var _pf = document.getElementById('_print-frame');
+  if(!_pf){ _pf = document.createElement('iframe'); _pf.id='_print-frame'; _pf.style.cssText='position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;'; document.body.appendChild(_pf); }
+  _pf.onload = function(){ try{ _pf.contentWindow.focus(); _pf.contentWindow.print(); }catch(e){ var w=window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(function(){w.print();},400); } };
+  _pf.srcdoc = html;
   closeDokumModal();
 }
 
@@ -15397,7 +15472,7 @@ function dokumExcel(){
 
   if(secCari||secKasa){
     const rows=[['Kod','Hesap Adı','Tür','Alınan','Verilen','Bakiye']];
-    const filtre = secKasa&&!secCari?['kasa']:secCari&&!secKasa?['personel','firma','taseron','diger','sofor']:null;
+    const filtre = secKasa&&!secCari?['kasa']:secCari&&!secKasa?['personel','firma','taseron','diger','sofor','okul','basvuru']:null;
     Object.values(_cariData||{}).forEach(function(c){
       if(filtre&&!filtre.includes(c.tur)) return;
       const calc=_cariCalcBakiye(c);
