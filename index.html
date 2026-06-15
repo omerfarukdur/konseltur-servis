@@ -6591,11 +6591,23 @@ function _updateWidgetVisibility(page){
  var onDash = (page==='dashboard');
  var calBtn=document.getElementById('cal-toggle-btn');
  var kdvBtn=document.getElementById('kdv-toggle-btn');
+ var calcBtn=document.getElementById('calc-toggle-btn');
  var calW=document.getElementById('cal-widget');
  var kdvW=document.getElementById('kdv-widget');
+ var calcW=document.getElementById('calc-widget');
  if(calBtn) calBtn.style.display = onDash?'flex':'none';
  if(kdvBtn) kdvBtn.style.display = onDash?'flex':'none';
- if(!onDash){ if(calW) calW.style.pointerEvents='none', calW.style.opacity='0', calW.style.visibility='hidden'; if(kdvW) kdvW.style.pointerEvents='none', kdvW.style.opacity='0', kdvW.style.visibility='hidden'; }
+ if(calcBtn) calcBtn.style.display = onDash?'flex':'none';
+ if(!onDash){
+  if(calW){ calW.style.pointerEvents='none'; calW.style.opacity='0'; calW.style.visibility='hidden'; }
+  if(kdvW){ kdvW.style.pointerEvents='none'; kdvW.style.opacity='0'; kdvW.style.visibility='hidden'; }
+  if(calcW){ calcW.style.pointerEvents='none'; calcW.style.opacity='0'; calcW.style.visibility='hidden'; }
+ } else {
+  // Dashboard'a dönünce butonları göster, widgetları kapalı ama erişilebilir yap
+  if(calW){ calW.style.pointerEvents=''; }
+  if(kdvW){ kdvW.style.pointerEvents=''; }
+  if(calcW){ calcW.style.pointerEvents=''; }
+ }
 }
 
 const ALL_PAGES = ['dashboard','students','drivers','routes','gorev','map','ucret-genel','ucret-ogrenci','cari-liste','cari-detay'];
@@ -14290,7 +14302,7 @@ function _showPdfOverlay(htmlContent) {
       Programa Dön
     </button>
     <span style="font-size:12px;color:rgba(255,255,255,.4);font-family:Outfit,sans-serif;">PDF Önizleme</span>
-    <button onclick="document.getElementById('pdf-iframe').contentWindow.print()" style="display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:10px;border:1px solid rgba(99,102,241,.4);background:rgba(99,102,241,.15);color:#a5b4fc;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">
+    <button onclick="(function(){var f=document.getElementById('pdf-iframe');try{f.contentWindow.focus();f.contentWindow.print();}catch(e){alert('Yazdırmak için tarayıcı menüsünden PDF kaydet seçeneğini kullanın.');}})()" style="display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:10px;border:1px solid rgba(99,102,241,.4);background:rgba(99,102,241,.15);color:#a5b4fc;font-size:13px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       Yazdır / PDF
     </button>`;
@@ -14304,11 +14316,16 @@ function _showPdfOverlay(htmlContent) {
   overlay.appendChild(iframe);
   document.body.appendChild(overlay);
 
-  // srcdoc ile yaz — contentDocument null sorununu önler (mobil dahil)
-  const blob = new Blob([htmlContent], {type:'text/html'});
-  const blobUrl = URL.createObjectURL(blob);
-  iframe.onload = function(){ URL.revokeObjectURL(blobUrl); };
-  iframe.src = blobUrl;
+  // srcdoc — blob URL yerine direkt yaz (mobil Safari/Chrome uyumlu)
+  try {
+    iframe.srcdoc = htmlContent;
+  } catch(e) {
+    // Fallback: blob URL
+    const blob = new Blob([htmlContent], {type:'text/html'});
+    const blobUrl = URL.createObjectURL(blob);
+    iframe.onload = function(){ URL.revokeObjectURL(blobUrl); };
+    iframe.src = blobUrl;
+  }
 }
 
 function openTrashModal() {
@@ -15435,12 +15452,9 @@ function dokumAl(){
   html += '<div class="footer">Konseltur Taşımacılık · Demiryolu Cad. No:48/c · Selçuklu, Konya · 0332 235 55 30</div>';
   html += '</body></html>';
 
-  // Yazdır (mobil uyumlu: iframe kullan)
-  var _pf = document.getElementById('_print-frame');
-  if(!_pf){ _pf = document.createElement('iframe'); _pf.id='_print-frame'; _pf.style.cssText='position:fixed;top:-9999px;left:-9999px;width:0;height:0;border:none;'; document.body.appendChild(_pf); }
-  _pf.onload = function(){ try{ _pf.contentWindow.focus(); _pf.contentWindow.print(); }catch(e){ var w=window.open('','_blank'); w.document.write(html); w.document.close(); setTimeout(function(){w.print();},400); } };
-  _pf.srcdoc = html;
   closeDokumModal();
+  // PDF önizleme overlay'de göster (hem masaüstü hem mobil uyumlu)
+  _showPdfOverlay(html);
 }
 
 function dokumExcel(){
