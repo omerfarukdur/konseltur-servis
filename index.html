@@ -6571,6 +6571,72 @@ function flashSaveDot(){
 // 
 // UYGULAMA GEÇİŞİ
 // 
+// ============================================================
+// LOCATIONİQ GEOCODİNG API — Kendi API anahtarınızı buraya girin
+// Ücretsiz hesap: https://locationiq.com/register
+// ============================================================
+const LOCATIONIQ_API_KEY = 'pk.164d79136cc050adb7ff3f05ef87502f';
+
+// Konya Merkez İlçe Sınırı (Karatay, Meram, Selçuklu)
+const KONYA_SW = [37.75, 32.35]; // Güneybatı
+const KONYA_NE = [38.05, 32.65]; // Kuzeydoğu
+// LocationIQ viewbox: minLng,minLat,maxLng,maxLat formatında
+const LOCATIONIQ_VIEWBOX = '32.35,37.75,32.65,38.05';
+
+// ============================================================
+// GEOCODİNG — Adresden gerçek koordinat al (kapı numarası seviyesi)
+// Önce LocationIQ dener; API key yoksa veya hata olursa MAHALLES fallback
+// ============================================================
+const _geocodeCache = {};
+async function geocodeAddress(fullAddr, ilce){
+ const cacheKey = fullAddr.trim().toLowerCase();
+ if(_geocodeCache[cacheKey]) return _geocodeCache[cacheKey];
+
+ if(LOCATIONIQ_API_KEY && LOCATIONIQ_API_KEY !== 'BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN'){
+  try{
+   const query = encodeURIComponent(fullAddr + ', ' + (ilce||'') + ', Konya, Türkiye');
+   const url = 'https://us1.locationiq.com/v1/search?key='+LOCATIONIQ_API_KEY
+    +'&q='+query
+    +'&format=json&limit=1&countrycodes=tr'
+    +'&viewbox='+LOCATIONIQ_VIEWBOX+'&bounded=1';
+   const res = await fetch(url);
+   if(res.ok){
+    const data = await res.json();
+    if(data && data[0]){
+     const coord = {lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), source:'locationiq'};
+     // Konya sınırı içinde mi kontrol et
+     if(coord.lat>=KONYA_SW[0]&&coord.lat<=KONYA_NE[0]&&coord.lng>=KONYA_SW[1]&&coord.lng<=KONYA_NE[1]){
+      _geocodeCache[cacheKey] = coord;
+      return coord;
+     }
+    }
+   }
+  }catch(e){ console.warn('LocationIQ geocode hatası:', e); }
+ }
+ // Fallback: MAHALLES veritabanından mahalle merkez koordinatı
+ return null; // null dönerse mevcut getCoord() kullanılır
+}
+
+// Toplu geocoding — öğrenci importu veya "Koordinatları Yenile" sırasında
+async function geocodeBatch(studentList){
+ if(!LOCATIONIQ_API_KEY || LOCATIONIQ_API_KEY==='BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN') return 0;
+ let updated=0;
+ for(const s of studentList){
+  if(!s.name) continue;
+  const fullAddr = [s.sok, s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
+  const coord = await geocodeAddress(fullAddr, s.ilce);
+  if(coord && (Math.abs(coord.lat - s.lat)>0.0001 || Math.abs(coord.lng - s.lng)>0.0001)){
+   s.lat = coord.lat; s.lng = coord.lng;
+   // Rotalardaki kopyaları da güncelle
+   routes.forEach(r=>{ const rs=r.students.find(x=>x.id===s.id); if(rs){rs.lat=coord.lat;rs.lng=coord.lng;} });
+   updated++;
+  }
+  // LocationIQ rate limit: ücretsiz hesapta saniyede 1 istek
+  await new Promise(resolve=>setTimeout(resolve, 1100));
+ }
+ return updated;
+}
+
 let currentApp = 'rota';
 let sF='all', sSr='', dSr='', rF='all';
 let uFilter='all', uSearch='', _editingStudentId=null;
@@ -6914,12 +6980,26 @@ function addStudent(){
  if(!mah){_hilite('s-mahalle');return toast('Mahalle seçilmedi. Lütfen mahalle bilgisini girin.','error');}
  if(!sok){_hilite('s-sokak');return toast('Sokak bilgisi eksik. Lütfen sokak adını girin.','error');}
  const c=getCoord(ilce,mah);
- students.push({id:nSid++,name,school:+sch,ilce,mah,sok,no,cls,ph,...c});
+ const newSid = nSid++;
+ const newStudent = {id:newSid,name,school:+sch,ilce,mah,sok,no,cls,ph,...c};
+ students.push(newStudent);
  ['s-name','s-no','s-phone'].forEach(id=>document.getElementById(id).value='');
  ['s-ilce','s-class'].forEach(id=>document.getElementById(id).value='');
  document.getElementById('s-mahalle').innerHTML='<option value="">-- Önce İlçe --</option>';
  document.getElementById('s-sokak').innerHTML='<option value="">-- Önce Mahalle --</option>';
  updateAll(); saveData(); toast('✅ '+name+' eklendi');
+ // Arka planda gerçek koordinat al (LocationIQ varsa)
+ if(LOCATIONIQ_API_KEY && LOCATIONIQ_API_KEY !== 'BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN'){
+  const fullAddr = [sok, mah, ilce, 'Konya'].filter(Boolean).join(', ');
+  geocodeAddress(fullAddr, ilce).then(coord=>{
+   if(!coord) return;
+   const s = students.find(x=>x.id===newSid);
+   if(s){ s.lat=coord.lat; s.lng=coord.lng; }
+   routes.forEach(r=>{ const rs=r.students.find(x=>x.id===newSid); if(rs){rs.lat=coord.lat;rs.lng=coord.lng;} });
+   saveData();
+   if(typeof renderMapLayers==='function') renderMapLayers();
+  }).catch(()=>{});
+ }
 }
 
 const DN=['Ahmet Yılmaz','Zeynep Kaya','Burak Demir','Elif Şahin','Mert Arslan','Ceren Yıldız','Can Çelik','Sude Aydın','Emre Kurt','Nisa Öz','Arda Güneş','Hale Mor','Tuna Aslan','Büşra Doğan','Kerem Akın','Leyla Çetin','Okan Şahin','Pelin Güler','Barış Korkmaz','Selin Ay','Furkan Özdemir','Ayşe Kara','Umut Başkaya','Buse Yıldırım','Cem Arslan','Deniz Koç','Ferhat Öztürk','Gizem Polat','Hüseyin Çam','İpek Yurt'];
@@ -10246,24 +10326,22 @@ function initMap(){
  return;
  }
  const konya = [37.8713, 32.4846];
- // Konya il sınırları — harita bu bölgenin dışına çıkamaz
+ // Konya Merkez 3 ilçe sınırı: Karatay, Meram, Selçuklu
  const konyaBounds = L.latLngBounds(
- L.latLng(36.90, 31.50), // güneybatı
- L.latLng(38.80, 34.20) // kuzeydoğu
+  L.latLng(KONYA_SW[0], KONYA_SW[1]), // güneybatı [37.75, 32.35]
+  L.latLng(KONYA_NE[0], KONYA_NE[1])  // kuzeydoğu [38.05, 32.65]
  );
  _map = L.map('leaflet-map', {
- zoomControl: true,
- attributionControl: false,
- minZoom: 10,
- maxZoom: 18,
- maxBounds: konyaBounds,
- maxBoundsViscosity: 1.0
- }).setView(konya, 12);
+  zoomControl: true,
+  attributionControl: false,
+  minZoom: 11,
+  maxZoom: 18,
+  maxBounds: konyaBounds,
+  maxBoundsViscosity: 1.0
+ }).setView(konya, 13);
  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
- maxZoom: 18, attribution: '© OSM'
+  maxZoom: 18, attribution: '© OSM'
  }).addTo(_map);
- L.control.attribution({position:'bottomright',prefix:false}).addTo(_map);
- _map.attributionControl.setPrefix('OpenStreetMap contributors');
  renderMapLayers();
 }
 
@@ -10794,27 +10872,53 @@ function checkCoordIssues(){
 
 
 // TÜM ÖĞRENCİ KOORDİNATLARINI YENİDEN HESAPLA (mahalle veritabanına göre)
-function refreshAllCoords(){
+// LocationIQ API key varsa gerçek adres koordinatı alır, yoksa mahalle merkezi kullanır
+async function refreshAllCoords(){
  try{
   _ensureMAHALLES();
-  let changed = 0;
+  const btn = document.querySelector('[onclick="refreshAllCoords()"]');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Yenileniyor...'; }
+
+  const useAPI = LOCATIONIQ_API_KEY && LOCATIONIQ_API_KEY !== 'BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN';
+  let changed=0, apiUpdated=0;
+
+  if(useAPI){
+   toast('📍 LocationIQ ile koordinatlar yenileniyor... (bu biraz sürebilir)','info');
+   // Aktif okuldaki öğrencileri güncelle
+   const activeIdx = getSchoolIdx(_activeSchoolKey);
+   const batch = students.filter(s=>s.school===activeIdx);
+   apiUpdated = await geocodeBatch(batch);
+   changed = apiUpdated;
+  }
+
+  // Mahalle veritabanı fallback (API kullanılmayan veya koordinat bulunamayan öğrenciler)
   students.forEach(s=>{
    if(!s.ilce || !s.mah) return;
    const c = getCoord(s.ilce, s.mah);
-   if(c.lat!==s.lat || c.lng!==s.lng){
-    s.lat = c.lat; s.lng = c.lng; changed++;
+   // Sadece koordinat hiç set edilmemişse veya hash-fallback değeriyse güncelle
+   const isHashFallback = (Math.abs((s.lat||0) - 37.8713) < 0.025 && !useAPI);
+   if(!s.lat || !s.lng || isHashFallback){
+    if(c.lat!==s.lat || c.lng!==s.lng){ s.lat=c.lat; s.lng=c.lng; changed++; }
    }
   });
-  // Rotalardaki kopyaları da güncelle
+
+  // Rotalardaki kopyaları güncelle
   routes.forEach(r=>{
    r.students.forEach(rs=>{
     const orig = students.find(s=>s.id===rs.id);
-    if(orig){ rs.lat = orig.lat; rs.lng = orig.lng; }
+    if(orig){ rs.lat=orig.lat; rs.lng=orig.lng; }
    });
   });
+
   renderRoutes(); renderSTable(); saveData();
   if(typeof renderMapLayers==='function') renderMapLayers();
-  toast(`📍 ${changed} öğrencinin koordinatı güncellendi`);
+
+  let msg = `📍 ${changed} öğrencinin koordinatı güncellendi`;
+  if(useAPI) msg += ` (${apiUpdated} gerçek adres koordinatı, kalan mahalle merkezi)`;
+  else msg += ' (Mahalle merkezi · API key girerek kapı numarası hassasiyetinde koordinat alabilirsiniz)';
+  toast(msg);
+
+  if(btn){ btn.disabled=false; btn.textContent='📍 Koordinatları Yenile'; }
  }catch(err){
   console.error('refreshAllCoords hata:', err);
   toast('Koordinat yenileme hatası: '+err.message,'error');
