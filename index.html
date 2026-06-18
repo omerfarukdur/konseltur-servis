@@ -6659,7 +6659,7 @@ function flashSaveDot(){
 // LOCATIONİQ GEOCODİNG API — Kendi API anahtarınızı buraya girin
 // Ücretsiz hesap: https://locationiq.com/register
 // ============================================================
-const LOCATIONIQ_API_KEY = 'BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN';
+const LOCATIONIQ_API_KEY = 'pk.164d79136cc050adb7ff3f05ef87502f';
 
 // Konya Merkez İlçe Sınırı (Karatay, Meram, Selçuklu)
 const KONYA_SW = [37.65, 32.25]; // Güneybatı (genişletilmiş)
@@ -11019,22 +11019,18 @@ async function refreshAllCoords(){
   let changed=0, apiUpdated=0;
 
   if(useAPI){
-   toast('📍 LocationIQ ile koordinatlar yenileniyor... (bu biraz sürebilir)','info');
-   // Aktif okuldaki öğrencileri güncelle
-   const activeIdx = getSchoolIdx(_activeSchoolKey);
-   const batch = students.filter(s=>s.school===activeIdx);
-   apiUpdated = await geocodeBatch(batch);
+   toast('📍 LocationIQ ile TÜM öğrenciler yenileniyor... (bu biraz sürebilir)','info');
+   // Tüm öğrencileri güncelle (aktif okul filtresi yok)
+   apiUpdated = await geocodeBatch(students);
    changed = apiUpdated;
   }
 
-  // Mahalle veritabanı fallback (API kullanılmayan veya koordinat bulunamayan öğrenciler)
+  // Mahalle veritabanı fallback — koordinatı hâlâ mahalle merkezinde olanları güncelle
   students.forEach(s=>{
    if(!s.ilce || !s.mah) return;
    const c = getCoord(s.ilce, s.mah);
-   // Sadece koordinat hiç set edilmemişse veya hash-fallback değeriyse güncelle
-   const isHashFallback = (Math.abs((s.lat||0) - 37.8713) < 0.025 && !useAPI);
-   if(!s.lat || !s.lng || isHashFallback){
-    if(c.lat!==s.lat || c.lng!==s.lng){ s.lat=c.lat; s.lng=c.lng; changed++; }
+   if(!s.lat || !s.lng || s.lat===0 || s.lng===0){
+    s.lat=c.lat; s.lng=c.lng; changed++;
    }
   });
 
