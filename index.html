@@ -6662,10 +6662,10 @@ function flashSaveDot(){
 const LOCATIONIQ_API_KEY = 'BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN';
 
 // Konya Merkez İlçe Sınırı (Karatay, Meram, Selçuklu)
-const KONYA_SW = [37.75, 32.35]; // Güneybatı
-const KONYA_NE = [38.05, 32.65]; // Kuzeydoğu
+const KONYA_SW = [37.65, 32.25]; // Güneybatı (genişletilmiş)
+const KONYA_NE = [38.15, 32.75]; // Kuzeydoğu (genişletilmiş)
 // LocationIQ viewbox: minLng,minLat,maxLng,maxLat formatında
-const LOCATIONIQ_VIEWBOX = '32.35,37.75,32.65,38.05';
+const LOCATIONIQ_VIEWBOX = '32.25,37.65,32.75,38.15';
 
 // ============================================================
 // GEOCODİNG — Adresden gerçek koordinat al (kapı numarası seviyesi)
@@ -6678,7 +6678,7 @@ async function geocodeAddress(fullAddr, ilce){
 
  if(LOCATIONIQ_API_KEY && LOCATIONIQ_API_KEY !== 'BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN'){
   try{
-   const query = encodeURIComponent(fullAddr + ', ' + (ilce||'') + ', Konya, Türkiye');
+   const query = encodeURIComponent((ilce ? ilce+' İlçesi, ' : '') + fullAddr + ', Konya, Türkiye');
    const url = 'https://us1.locationiq.com/v1/search?key='+LOCATIONIQ_API_KEY
     +'&q='+query
     +'&format=json&limit=1&countrycodes=tr'
@@ -9610,17 +9610,48 @@ function showExcelPreview(skip){
 function importExcel(){
  if(!_excelRows.length){toast('⚠️ Yüklenecek öğrenci bulunamadı. Excel sütun adlarını kontrol edin.','error');return;}
  try{
- var count = _excelRows.length;
- for(var i=0; i<_excelRows.length; i++){
- var r = _excelRows[i];
- students.push({id:nSid++, name:r.name, school:r.school, ilce:r.ilce, mah:r.mah, sok:r.sok||'', no:r.no||'–', cls:r.cls||'', ph:r.ph||'', lat:r.lat, lng:r.lng});
- }
- _excelRows = [];
- updateAll(); saveData(); closeExcelModal();
- toast('✅ ' + count + ' öğrenci yüklendi');
+  var count = _excelRows.length;
+  var needsGeocode = [];
+  for(var i=0; i<_excelRows.length; i++){
+   var r = _excelRows[i];
+   var lat = r.lat && !isNaN(parseFloat(r.lat)) ? parseFloat(r.lat) : null;
+   var lng = r.lng && !isNaN(parseFloat(r.lng)) ? parseFloat(r.lng) : null;
+   // lat/lng yoksa mahalle merkezini fallback olarak kullan
+   if(!lat || !lng){
+    var fb = getCoord(r.ilce||'', r.mah||'');
+    lat = fb.lat; lng = fb.lng;
+    needsGeocode.push(nSid); // bu öğrenci için geocoding kuyruğa alınacak
+   }
+   students.push({id:nSid++, name:r.name, school:r.school, ilce:r.ilce, mah:r.mah, sok:r.sok||'', no:r.no||'–', cls:r.cls||'', ph:r.ph||'', lat:lat, lng:lng});
+  }
+  _excelRows = [];
+  updateAll(); saveData(); closeExcelModal();
+  toast('✅ ' + count + ' öğrenci yüklendi' + (needsGeocode.length ? ' · '+needsGeocode.length+' öğrenci için koordinat aranıyor...' : ''));
+
+  // Koordinatı olmayan öğrenciler için arka planda geocoding
+  if(needsGeocode.length && LOCATIONIQ_API_KEY && LOCATIONIQ_API_KEY!=='BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN'){
+   (async()=>{
+    let updated=0;
+    for(const sid of needsGeocode){
+     const s = students.find(x=>x.id===sid);
+     if(!s) continue;
+     const fullAddr = [s.sok, s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
+     try{
+      const coord = await geocodeAddress(fullAddr, s.ilce);
+      if(coord){
+       s.lat=coord.lat; s.lng=coord.lng;
+       routes.forEach(r=>{ const rs=r.students.find(x=>x.id===sid); if(rs){rs.lat=coord.lat;rs.lng=coord.lng;} });
+       updated++;
+      }
+     }catch(e){}
+     await new Promise(res=>setTimeout(res,1100)); // rate limit
+    }
+    if(updated){ saveData(); if(typeof renderMapLayers==='function') renderMapLayers(); toast('📍 '+updated+' öğrencinin koordinatı güncellendi'); }
+   })();
+  }
  }catch(err){
- toast('❌ Yükleme hatası: ' + err.message, 'error');
- console.error('importExcel hata:', err);
+  toast('❌ Yükleme hatası: ' + err.message, 'error');
+  console.error('importExcel hata:', err);
  }
 }
 
@@ -9667,7 +9698,7 @@ function openStudentEdit(id){
  document.getElementById('student-edit-modal').classList.add('open');
 }
 
-function saveStudentEdit(){
+async function saveStudentEdit(){
  const s = students.find(x=>x.id===_editStudentId);
  if(!s) return;
  const name = document.getElementById('se-name').value.trim();
@@ -9677,24 +9708,45 @@ function saveStudentEdit(){
  s.ph = document.getElementById('se-ph').value.trim();
  const newIlce = document.getElementById('se-ilce').value.trim();
  const newMah = document.getElementById('se-mah').value.trim();
- // Adres degistiyse koordinatlari yeniden hesapla (FIX #4)
- if((newIlce && newIlce !== s.ilce) || (newMah && newMah !== s.mah)){
- const newCoord = getCoord(newIlce || s.ilce, newMah || s.mah);
- s.lat = newCoord.lat;
- s.lng = newCoord.lng;
- }
+ const newSok = document.getElementById('se-sok').value.trim();
+ const newNo = document.getElementById('se-no').value.trim();
+
+ const adresDegistu = (newIlce && newIlce!==s.ilce) || (newMah && newMah!==s.mah) || (newSok && newSok!==s.sok);
+
  s.ilce = newIlce || s.ilce;
- s.mah = newMah || s.mah;
- s.sok = document.getElementById('se-sok').value.trim();
- s.no = document.getElementById('se-no').value.trim();
- // Rotalardaki öğrenci referansını da güncelle
+ s.mah  = newMah  || s.mah;
+ s.sok  = newSok;
+ s.no   = newNo;
+
+ // Rotalardaki öğrenci referansını güncelle
  routes.forEach(r=>{
- const rs = r.students.find(x=>x.id===s.id);
- if(rs){ rs.name=s.name; rs.ph=s.ph; rs.cls=s.cls; rs.sok=s.sok; rs.no=s.no; }
+  const rs = r.students.find(x=>x.id===s.id);
+  if(rs){ rs.name=s.name; rs.ph=s.ph; rs.cls=s.cls; rs.sok=s.sok; rs.no=s.no; rs.ilce=s.ilce; rs.mah=s.mah; }
  });
+
  document.getElementById('student-edit-modal').classList.remove('open');
  renderSTable(); updateDash(); saveData();
  toast('✅ Öğrenci güncellendi');
+
+ // Adres değiştiyse arka planda gerçek koordinat al (getCoord kullanma)
+ if(adresDegistu){
+  const fullAddr = [s.sok, s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
+  // Önce mahalle merkezine ayarla (anlık gösterim için)
+  const fallback = getCoord(s.ilce, s.mah);
+  s.lat = fallback.lat; s.lng = fallback.lng;
+  routes.forEach(r=>{ const rs=r.students.find(x=>x.id===s.id); if(rs){rs.lat=s.lat;rs.lng=s.lng;} });
+  if(typeof renderMapLayers==='function') renderMapLayers();
+  saveData();
+  // Sonra LocationIQ ile gerçek koordinat al (varsa)
+  geocodeAddress(fullAddr, s.ilce).then(coord=>{
+   if(!coord) return;
+   s.lat=coord.lat; s.lng=coord.lng;
+   routes.forEach(r=>{ const rs=r.students.find(x=>x.id===s.id); if(rs){rs.lat=coord.lat;rs.lng=coord.lng;} });
+   saveData();
+   if(typeof renderMapLayers==='function') renderMapLayers();
+   toast('📍 Koordinat güncellendi: '+s.ilce+' / '+s.mah);
+  }).catch(()=>{});
+ }
 }
 
 function openDriverEdit(id){
@@ -10412,8 +10464,8 @@ function initMap(){
  const konya = [37.8713, 32.4846];
  // Konya Merkez 3 ilçe sınırı: Karatay, Meram, Selçuklu
  const konyaBounds = L.latLngBounds(
-  L.latLng(KONYA_SW[0], KONYA_SW[1]), // güneybatı [37.75, 32.35]
-  L.latLng(KONYA_NE[0], KONYA_NE[1])  // kuzeydoğu [38.05, 32.65]
+  L.latLng(KONYA_SW[0], KONYA_SW[1]), // güneybatı [37.65, 32.25]
+  L.latLng(KONYA_NE[0], KONYA_NE[1])  // kuzeydoğu [38.15, 32.75]
  );
  _map = L.map('leaflet-map', {
   zoomControl: true,
@@ -10421,7 +10473,7 @@ function initMap(){
   minZoom: 11,
   maxZoom: 18,
   maxBounds: konyaBounds,
-  maxBoundsViscosity: 1.0
+  maxBoundsViscosity: 0.5  // Esnek sınır — uç mahalleler için
  }).setView(konya, 13);
  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 18, attribution: '© OSM'
