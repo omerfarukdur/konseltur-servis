@@ -11165,15 +11165,21 @@ async function refreshAllCoords(){
   renderRoutes(); renderSTable(); saveData();
   if(typeof renderMapLayers==='function') renderMapLayers();
 
-  let msg = `📍 ${changed} öğrencinin koordinatı güncellendi`;
+  let msg = '';
   if(useAPI){
    const tamAdres = apiOk - apiPartial;
-   msg += ` — ${tamAdres} tam adres bulundu`;
-   if(apiPartial) msg += `, ${apiPartial} sadece mahalle hassasiyetinde bulundu`;
-   if(apiFailed) msg += `, ${apiFailed} adres hiç bulunamadı (mahalle merkezine ayarlandı)`;
+   const toplamTarandi = apiOk + apiFailed;
+   msg = `📍 ${toplamTarandi} öğrenci tarandı: ${tamAdres} tam adres bulundu`;
+   if(apiPartial) msg += `, ${apiPartial} sadece mahalle hassasiyetinde`;
+   if(apiFailed) msg += `, ${apiFailed} hiç bulunamadı (mahalle merkezine ayarlandı)`;
+   msg += `. (${changed} öğrencinin konumu bu seferde değişti, geri kalanı zaten doğruydu)`;
+  } else {
+   msg = `📍 ${changed} öğrencinin koordinatı güncellendi (Mahalle merkezi · API key girerek kapı numarası hassasiyetinde koordinat alabilirsiniz)`;
   }
-  else msg += ' (Mahalle merkezi · API key girerek kapı numarası hassasiyetinde koordinat alabilirsiniz)';
   toast(msg);
+  // Uzun rapor mesajı için ekstra süre tanı (varsayılan 3.5sn yerine 8sn)
+  if(_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>{ const e=document.getElementById('toast'); if(e) e.classList.remove('show'); _toastTimer=null; },8000);
 
   if(btn){ btn.disabled=false; btn.textContent='📍 Koordinatları Yenile'; }
  }catch(err){
