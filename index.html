@@ -4112,12 +4112,28 @@ setInterval(updateLoginClock, 30000);
 
 <!-- Öğrenci Düzenleme Modal -->
 <div class="modal-bg" id="student-edit-modal" onclick="if(event.target===this){document.getElementById('student-edit-modal').classList.remove('open')}">
- <div class="modal" style="width:520px;max-width:96vw;">
+ <div class="modal" style="width:560px;max-width:96vw;max-height:88vh;overflow-y:auto;">
  <h2>Öğrenci Düzenle</h2>
  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;">
  <div class="field" style="grid-column:1/-1"><label>Ad Soyad</label><input type="text" id="se-name" maxlength="80" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  <div class="field"><label>Sınıf</label><input type="text" id="se-cls" maxlength="30" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Cinsiyet</label>
+  <select id="se-cinsiyet" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;">
+   <option value="">-- Seçiniz --</option>
+   <option value="Kız">Kız</option>
+   <option value="Erkek">Erkek</option>
+  </select>
+ </div>
  <div class="field"><label>Telefon</label><input type="text" id="se-ph" maxlength="20" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Servis No</label><input type="text" id="se-servisno" maxlength="10" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+
+ <div style="grid-column:1/-1;border-top:1px solid var(--border);margin-top:6px;padding-top:10px;font-size:11px;color:var(--muted2);font-weight:700;letter-spacing:.5px;text-transform:uppercase;">Veli Bilgileri</div>
+ <div class="field"><label>Baba Adı Soyadı</label><input type="text" id="se-babaadi" maxlength="60" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Baba Tel</label><input type="text" id="se-babatel" maxlength="20" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Anne Adı Soyadı</label><input type="text" id="se-anneadi" maxlength="60" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+ <div class="field"><label>Anne Tel</label><input type="text" id="se-annetel" maxlength="20" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
+
+ <div style="grid-column:1/-1;border-top:1px solid var(--border);margin-top:6px;padding-top:10px;font-size:11px;color:var(--muted2);font-weight:700;letter-spacing:.5px;text-transform:uppercase;">Adres</div>
  <div class="field"><label>İlçe</label><input type="text" id="se-ilce" maxlength="50" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  <div class="field"><label>Mahalle</label><input type="text" id="se-mah" maxlength="80" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
  <div class="field"><label>Sokak</label><input type="text" id="se-sok" maxlength="100" style="width:100%;padding:9px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;"></div>
@@ -9526,7 +9542,7 @@ function parseExcelFile(file){
  if(!rows.length){toast('⚠️ Dosya boş','error');return;}
  const norm=k=>(k||'').toString().trim().toLowerCase()
  .replace(/[İI]/g,'i').replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ş/g,'s').replace(/ç/g,'c').replace(/ö/g,'o').replace(/ü/g,'u').replace(/\s+/g,' ');
- const COL={'ad soyad':['ad soyad','ad','isim','ogrenci adi','adi soyadi','ad-soyad','ogrenci','adsoyad','name'],'okul':['okul','school','kurum'],'sinif':['sinif','class','sinifi','snf'],'telefon':['telefon','tel','phone','gsm','cep','veli tel','veli telefon','veli telefonu'],'ilce':['ilce','district','ilcesi'],'mahalle':['mahalle','mah','mahallesi'],'sokak':['sokak','cadde','street','sok','cad','yol'],'kapino':['kapi no','kapino','kapi','no','bina no','disKapi','dis kapi','dis kapi no'],'adres':['adres','address','tam adres','full address','adress']};
+ const COL={'ad soyad':['ad soyad','ad','isim','ogrenci adi','adi soyadi','ad-soyad','ogrenci','adsoyad','name','ogrenci adi soyadi'],'okul':['okul','school','kurum'],'sinif':['sinif','class','sinifi','snf'],'telefon':['telefon','tel','phone','gsm','cep','veli tel','veli telefon','veli telefonu'],'babaadi':['baba adi soyadi','baba adi','baba'],'babatel':['baba tel','baba telefon','babatel'],'anneadi':['anne adi soyadi','anne adi','anne'],'annetel':['anne tel','anne telefon','annetel'],'cinsiyet':['ogrenci cinsiyet','cinsiyet','gender'],'servisno':['servis no','servisno','servis'],'ilce':['ilce','district','ilcesi'],'mahalle':['mahalle','mah','mahallesi'],'sokak':['sokak','cadde','street','sok','cad','yol'],'kapino':['kapi no','kapino','kapi','no','bina no','disKapi','dis kapi','dis kapi no'],'adres':['adres','address','tam adres','full address','adress','ev adresi']};
  const keys=Object.keys(rows[0]).map(k=>({orig:k,norm:norm(k)}));
  const col={};
  for(const [f,aliases] of Object.entries(COL)){
@@ -9583,13 +9599,21 @@ function parseExcelFile(file){
  var school = _activeSchoolIdx;
  var sok = sok_raw || (row[col['sokak']]||'').toString().trim();
  const cls=(row[col['sinif']]||'').toString().trim();
- const ph=(row[col['telefon']]||'').toString().trim();
+ const babaAdi=(row[col['babaadi']]||'').toString().trim();
+ const babaTel=(row[col['babatel']]||'').toString().trim();
+ const anneAdi=(row[col['anneadi']]||'').toString().trim();
+ const anneTel=(row[col['annetel']]||'').toString().trim();
+ const cinsiyet=(row[col['cinsiyet']]||'').toString().trim();
+ const servisNo=(row[col['servisno']]||'').toString().trim();
+ // Telefon: doğrudan "telefon" sütunu varsa onu kullan, yoksa baba tel öncelikli, o da yoksa anne tel
+ var ph=(row[col['telefon']]||'').toString().trim();
+ if(!ph) ph = babaTel || anneTel || '';
  // İlçe ve mahalle adını doğrula/düzelt
  const fixedIlce = _bestMatchIlce(ilce);
  const fixedMah = _bestMatchMahalle(fixedIlce, mah);
  const c=getCoord(fixedIlce, fixedMah);
  var _wasFixed = (fixedIlce !== ilce || fixedMah !== mah);
- _excelRows.push({name,school,ilce:fixedIlce,mah:fixedMah,sok,no:kapiNo||'–',cls,ph,...c,_origIlce:_wasFixed?ilce:null,_origMah:_wasFixed?mah:null});
+ _excelRows.push({name,school,ilce:fixedIlce,mah:fixedMah,sok,no:kapiNo||'–',cls,ph,babaAdi,babaTel,anneAdi,anneTel,cinsiyet,servisNo,...c,_origIlce:_wasFixed?ilce:null,_origMah:_wasFixed?mah:null});
  }
  showExcelPreview(skip);
  }catch(err){toast('❌ Dosya okunamadı: '+err.message,'error');}
@@ -9631,7 +9655,7 @@ function importExcel(){
     lat = fb.lat; lng = fb.lng;
     needsGeocode.push(nSid); // bu öğrenci için geocoding kuyruğa alınacak
    }
-   students.push({id:nSid++, name:r.name, school:r.school, ilce:r.ilce, mah:r.mah, sok:r.sok||'', no:r.no||'–', cls:r.cls||'', ph:r.ph||'', lat:lat, lng:lng});
+   students.push({id:nSid++, name:r.name, school:r.school, ilce:r.ilce, mah:r.mah, sok:r.sok||'', no:r.no||'–', cls:r.cls||'', ph:r.ph||'', babaAdi:r.babaAdi||'', babaTel:r.babaTel||'', anneAdi:r.anneAdi||'', anneTel:r.anneTel||'', cinsiyet:r.cinsiyet||'', servisNo:r.servisNo||'', lat:lat, lng:lng});
   }
   _excelRows = [];
   updateAll(); saveData(); closeExcelModal();
@@ -9666,24 +9690,15 @@ function importExcel(){
 
 function downloadTemplate(){
  var wb=XLSX.utils.book_new();
- // Sayfa 1: Ayrı sütunlar
+ // Tek sayfa: istenen tam sütun yapısı
  var ws1=XLSX.utils.aoa_to_sheet([
- ['Ad Soyad','Sinif','Telefon','Ilce','Mahalle','Sokak','Kapi No'],
- ['Ayşe Yılmaz','10. Sınıf','0532 111 22 33','Selçuklu','Bosna Hersek Mah.','Osmanlı Cad.','14'],
- ['Mehmet Kaya','7. Sınıf','0533 222 33 44','Meram','Durunday Mah.','Gençlik Cad.','7/A'],
- ['Zeynep Çelik','9. Sınıf','','Karatay','Şemsitebrizi Mah.','Mevlana Cad.','22'],
+ ['öğrenci adı soyadı','sınıf','baba adı soyadı','baba tel','anne adı soyadı','anne tel','SERVİS NO','ev adresi','öğrenci cinsiyet'],
+ ['Ayşe Yılmaz','10. Sınıf','Mehmet Yılmaz','0532 111 22 33','Fatma Yılmaz','0533 444 55 66','1','Bosna Hersek Mah. Osmanlı Cad. No:14 Selçuklu','Kız'],
+ ['Mehmet Kaya','7. Sınıf','Ali Kaya','0533 222 33 44','Ayşe Kaya','','2','Durunday Mah. Gençlik Cad. No:7/A Meram','Erkek'],
+ ['Zeynep Çelik','9. Sınıf','Hasan Çelik','','Elif Çelik','0535 666 77 88','1','Şemsitebrizi Mah. Mevlana Cad. No:22 Karatay','Kız'],
  ]);
- ws1['!cols']=[{wch:22},{wch:12},{wch:18},{wch:14},{wch:25},{wch:22},{wch:10}];
- XLSX.utils.book_append_sheet(wb,ws1,'Ayrı Sütunlar');
- // Sayfa 2: Tek adres sütunu (kapı no adres içine yazılabilir)
- var ws2=XLSX.utils.aoa_to_sheet([
- ['Ad Soyad','Sinif','Telefon','Adres'],
- ['Ayşe Yılmaz','10. Sınıf','0532 111 22 33','Bosna Hersek Mah. Osmanlı Cad. No:14 Selçuklu'],
- ['Mehmet Kaya','7. Sınıf','0533 222 33 44','Durunday Mah. Gençlik Cad. No:7/A Meram'],
- ['Zeynep Çelik','9. Sınıf','','Şemsitebrizi Mah. Mevlana Cad. No:22 Karatay'],
- ]);
- ws2['!cols']=[{wch:22},{wch:12},{wch:18},{wch:55}];
- XLSX.utils.book_append_sheet(wb,ws2,'Tek Adres');
+ ws1['!cols']=[{wch:24},{wch:12},{wch:22},{wch:16},{wch:22},{wch:16},{wch:10},{wch:55},{wch:12}];
+ XLSX.utils.book_append_sheet(wb,ws1,'Öğrenci Listesi');
  XLSX.writeFile(wb,'konseltur_sablonu.xlsx');
 }
 
@@ -9700,6 +9715,12 @@ function openStudentEdit(id){
  document.getElementById('se-name').value = s.name || '';
  document.getElementById('se-cls').value = s.cls || '';
  document.getElementById('se-ph').value = s.ph || '';
+ document.getElementById('se-cinsiyet').value = s.cinsiyet || '';
+ document.getElementById('se-servisno').value = s.servisNo || '';
+ document.getElementById('se-babaadi').value = s.babaAdi || '';
+ document.getElementById('se-babatel').value = s.babaTel || '';
+ document.getElementById('se-anneadi').value = s.anneAdi || '';
+ document.getElementById('se-annetel').value = s.anneTel || '';
  document.getElementById('se-ilce').value = s.ilce || '';
  document.getElementById('se-mah').value = s.mah || '';
  document.getElementById('se-sok').value = s.sok || '';
@@ -9715,6 +9736,12 @@ async function saveStudentEdit(){
  s.name = name;
  s.cls = document.getElementById('se-cls').value.trim();
  s.ph = document.getElementById('se-ph').value.trim();
+ s.cinsiyet = document.getElementById('se-cinsiyet').value.trim();
+ s.servisNo = document.getElementById('se-servisno').value.trim();
+ s.babaAdi = document.getElementById('se-babaadi').value.trim();
+ s.babaTel = document.getElementById('se-babatel').value.trim();
+ s.anneAdi = document.getElementById('se-anneadi').value.trim();
+ s.anneTel = document.getElementById('se-annetel').value.trim();
  const newIlce = document.getElementById('se-ilce').value.trim();
  const newMah = document.getElementById('se-mah').value.trim();
  const newSok = document.getElementById('se-sok').value.trim();
@@ -10569,7 +10596,7 @@ function renderMapLayers(){
  const pos = spreadCoords[idx];
  const icon = L.divIcon({
  className:'',
- html:`<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#111;font-family:Syne,sans-serif;">${idx+1}</div>`,
+ html:`<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#111;font-family:Syne,sans-serif;cursor:grab;">${idx+1}</div>`,
  iconSize:[28,28], iconAnchor:[14,14]
  });
  const pop = `<div><span class="lf-route-badge" style="background:${color}22;color:${color};">${r.label} · Durak ${idx+1}</span><br>
@@ -10577,9 +10604,20 @@ function renderMapLayers(){
  <span style="color:var(--muted2);">${escHtml(s.ilce)} / ${escHtml(s.mah)}</span><br>
  ${s.sok?`<span style="color:var(--muted2);">${escHtml(s.sok)}</span><br>`:''}
  ${s.cls?`<span style="color:var(--muted2);">${escHtml(s.cls)}</span><br>`:''}
- ${r.legs&&r.legs[idx+1]?`⏱ Alım: <strong>${r.legs[idx+1].pickupTime||'–'}</strong>`:''}
+ ${s.ph?`<span style="color:var(--muted2);">📞 ${escHtml(s.ph)}</span><br>`:''}
+ ${r.legs&&r.legs[idx+1]?`⏱ Alım: <strong>${r.legs[idx+1].pickupTime||'–'}</strong><br>`:''}
+ <span style="font-size:10px;color:var(--muted2);opacity:.7;">📍 Konumu düzeltmek için sürükleyin</span>
  </div>`;
- L.marker([pos.lat,pos.lng],{icon}).bindPopup(pop).addTo(studGroup);
+ const mk = L.marker([pos.lat,pos.lng],{icon, draggable:true, riseOnHover:true, riseOffset:1000}).bindPopup(pop).addTo(studGroup);
+ mk.on('dragend', function(ev){
+ const newPos = ev.target.getLatLng();
+ s.lat = newPos.lat; s.lng = newPos.lng;
+ const orig = students.find(x=>x.id===s.id);
+ if(orig){ orig.lat = newPos.lat; orig.lng = newPos.lng; }
+ saveData();
+ toast('📍 '+s.name+' konumu güncellendi');
+ ev.target.bindPopup(pop).openPopup();
+ });
  });
  });
  // Rotasız öğrenciler (gri)
@@ -10589,10 +10627,22 @@ function renderMapLayers(){
  if(shownStudents.has(s.id)) return;
  const icon = L.divIcon({
  className:'',
- html:`<div style="width:22px;height:22px;border-radius:50%;background:#6b7280;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:10px;"></div>`,
+ html:`<div style="width:22px;height:22px;border-radius:50%;background:#6b7280;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:grab;"></div>`,
  iconSize:[22,22],iconAnchor:[11,11]
  });
- L.marker([s.lat,s.lng],{icon}).bindPopup(`<strong>${escHtml(s.name)}</strong><br><span style="color:var(--red)">Servis yok</span>`).addTo(studGroup);
+ const popG = `<strong>${escHtml(s.name)}</strong><br><span style="color:var(--red)">Servis yok</span><br>
+ <span style="color:var(--muted2);">${escHtml(s.ilce||'')} / ${escHtml(s.mah||'')}</span><br>
+ ${s.ph?`<span style="color:var(--muted2);">📞 ${escHtml(s.ph)}</span><br>`:''}
+ <span style="font-size:10px;color:var(--muted2);opacity:.7;">📍 Konumu düzeltmek için sürükleyin</span>`;
+ const mkG = L.marker([s.lat,s.lng],{icon, draggable:true, riseOnHover:true, riseOffset:1000}).bindPopup(popG).addTo(studGroup);
+ mkG.on('dragend', function(ev){
+ const newPos = ev.target.getLatLng();
+ const orig = students.find(x=>x.id===s.id);
+ if(orig){ orig.lat = newPos.lat; orig.lng = newPos.lng; }
+ saveData();
+ toast('📍 '+s.name+' konumu güncellendi');
+ ev.target.bindPopup(popG).openPopup();
+ });
  });
  }
  _mapLayers.students = studGroup;
