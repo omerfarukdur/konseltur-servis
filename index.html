@@ -6707,7 +6707,7 @@ async function geocodeBatch(studentList){
  let updated=0;
  for(const s of studentList){
   if(!s.name) continue;
-  const fullAddr = [s.sok, s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
+  const fullAddr = [s.sok, (s.no && s.no!=='–' ? 'No:'+s.no : ''), s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
   const coord = await geocodeAddress(fullAddr, s.ilce);
   if(coord && (Math.abs(coord.lat - s.lat)>0.0001 || Math.abs(coord.lng - s.lng)>0.0001)){
    s.lat = coord.lat; s.lng = coord.lng;
@@ -7074,7 +7074,7 @@ function addStudent(){
  updateAll(); saveData(); toast('✅ '+name+' eklendi');
  // Arka planda gerçek koordinat al (LocationIQ varsa)
  if(LOCATIONIQ_API_KEY && LOCATIONIQ_API_KEY !== 'BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN'){
-  const fullAddr = [sok, mah, ilce, 'Konya'].filter(Boolean).join(', ');
+  const fullAddr = [sok, (no && no!=='–' ? 'No:'+no : ''), mah, ilce, 'Konya'].filter(Boolean).join(', ');
   geocodeAddress(fullAddr, ilce).then(coord=>{
    if(!coord) return;
    const s = students.find(x=>x.id===newSid);
@@ -9526,7 +9526,7 @@ function parseExcelFile(file){
  if(!rows.length){toast('⚠️ Dosya boş','error');return;}
  const norm=k=>(k||'').toString().trim().toLowerCase()
  .replace(/[İI]/g,'i').replace(/ı/g,'i').replace(/ğ/g,'g').replace(/ş/g,'s').replace(/ç/g,'c').replace(/ö/g,'o').replace(/ü/g,'u').replace(/\s+/g,' ');
- const COL={'ad soyad':['ad soyad','ad','isim','ogrenci adi','adi soyadi','ad-soyad','ogrenci','adsoyad','name'],'okul':['okul','school','kurum'],'sinif':['sinif','class','sinifi','snf'],'telefon':['telefon','tel','phone','gsm','cep','veli tel','veli telefon','veli telefonu'],'ilce':['ilce','district','ilcesi'],'mahalle':['mahalle','mah','mahallesi'],'sokak':['sokak','cadde','street','sok','cad','yol'],'adres':['adres','address','tam adres','full address','adress']};
+ const COL={'ad soyad':['ad soyad','ad','isim','ogrenci adi','adi soyadi','ad-soyad','ogrenci','adsoyad','name'],'okul':['okul','school','kurum'],'sinif':['sinif','class','sinifi','snf'],'telefon':['telefon','tel','phone','gsm','cep','veli tel','veli telefon','veli telefonu'],'ilce':['ilce','district','ilcesi'],'mahalle':['mahalle','mah','mahallesi'],'sokak':['sokak','cadde','street','sok','cad','yol'],'kapino':['kapi no','kapino','kapi','no','bina no','disKapi','dis kapi','dis kapi no'],'adres':['adres','address','tam adres','full address','adress']};
  const keys=Object.keys(rows[0]).map(k=>({orig:k,norm:norm(k)}));
  const col={};
  for(const [f,aliases] of Object.entries(COL)){
@@ -9546,6 +9546,7 @@ function parseExcelFile(file){
  var ilce=(row[col['ilce']]||'').toString().trim();
  var mah=(row[col['mahalle']]||'').toString().trim();
  var sok_raw=(row[col['sokak']]||'').toString().trim();
+ var kapiNo=(row[col['kapino']]||'').toString().trim();
  // Adres sütunu varsa ve İlçe/Mahalle boşsa → adresten ayır
  if(_hasAdresCol && (!ilce || !mah)){
  var fullAddr = (row[col['adres']]||'').toString().trim();
@@ -9556,6 +9557,14 @@ function parseExcelFile(file){
  if(!sok_raw && parsed.sok) sok_raw = parsed.sok;
  }
  }
+ // Kapı no sütunu boşsa, sokak metninden veya adresten "No:14", "No 7/A" gibi kalıpları çıkar
+ if(!kapiNo){
+ var noSource = (sok_raw + ' ' + (row[col['adres']]||'')).trim();
+ var noMatch = noSource.match(/\bno\s*[:.]?\s*(\d+[a-zçğıöşü]?(?:\/\d+)?)/i) || noSource.match(/\b(\d{1,4}[a-zçğıöşü]?)\s*\/\s*\d+\b/i);
+ if(noMatch) kapiNo = noMatch[1] || noMatch[0];
+ }
+ // Sokak metninden "No:14" gibi kapı no kalıbını temizle (tekrar etmesin)
+ if(sok_raw) sok_raw = sok_raw.replace(/\bno\s*[:.]?\s*\d+[a-zçğıöşü]?(?:\/\d+)?\b/gi,'').replace(/\s{2,}/g,' ').trim();
  // İlçe veya Mahalle sütunu yoksa ama Sokak sütununda tam adres olabilir
  if(!ilce || !mah){
  var combinedAddr = (ilce + ' ' + mah + ' ' + sok_raw).trim();
@@ -9580,7 +9589,7 @@ function parseExcelFile(file){
  const fixedMah = _bestMatchMahalle(fixedIlce, mah);
  const c=getCoord(fixedIlce, fixedMah);
  var _wasFixed = (fixedIlce !== ilce || fixedMah !== mah);
- _excelRows.push({name,school,ilce:fixedIlce,mah:fixedMah,sok,no:'–',cls,ph,...c,_origIlce:_wasFixed?ilce:null,_origMah:_wasFixed?mah:null});
+ _excelRows.push({name,school,ilce:fixedIlce,mah:fixedMah,sok,no:kapiNo||'–',cls,ph,...c,_origIlce:_wasFixed?ilce:null,_origMah:_wasFixed?mah:null});
  }
  showExcelPreview(skip);
  }catch(err){toast('❌ Dosya okunamadı: '+err.message,'error');}
@@ -9635,7 +9644,7 @@ function importExcel(){
     for(const sid of needsGeocode){
      const s = students.find(x=>x.id===sid);
      if(!s) continue;
-     const fullAddr = [s.sok, s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
+     const fullAddr = [s.sok, (s.no && s.no!=='–' ? 'No:'+s.no : ''), s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
      try{
       const coord = await geocodeAddress(fullAddr, s.ilce);
       if(coord){
@@ -9659,21 +9668,21 @@ function downloadTemplate(){
  var wb=XLSX.utils.book_new();
  // Sayfa 1: Ayrı sütunlar
  var ws1=XLSX.utils.aoa_to_sheet([
- ['Ad Soyad','Sinif','Telefon','Ilce','Mahalle','Sokak'],
- ['Ayşe Yılmaz','10. Sınıf','0532 111 22 33','Selçuklu','Bosna Hersek Mah.','Osmanlı Cad.'],
- ['Mehmet Kaya','7. Sınıf','0533 222 33 44','Meram','Durunday Mah.','Gençlik Cad.'],
- ['Zeynep Çelik','9. Sınıf','','Karatay','Şemsitebrizi Mah.','Mevlana Cad.'],
+ ['Ad Soyad','Sinif','Telefon','Ilce','Mahalle','Sokak','Kapi No'],
+ ['Ayşe Yılmaz','10. Sınıf','0532 111 22 33','Selçuklu','Bosna Hersek Mah.','Osmanlı Cad.','14'],
+ ['Mehmet Kaya','7. Sınıf','0533 222 33 44','Meram','Durunday Mah.','Gençlik Cad.','7/A'],
+ ['Zeynep Çelik','9. Sınıf','','Karatay','Şemsitebrizi Mah.','Mevlana Cad.','22'],
  ]);
- ws1['!cols']=[{wch:22},{wch:12},{wch:18},{wch:14},{wch:25},{wch:22}];
+ ws1['!cols']=[{wch:22},{wch:12},{wch:18},{wch:14},{wch:25},{wch:22},{wch:10}];
  XLSX.utils.book_append_sheet(wb,ws1,'Ayrı Sütunlar');
- // Sayfa 2: Tek adres sütunu
+ // Sayfa 2: Tek adres sütunu (kapı no adres içine yazılabilir)
  var ws2=XLSX.utils.aoa_to_sheet([
  ['Ad Soyad','Sinif','Telefon','Adres'],
- ['Ayşe Yılmaz','10. Sınıf','0532 111 22 33','Bosna Hersek Mah. Osmanlı Cad. Selçuklu'],
- ['Mehmet Kaya','7. Sınıf','0533 222 33 44','Durunday Mah. Gençlik Cad. Meram'],
- ['Zeynep Çelik','9. Sınıf','','Şemsitebrizi Mah. Mevlana Cad. Karatay'],
+ ['Ayşe Yılmaz','10. Sınıf','0532 111 22 33','Bosna Hersek Mah. Osmanlı Cad. No:14 Selçuklu'],
+ ['Mehmet Kaya','7. Sınıf','0533 222 33 44','Durunday Mah. Gençlik Cad. No:7/A Meram'],
+ ['Zeynep Çelik','9. Sınıf','','Şemsitebrizi Mah. Mevlana Cad. No:22 Karatay'],
  ]);
- ws2['!cols']=[{wch:22},{wch:12},{wch:18},{wch:50}];
+ ws2['!cols']=[{wch:22},{wch:12},{wch:18},{wch:55}];
  XLSX.utils.book_append_sheet(wb,ws2,'Tek Adres');
  XLSX.writeFile(wb,'konseltur_sablonu.xlsx');
 }
@@ -9711,7 +9720,7 @@ async function saveStudentEdit(){
  const newSok = document.getElementById('se-sok').value.trim();
  const newNo = document.getElementById('se-no').value.trim();
 
- const adresDegistu = (newIlce && newIlce!==s.ilce) || (newMah && newMah!==s.mah) || (newSok && newSok!==s.sok);
+ const adresDegistu = (newIlce && newIlce!==s.ilce) || (newMah && newMah!==s.mah) || (newSok && newSok!==s.sok) || (newNo && newNo!==s.no);
 
  s.ilce = newIlce || s.ilce;
  s.mah  = newMah  || s.mah;
@@ -9730,7 +9739,7 @@ async function saveStudentEdit(){
 
  // Adres değiştiyse arka planda gerçek koordinat al (getCoord kullanma)
  if(adresDegistu){
-  const fullAddr = [s.sok, s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
+  const fullAddr = [s.sok, (s.no && s.no!=='–' ? 'No:'+s.no : ''), s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
   // Önce mahalle merkezine ayarla (anlık gösterim için)
   const fallback = getCoord(s.ilce, s.mah);
   s.lat = fallback.lat; s.lng = fallback.lng;
