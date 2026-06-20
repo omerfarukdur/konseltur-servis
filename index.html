@@ -9515,13 +9515,19 @@ function _bestMatchIlce(input){
  for(var i=0;i<valid.length;i++){
  if(_normalizeText(valid[i]) === norm) return valid[i];
  }
- // Başlangıç eşleşmesi
+ // İlçe adı, metin içinde KELİME SINIRIYLA geçiyor mu? (substring değil, tam kelime)
  for(var i=0;i<valid.length;i++){
- if(_normalizeText(valid[i]).startsWith(norm) || norm.startsWith(_normalizeText(valid[i]).substring(0,3))) return valid[i];
+ var vn = _normalizeText(valid[i]);
+ var idx = norm.indexOf(vn);
+ if(idx !== -1){
+ var before = idx>0 ? norm[idx-1] : ' ';
+ var after = idx+vn.length<norm.length ? norm[idx+vn.length] : ' ';
+ if(!/[a-z0-9]/.test(before) && !/[a-z0-9]/.test(after)) return valid[i];
  }
- // Benzerlik (2 harf fark toleransı)
+ }
+ // Benzerlik (yüksek eşik — yanlış pozitifleri önlemek için)
  for(var i=0;i<valid.length;i++){
- if(_stringSimilarity(norm, _normalizeText(valid[i])) > 0.6) return valid[i];
+ if(_stringSimilarity(norm, _normalizeText(valid[i])) > 0.75) return valid[i];
  }
  return input; // eşleşme yoksa olduğu gibi bırak
 }
@@ -9541,18 +9547,21 @@ function _bestMatchMahalle(ilce, input){
  var mNorm = _normalizeText(mahList[i]).replace(/\s*mah\.?\s*$/,'').trim();
  if(mNorm === normClean) return mahList[i];
  }
- // Başlangıç eşleşmesi (en az 4 karakter)
- if(normClean.length >= 4){
+ // Başlangıç eşleşmesi — sadece girdi yeterince uzunsa (yanlış pozitifi önlemek için min 6 karakter)
+ // ve YALNIZCA TEK bir mahalle eşleşiyorsa kabul et (birden fazla varsa belirsiz demektir, atla)
+ if(normClean.length >= 6){
+ var startMatches = [];
  for(var i=0;i<mahList.length;i++){
  var mNorm = _normalizeText(mahList[i]).replace(/\s*mah\.?\s*$/,'').trim();
- if(mNorm.startsWith(normClean) || normClean.startsWith(mNorm.substring(0,Math.min(4,mNorm.length)))) return mahList[i];
+ if(mNorm.startsWith(normClean) || normClean.startsWith(mNorm)) startMatches.push(mahList[i]);
  }
+ if(startMatches.length === 1) return startMatches[0];
  }
- // En benzer mahalle
+ // En benzer mahalle — eşik yükseltildi (yanlış pozitifi azaltmak için)
  var bestMatch = input, bestScore = 0;
  for(var i=0;i<mahList.length;i++){
  var score = _stringSimilarity(normClean, _normalizeText(mahList[i]).replace(/\s*mah\.?\s*$/,'').trim());
- if(score >bestScore && score > 0.55){ bestScore = score; bestMatch = mahList[i]; }
+ if(score >bestScore && score > 0.72){ bestScore = score; bestMatch = mahList[i]; }
  }
  return bestMatch;
 }
