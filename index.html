@@ -6688,7 +6688,7 @@ const LOCATIONIQ_VIEWBOX = '32.25,37.65,32.75,38.15';
 // Önce LocationIQ dener; API key yoksa veya hata olursa MAHALLES fallback
 // ============================================================
 const _geocodeCache = {};
-async function geocodeAddress(fullAddr, ilce){
+async function geocodeAddress(fullAddr, ilce, mah){
  const cacheKey = fullAddr.trim().toLowerCase();
  if(_geocodeCache[cacheKey]) return _geocodeCache[cacheKey];
 
@@ -6706,6 +6706,18 @@ async function geocodeAddress(fullAddr, ilce){
      const coord = {lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon), source:'locationiq'};
      // Konya sınırı içinde mi kontrol et
      if(coord.lat>=KONYA_SW[0]&&coord.lat<=KONYA_NE[0]&&coord.lng>=KONYA_SW[1]&&coord.lng<=KONYA_NE[1]){
+      // Sağlamlık kontrolü: bilinen mahalle merkezinden çok uzaksa (>4km) güvenilmez say
+      if(ilce && mah){
+       const mahCenter = getCoord(ilce, mah);
+       if(mahCenter && mahCenter.lat){
+        const dLat = coord.lat - mahCenter.lat, dLng = coord.lng - mahCenter.lng;
+        const distKm = Math.sqrt(dLat*dLat + dLng*dLng) * 111; // yaklaşık km
+        if(distKm > 4){
+         console.warn('Geocode sonucu mahalle merkezinden çok uzak ('+distKm.toFixed(1)+'km), reddedildi:', fullAddr);
+         return null;
+        }
+       }
+      }
       _geocodeCache[cacheKey] = coord;
       return coord;
      }
@@ -6728,14 +6740,14 @@ async function geocodeBatch(studentList){
 
   // 1. Önce orijinal tam adres metniyle dene (bina/apartman adı gibi detaylar burada olabilir)
   if(s.fullAddrOrig && s.fullAddrOrig.trim()){
-   try{ coord = await geocodeAddress(s.fullAddrOrig.trim(), s.ilce); }
+   try{ coord = await geocodeAddress(s.fullAddrOrig.trim(), s.ilce, s.mah); }
    catch(e){ console.warn('geocodeBatch (orijinal adres) hata ('+s.name+'):', e); }
    await new Promise(resolve=>setTimeout(resolve, 1100));
   }
   // 2. Bulunamadıysa ayrıştırılmış adresle dene
   if(!coord){
    const fullAddr = [s.sok, (s.no && s.no!=='–' ? 'No:'+s.no : ''), s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
-   try{ coord = await geocodeAddress(fullAddr, s.ilce); }
+   try{ coord = await geocodeAddress(fullAddr, s.ilce, s.mah); }
    catch(e){ console.warn('geocodeBatch hata ('+s.name+'):', e); }
    await new Promise(resolve=>setTimeout(resolve, 1100));
   }
@@ -6744,7 +6756,7 @@ async function geocodeBatch(studentList){
    const sokSade = s.sok.replace(/\b(sitesi|sitesi\.?|apartmani|apt\.?|residence|resd\.?|konutlari|plaza|park|towers?)\b.*$/i,'').trim();
    if(sokSade && sokSade.length>3 && sokSade!==s.sok){
     const fullAddr2 = [sokSade, s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
-    try{ coord = await geocodeAddress(fullAddr2, s.ilce); }
+    try{ coord = await geocodeAddress(fullAddr2, s.ilce, s.mah); }
     catch(e){ console.warn('geocodeBatch (sade sokak) hata ('+s.name+'):', e); }
     await new Promise(resolve=>setTimeout(resolve, 1100));
    }
@@ -7137,7 +7149,7 @@ function addStudent(){
  // Arka planda gerçek koordinat al (LocationIQ varsa)
  if(LOCATIONIQ_API_KEY && LOCATIONIQ_API_KEY !== 'BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN'){
   const fullAddr = [sok, (no && no!=='–' ? 'No:'+no : ''), mah, ilce, 'Konya'].filter(Boolean).join(', ');
-  geocodeAddress(fullAddr, ilce).then(coord=>{
+  geocodeAddress(fullAddr, ilce, mah).then(coord=>{
    if(!coord) return;
    const s = students.find(x=>x.id===newSid);
    if(s){ s.lat=coord.lat; s.lng=coord.lng; }
@@ -9741,7 +9753,7 @@ function importExcel(){
      if(!s) continue;
      const fullAddr = [s.sok, (s.no && s.no!=='–' ? 'No:'+s.no : ''), s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
      try{
-      const coord = await geocodeAddress(fullAddr, s.ilce);
+      const coord = await geocodeAddress(fullAddr, s.ilce, s.mah);
       if(coord){
        s.lat=coord.lat; s.lng=coord.lng;
        routes.forEach(r=>{ const rs=r.students.find(x=>x.id===sid); if(rs){rs.lat=coord.lat;rs.lng=coord.lng;} });
@@ -9845,7 +9857,7 @@ async function saveStudentEdit(){
   if(typeof renderMapLayers==='function') renderMapLayers();
   saveData();
   // Sonra LocationIQ ile gerçek koordinat al (varsa)
-  geocodeAddress(fullAddr, s.ilce).then(coord=>{
+  geocodeAddress(fullAddr, s.ilce, s.mah).then(coord=>{
    if(!coord) return;
    s.lat=coord.lat; s.lng=coord.lng;
    routes.forEach(r=>{ const rs=r.students.find(x=>x.id===s.id); if(rs){rs.lat=coord.lat;rs.lng=coord.lng;} });
