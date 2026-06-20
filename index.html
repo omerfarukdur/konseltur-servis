@@ -1641,7 +1641,7 @@ try{
 <body>
 
 <!-- SÜRÜM ETİKETİ - güncelleme kontrolü için -->
-<div id="app-version-badge" style="position:fixed;bottom:4px;right:4px;z-index:999999;background:rgba(0,0,0,.55);color:rgba(255,255,255,.45);font-size:9px;padding:2px 6px;border-radius:4px;font-family:monospace;pointer-events:none;user-select:none;">v2026.06.20-1</div>
+<div id="app-version-badge" style="position:fixed;bottom:4px;right:4px;z-index:999999;background:rgba(0,0,0,.55);color:rgba(255,255,255,.45);font-size:9px;padding:2px 6px;border-radius:4px;font-family:monospace;pointer-events:none;user-select:none;">v2026.06.20-2</div>
 <!-- ŞİFRE EKRANI -->
 <div id="password-screen" style="display:flex;position:fixed;inset:0;z-index:9999;background:var(--bg);align-items:center;justify-content:center;overflow:hidden;">
   <!-- arka plan -->
@@ -3797,6 +3797,12 @@ setInterval(updateLoginClock, 30000);
  <div>
  <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;">Rota Haritası</div>
  <div style="font-size:11px;color:var(--muted2);margin-top:1px;" id="map-subtitle">Rotalar yükleniyor...</div>
+ </div>
+ <div style="position:relative;">
+ <input type="text" id="map-student-search" placeholder="🔍 Öğrenci ara..." autocomplete="off"
+  oninput="mapSearchStudent(this.value)"
+  style="padding:6px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:'Outfit',sans-serif;width:180px;">
+ <div id="map-search-results" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--card);border:1px solid var(--border);border-radius:8px;width:260px;max-height:280px;overflow-y:auto;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,.4);"></div>
  </div>
  <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;align-items:center;">
  <!-- Filtre: tüm rotalar veya tek rota -->
@@ -10642,6 +10648,8 @@ function renderMapLayers(){
  if(!_map) return;
  // Eski katmanları temizle
  Object.values(_mapLayers).forEach(l=>{ if(l){ _map.removeLayer(l); } });
+ // Öğrenci arama için marker referans kaydı sıfırla
+ window._studentMarkers = {};
 
  const filterRouteId = _mapFilter === 'all' ? null : parseInt(_mapFilter);
  const activeRoutes = filterRouteId !== null
@@ -10692,9 +10700,14 @@ function renderMapLayers(){
  ${s.cls?`<span style="color:var(--muted2);">${escHtml(s.cls)}</span><br>`:''}
  ${s.ph?`<span style="color:var(--muted2);">📞 ${escHtml(s.ph)}</span><br>`:''}
  ${r.legs&&r.legs[idx+1]?`⏱ Alım: <strong>${r.legs[idx+1].pickupTime||'–'}</strong><br>`:''}
+ <div style="display:flex;gap:5px;margin-top:8px;">
+  <button onclick="openStudentEdit(${s.id})" style="flex:1;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif;">✏️ Düzenle</button>
+  <button onclick="startMoveStudent(${s.id}, ${r.id})" style="flex:1;padding:5px 8px;border-radius:6px;border:1px solid rgba(99,102,241,.4);background:rgba(99,102,241,.15);color:#a5b4fc;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif;">🚌 Servis Değiştir</button>
+ </div>
  <span style="font-size:10px;color:var(--muted2);opacity:.7;">📍 Konumu düzeltmek için sürükleyin</span>
  </div>`;
  const mk = L.marker([pos.lat,pos.lng],{icon, draggable:true, riseOnHover:true, riseOffset:1000}).bindPopup(pop).addTo(studGroup);
+ window._studentMarkers[s.id] = mk;
  mk.on('dragend', function(ev){
  const newPos = ev.target.getLatLng();
  s.lat = newPos.lat; s.lng = newPos.lng;
@@ -10719,8 +10732,13 @@ function renderMapLayers(){
  const popG = `<strong>${escHtml(s.name)}</strong><br><span style="color:var(--red)">Servis yok</span><br>
  <span style="color:var(--muted2);">${escHtml(s.ilce||'')} / ${escHtml(s.mah||'')}</span><br>
  ${s.ph?`<span style="color:var(--muted2);">📞 ${escHtml(s.ph)}</span><br>`:''}
+ <div style="display:flex;gap:5px;margin-top:8px;">
+  <button onclick="openStudentEdit(${s.id})" style="flex:1;padding:5px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);color:#fff;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif;">✏️ Düzenle</button>
+  <button onclick="startMoveStudent(${s.id}, null)" style="flex:1;padding:5px 8px;border-radius:6px;border:1px solid rgba(99,102,241,.4);background:rgba(99,102,241,.15);color:#a5b4fc;font-size:11px;cursor:pointer;font-family:Outfit,sans-serif;">🚌 Servise Ata</button>
+ </div>
  <span style="font-size:10px;color:var(--muted2);opacity:.7;">📍 Konumu düzeltmek için sürükleyin</span>`;
  const mkG = L.marker([s.lat,s.lng],{icon, draggable:true, riseOnHover:true, riseOffset:1000}).bindPopup(popG).addTo(studGroup);
+ window._studentMarkers[s.id] = mkG;
  mkG.on('dragend', function(ev){
  const newPos = ev.target.getLatLng();
  const orig = students.find(x=>x.id===s.id);
@@ -10826,6 +10844,70 @@ function mapFitAll(){
  _map.setView([37.8713,32.4846],13);
  }
 }
+
+// HARİTADA ÖĞRENCİ ARAMA
+function mapSearchStudent(query){
+ const box = document.getElementById('map-search-results');
+ if(!box) return;
+ const q = (query||'').trim();
+ if(q.length < 2){ box.style.display='none'; box.innerHTML=''; return; }
+
+ const norm = _normalizeText(q);
+ const matches = students.filter(s => _normalizeText(s.name||'').indexOf(norm) !== -1).slice(0, 15);
+
+ if(!matches.length){
+  box.style.display='block';
+  box.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--muted2);text-align:center;">Sonuç bulunamadı</div>';
+  return;
+ }
+
+ box.innerHTML = matches.map(s=>{
+  const rt = routes.find(r=>r.students.some(rs=>rs.id===s.id));
+  const servisHtml = rt
+   ? `<span style="font-size:10px;color:${rt.color};font-weight:600;">${escHtml(rt.label)}</span>`
+   : `<span style="font-size:10px;color:var(--red);font-weight:600;">Servis yok</span>`;
+  return `<div onclick="mapGoToStudent(${s.id})" style="padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='rgba(255,255,255,.05)'" onmouseout="this.style.background=''">
+   <div style="font-size:12px;font-weight:600;">${escHtml(s.name)}</div>
+   <div style="font-size:10px;color:var(--muted2);margin-top:2px;">${escHtml(s.ilce||'–')} / ${escHtml(s.mah||'–')} · ${servisHtml}</div>
+  </div>`;
+ }).join('');
+ box.style.display='block';
+}
+
+function mapGoToStudent(studentId){
+ const s = students.find(x=>x.id===studentId);
+ if(!s || !_map) return;
+
+ // Eğer öğrencinin rotası aktif filtre dışındaysa, filtreyi "Tüm Rotalar"a çek ki pin görünsün
+ const rt = routes.find(r=>r.students.some(rs=>rs.id===studentId));
+ const filterRouteId = _mapFilter==='all' ? null : parseInt(_mapFilter);
+ if(rt && filterRouteId!==null && filterRouteId!==rt.id){
+  _mapFilter = 'all';
+  const sel = document.getElementById('map-route-filter');
+  if(sel) sel.value = 'all';
+  renderMapLayers();
+ }
+
+ // Arama kutusunu temizle/kapat
+ document.getElementById('map-search-results').style.display='none';
+ document.getElementById('map-search-results').innerHTML='';
+ document.getElementById('map-student-search').value = s.name;
+
+ // Haritayı pin'e odakla ve popup'ı aç
+ _map.setView([s.lat, s.lng], 16, {animate:true});
+ setTimeout(()=>{
+  const mk = window._studentMarkers && window._studentMarkers[studentId];
+  if(mk) mk.openPopup();
+ }, 350);
+}
+
+// Arama kutusu dışına tıklayınca sonuç listesini kapat
+document.addEventListener('click', function(e){
+ const wrap = document.getElementById('map-student-search');
+ const box = document.getElementById('map-search-results');
+ if(!wrap || !box) return;
+ if(e.target!==wrap && !box.contains(e.target)){ box.style.display='none'; }
+});
 
 
 // 
