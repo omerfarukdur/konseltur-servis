@@ -1641,7 +1641,7 @@ try{
 <body>
 
 <!-- SÜRÜM ETİKETİ - güncelleme kontrolü için -->
-<div id="app-version-badge" style="position:fixed;bottom:4px;right:4px;z-index:999999;background:rgba(0,0,0,.55);color:rgba(255,255,255,.45);font-size:9px;padding:2px 6px;border-radius:4px;font-family:monospace;pointer-events:none;user-select:none;">v2026.06.20-2</div>
+<div id="app-version-badge" style="position:fixed;bottom:4px;right:4px;z-index:999999;background:rgba(0,0,0,.55);color:rgba(255,255,255,.45);font-size:9px;padding:2px 6px;border-radius:4px;font-family:monospace;pointer-events:none;user-select:none;">v2026.06.20-4</div>
 <!-- ŞİFRE EKRANI -->
 <div id="password-screen" style="display:flex;position:fixed;inset:0;z-index:9999;background:var(--bg);align-items:center;justify-content:center;overflow:hidden;">
   <!-- arka plan -->
@@ -3793,16 +3793,16 @@ setInterval(updateLoginClock, 30000);
 <div class="page-inner" style="padding:0;height:100%;display:flex;flex-direction:column;">
 
  <!-- Harita Araç Çubuğu -->
- <div style="padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg);z-index:10;flex-shrink:0;">
+ <div style="padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg);z-index:100000;position:relative;flex-shrink:0;">
  <div>
  <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;">Rota Haritası</div>
  <div style="font-size:11px;color:var(--muted2);margin-top:1px;" id="map-subtitle">Rotalar yükleniyor...</div>
  </div>
- <div style="position:relative;">
+  <div style="position:relative;z-index:100000;">
  <input type="text" id="map-student-search" placeholder="🔍 Öğrenci ara..." autocomplete="off"
   oninput="mapSearchStudent(this.value)"
   style="padding:6px 12px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;outline:none;font-family:'Outfit',sans-serif;width:180px;">
- <div id="map-search-results" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--card);border:1px solid var(--border);border-radius:8px;width:260px;max-height:280px;overflow-y:auto;z-index:1000;box-shadow:0 8px 24px rgba(0,0,0,.4);"></div>
+ <div id="map-search-results" style="display:none;position:absolute;top:100%;left:0;margin-top:4px;background:var(--card);border:1px solid var(--border);border-radius:8px;width:260px;max-height:280px;overflow-y:auto;z-index:100001;box-shadow:0 8px 24px rgba(0,0,0,.5);"></div>
  </div>
  <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap;align-items:center;">
  <!-- Filtre: tüm rotalar veya tek rota -->
@@ -10719,9 +10719,11 @@ function renderMapLayers(){
  });
  });
  });
- // Rotasız öğrenciler (gri)
+ // Rotasız öğrenciler (gri) — hem optimizasyonun çıkardığı hem hiç atanmamış öğrencileri kapsa
  if(filterRouteId===null){
- const incompat = window._incompatible||[];
+ const _activeSchIdx = getSchoolIdx(_activeSchoolKey);
+ // students dizisindeki GERÇEKTEN hiçbir rotada olmayan, aktif okula ait öğrencileri bul
+ const incompat = students.filter(s => !shownStudents.has(s.id) && s.school===_activeSchIdx);
  incompat.forEach(s=>{
  if(shownStudents.has(s.id)) return;
  const icon = L.divIcon({
@@ -10847,13 +10849,32 @@ function mapFitAll(){
 
 // HARİTADA ÖĞRENCİ ARAMA
 function mapSearchStudent(query){
- const box = document.getElementById('map-search-results');
+ let box = document.getElementById('map-search-results');
  if(!box) return;
+ // İlk kullanımda kutuyu body'e taşı — overflow:hidden/auto içeren ebeveynlerin
+ // arama sonuçlarını kırpmasını (clip) önler, harita üzerinde her zaman görünür kalır
+ if(box.parentElement !== document.body){
+  document.body.appendChild(box);
+  box.style.position = 'fixed';
+  box.style.zIndex = '999999';
+ }
+ const input = document.getElementById('map-student-search');
  const q = (query||'').trim();
+
+ const _positionBox = ()=>{
+  if(!input) return;
+  const r = input.getBoundingClientRect();
+  box.style.left = r.left + 'px';
+  box.style.top = (r.bottom + 4) + 'px';
+  box.style.width = Math.max(r.width, 260) + 'px';
+ };
+
  if(q.length < 2){ box.style.display='none'; box.innerHTML=''; return; }
+ _positionBox();
 
  const norm = _normalizeText(q);
- const matches = students.filter(s => _normalizeText(s.name||'').indexOf(norm) !== -1).slice(0, 15);
+ const _activeSchIdx = getSchoolIdx(_activeSchoolKey);
+ const matches = students.filter(s => s.school===_activeSchIdx && _normalizeText(s.name||'').indexOf(norm) !== -1).slice(0, 15);
 
  if(!matches.length){
   box.style.display='block';
@@ -10907,6 +10928,15 @@ document.addEventListener('click', function(e){
  const box = document.getElementById('map-search-results');
  if(!wrap || !box) return;
  if(e.target!==wrap && !box.contains(e.target)){ box.style.display='none'; }
+});
+// Scroll veya pencere boyutu değişince arama sonuç kutusunu kapat (pozisyon kayması olmasın)
+window.addEventListener('scroll', function(){
+ const box = document.getElementById('map-search-results');
+ if(box) box.style.display='none';
+}, true);
+window.addEventListener('resize', function(){
+ const box = document.getElementById('map-search-results');
+ if(box) box.style.display='none';
 });
 
 
