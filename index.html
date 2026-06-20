@@ -6698,7 +6698,7 @@ async function geocodeAddress(fullAddr, ilce){
    const url = 'https://us1.locationiq.com/v1/search?key='+LOCATIONIQ_API_KEY
     +'&q='+query
     +'&format=json&limit=1&countrycodes=tr'
-    +'&viewbox='+LOCATIONIQ_VIEWBOX+'&bounded=1';
+    +'&viewbox='+LOCATIONIQ_VIEWBOX+'&bounded=0';
    const res = await fetch(url);
    if(res.ok){
     const data = await res.json();
@@ -6719,22 +6719,47 @@ async function geocodeAddress(fullAddr, ilce){
 
 // Toplu geocoding — öğrenci importu veya "Koordinatları Yenile" sırasında
 async function geocodeBatch(studentList){
- if(!LOCATIONIQ_API_KEY || LOCATIONIQ_API_KEY==='BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN') return 0;
- let updated=0;
+ if(!LOCATIONIQ_API_KEY || LOCATIONIQ_API_KEY==='BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN') return {updated:0, apiOk:0, apiFailed:0};
+ let updated=0, apiOk=0, apiFailed=0;
  for(const s of studentList){
   if(!s.name) continue;
-  const fullAddr = [s.sok, (s.no && s.no!=='–' ? 'No:'+s.no : ''), s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
-  const coord = await geocodeAddress(fullAddr, s.ilce);
-  if(coord && (Math.abs(coord.lat - s.lat)>0.0001 || Math.abs(coord.lng - s.lng)>0.0001)){
-   s.lat = coord.lat; s.lng = coord.lng;
-   // Rotalardaki kopyaları da güncelle
-   routes.forEach(r=>{ const rs=r.students.find(x=>x.id===s.id); if(rs){rs.lat=coord.lat;rs.lng=coord.lng;} });
-   updated++;
+  let coord = null;
+  // 1. Önce orijinal tam adres metniyle dene (bina/apartman adı gibi detaylar burada olabilir)
+  if(s.fullAddrOrig && s.fullAddrOrig.trim()){
+   try{ coord = await geocodeAddress(s.fullAddrOrig.trim(), s.ilce); }
+   catch(e){ console.warn('geocodeBatch (orijinal adres) hata ('+s.name+'):', e); }
+   await new Promise(resolve=>setTimeout(resolve, 1100));
+  }
+  // 2. Bulunamadıysa ayrıştırılmış adresle dene
+  if(!coord){
+   const fullAddr = [s.sok, (s.no && s.no!=='–' ? 'No:'+s.no : ''), s.mah, s.ilce, 'Konya'].filter(Boolean).join(', ');
+   try{ coord = await geocodeAddress(fullAddr, s.ilce); }
+   catch(e){ console.warn('geocodeBatch hata ('+s.name+'):', e); }
+  }
+
+  if(coord){
+   apiOk++;
+   if(Math.abs(coord.lat - s.lat)>0.0001 || Math.abs(coord.lng - s.lng)>0.0001){
+    s.lat = coord.lat; s.lng = coord.lng;
+    routes.forEach(r=>{ const rs=r.students.find(x=>x.id===s.id); if(rs){rs.lat=coord.lat;rs.lng=coord.lng;} });
+    updated++;
+   }
+  } else {
+   // API adresi bulamadı — mahalle merkezine fallback (eski yanlış koordinatta kalmasın)
+   apiFailed++;
+   if(s.ilce && s.mah){
+    const fb = getCoord(s.ilce, s.mah);
+    if(Math.abs(fb.lat - s.lat)>0.0001 || Math.abs(fb.lng - s.lng)>0.0001){
+     s.lat = fb.lat; s.lng = fb.lng;
+     routes.forEach(r=>{ const rs=r.students.find(x=>x.id===s.id); if(rs){rs.lat=fb.lat;rs.lng=fb.lng;} });
+     updated++;
+    }
+   }
   }
   // LocationIQ rate limit: ücretsiz hesapta saniyede 1 istek
   await new Promise(resolve=>setTimeout(resolve, 1100));
  }
- return updated;
+ return {updated, apiOk, apiFailed};
 }
 
 let currentApp = 'rota';
@@ -9613,7 +9638,8 @@ function parseExcelFile(file){
  const fixedMah = _bestMatchMahalle(fixedIlce, mah);
  const c=getCoord(fixedIlce, fixedMah);
  var _wasFixed = (fixedIlce !== ilce || fixedMah !== mah);
- _excelRows.push({name,school,ilce:fixedIlce,mah:fixedMah,sok,no:kapiNo||'–',cls,ph,babaAdi,babaTel,anneAdi,anneTel,cinsiyet,servisNo,...c,_origIlce:_wasFixed?ilce:null,_origMah:_wasFixed?mah:null});
+ const fullAddrOrig = (row[col['adres']]||'').toString().trim();
+ _excelRows.push({name,school,ilce:fixedIlce,mah:fixedMah,sok,no:kapiNo||'–',cls,ph,babaAdi,babaTel,anneAdi,anneTel,cinsiyet,servisNo,fullAddrOrig,...c,_origIlce:_wasFixed?ilce:null,_origMah:_wasFixed?mah:null});
  }
  showExcelPreview(skip);
  }catch(err){toast('❌ Dosya okunamadı: '+err.message,'error');}
@@ -9655,7 +9681,7 @@ function importExcel(){
     lat = fb.lat; lng = fb.lng;
     needsGeocode.push(nSid); // bu öğrenci için geocoding kuyruğa alınacak
    }
-   students.push({id:nSid++, name:r.name, school:r.school, ilce:r.ilce, mah:r.mah, sok:r.sok||'', no:r.no||'–', cls:r.cls||'', ph:r.ph||'', babaAdi:r.babaAdi||'', babaTel:r.babaTel||'', anneAdi:r.anneAdi||'', anneTel:r.anneTel||'', cinsiyet:r.cinsiyet||'', servisNo:r.servisNo||'', lat:lat, lng:lng});
+   students.push({id:nSid++, name:r.name, school:r.school, ilce:r.ilce, mah:r.mah, sok:r.sok||'', no:r.no||'–', cls:r.cls||'', ph:r.ph||'', babaAdi:r.babaAdi||'', babaTel:r.babaTel||'', anneAdi:r.anneAdi||'', anneTel:r.anneTel||'', cinsiyet:r.cinsiyet||'', servisNo:r.servisNo||'', fullAddrOrig:r.fullAddrOrig||'', lat:lat, lng:lng});
   }
   _excelRows = [];
   updateAll(); saveData(); closeExcelModal();
@@ -11075,16 +11101,15 @@ async function refreshAllCoords(){
   if(btn){ btn.disabled=true; btn.textContent='⏳ Yenileniyor...'; }
 
   const useAPI = LOCATIONIQ_API_KEY && LOCATIONIQ_API_KEY !== 'BURAYA_KENDİ_API_ANAHTARINIZI_YAZIN';
-  let changed=0, apiUpdated=0;
+  let changed=0, apiOk=0, apiFailed=0;
 
   if(useAPI){
    toast('📍 LocationIQ ile TÜM öğrenciler yenileniyor... (bu biraz sürebilir)','info');
-   // Tüm öğrencileri güncelle (aktif okul filtresi yok)
-   apiUpdated = await geocodeBatch(students);
-   changed = apiUpdated;
+   const result = await geocodeBatch(students);
+   changed = result.updated; apiOk = result.apiOk; apiFailed = result.apiFailed;
   }
 
-  // Mahalle veritabanı fallback — koordinatı hâlâ mahalle merkezinde olanları güncelle
+  // Mahalle veritabanı fallback — API kullanılmıyorsa veya koordinat hâlâ boşsa
   students.forEach(s=>{
    if(!s.ilce || !s.mah) return;
    const c = getCoord(s.ilce, s.mah);
@@ -11105,7 +11130,7 @@ async function refreshAllCoords(){
   if(typeof renderMapLayers==='function') renderMapLayers();
 
   let msg = `📍 ${changed} öğrencinin koordinatı güncellendi`;
-  if(useAPI) msg += ` (${apiUpdated} gerçek adres koordinatı, kalan mahalle merkezi)`;
+  if(useAPI) msg += ` — ${apiOk} adres LocationIQ'da bulundu, ${apiFailed} adres bulunamadı (mahalle merkezine ayarlandı)`;
   else msg += ' (Mahalle merkezi · API key girerek kapı numarası hassasiyetinde koordinat alabilirsiniz)';
   toast(msg);
 
